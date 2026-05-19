@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "MGL Signal Trading Platform",
   "type": "module",
+  "engines": {
+    "node": "20.x"
+  },
   "main": "backend/server.js",
   "scripts": {
     "start": "node backend/server.js",
