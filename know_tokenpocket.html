@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TokenPocket Setup Guide - MGL Signal</title>
+    <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { 'dark': '#05070a', 'dark-blue': '#0f1217', 'gold': '#c5a059', 'border': '#1f242d' } },
+                    fontFamily: { 'inter': ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/main_style.css">
+</head>
+<body class="bg-brand-dark text-white font-inter flex flex-col min-h-screen">
+    <script src="/static/js/main_translate.js"></script>
+    <script src="/static/js/header.js"></script>
+
+    <main class="flex-grow pt-24 pb-12 px-6">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-16">
+                <h1 class="text-3xl md:text-5xl font-black uppercase tracking-tight text-white mb-4">
+                    TokenPocket <span class="text-brand-gold italic">Setup</span>
+                </h1>
+                <div class="w-20 h-1 bg-brand-gold mx-auto mt-6"></div>
+            </div>
+
+            <div class="bg-brand-dark-blue border border-brand-border rounded-xl p-8 md:p-12 shadow-2xl relative overflow-hidden">
+                <div class="relative z-10 space-y-8 text-gray-300 leading-relaxed">
+                    <h2 id="tp-intro-title" class="text-2xl font-bold text-white mb-4">TokenPocket хэтэвчийг хэрхэн бэлдэх вэ?</h2>
+                    <p class="text-sm">Global Nest Wings төсөлд оролцоход хамгийн тохиромжтой, аюулгүй хэтэвч бол TokenPocket юм. Энэхүү заавраар хэрхэн шинэ хэтэвч нээх талаар үзэх болно.</p>
+
+                    <div class="space-y-8">
+                        <div class="border-l-2 border-brand-gold pl-6">
+                            <h3 class="text-lg font-bold text-white mb-2 uppercase">Алхам 1: Аппликейшн татах</h3>
+                            <p class="text-sm">App Store эсвэл Google Play-ээс <b>TokenPocket</b> гэж хайгаад суулгана уу. Эсвэл <a href="https://www.tokenpocket.pro/" target="_blank" class="text-brand-gold underline">tokenpocket.pro</a> хаягаар зочилно уу.</p>
+                        </div>
+
+                        <div class="border-l-2 border-brand-gold pl-6">
+                            <h3 class="text-lg font-bold text-white mb-2 uppercase">Алхам 2: Сүлжээ сонгох</h3>
+                            <p class="text-sm">"No Account" дээр дараад <b>Binance Smart Chain (BSC)</b> сүлжээг сонгоно уу. Энэ нь бидний ашиглах BEP20 сүлжээ юм.</p>
+                        </div>
+
+                        <div class="border-l-2 border-brand-gold pl-6">
+                            <h3 class="text-lg font-bold text-white mb-2 uppercase">Алхам 3: Хэтэвч үүсгэх</h3>
+                            <p class="text-sm">"Create Wallet" товчийг дарж, хэтэвчиндээ нэр өгөөд, аюулгүй нууц үг зохионо уу.</p>
+                        </div>
+
+                        <div class="border-l-2 border-brand-gold pl-6">
+                            <h3 class="text-lg font-bold text-white mb-2 uppercase">Алхам 4: Recovery Phrase нөөцлөх</h3>
+                            <p class="text-sm">Танд 12 үгтэй "Secret Recovery Phrase" гарч ирнэ. Үүнийг цаасан дээр бичиж аваад маш сайн нууцална уу.</p>
+                            <div class="bg-red-900/20 border border-red-500/30 p-4 rounded-lg mt-3">
+                                <p class="text-red-400 text-xs font-bold"><i class="fas fa-exclamation-triangle mr-2"></i>САНАМЖ: Энэ 12 үгийг хэнд ч бүү өг. Хэрэв гээвэл хөрөнгөө хэзээ ч сэргээж чадахгүй.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-12 pt-8 border-t border-brand-border flex justify-between items-center">
+                    <a href="main_knowledge.html" class="text-gray-500 hover:text-white text-xs font-bold uppercase tracking-widest flex items-center transition">
+                        <i class="fas fa-arrow-left mr-2"></i> Back to Knowledge Base
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="/static/js/footer.js"></script>
+    <script src="/static/lock.js"></script>
+    <script>
+        // Олон хэлний текстийг энд нэмж болно
+        document.addEventListener('DOMContentLoaded', () => {
+            const lang = localStorage.getItem('lang') || 'mn';
+            const texts = {
+                en: {
+                    introTitle: "How to prepare TokenPocket wallet?",
+                    step1: "Step 1: Download App",
+                    step1Desc: "Search for TokenPocket in App Store or Google Play and install it.",
+                    step2: "Step 2: Choose Network",
+                    step2Desc: "Click 'No Account' and select 'Binance Smart Chain (BSC)'.",
+                    step3: "Step 3: Create Wallet",
+                    step3Desc: "Click 'Create Wallet', name your wallet, and set a strong password.",
+                    step4: "Step 4: Backup Phrase",
+                    step4Desc: "Save your 12-word recovery phrase securely. NEVER share it with anyone.",
+                    warning: "WARNING: If you lose these 12 words, you lose your funds forever."
+                },
+                mn: {
+                    introTitle: "TokenPocket хэтэвчийг хэрхэн бэлдэх вэ?",
+                    step1: "Алхам 1: Аппликейшн татах",
+                    step2: "Алхам 2: Сүлжээ сонгох",
+                    step3: "Алхам 3: Хэтэвч үүсгэх",
+                    step4: "Алхам 4: Recovery Phrase нөөцлөх"
+                }
+            };
+            
+            const updateContent = (l) => {
+                if (l === 'en') {
+                    document.getElementById('tp-intro-title').textContent = texts.en.introTitle;
+                    // Бусад текстүүдийг ID-аар нь солино
+                }
+            };
+            updateContent(lang);
+            const originalChangeLang = window.changeLang;
+            window.changeLang = function(l) {
+                if (originalChangeLang) originalChangeLang(l);
+                updateContent(l);
+            };
+        });
+    </script>
+</body>
+</html>

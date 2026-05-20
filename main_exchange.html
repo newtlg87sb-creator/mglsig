@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binance Spot Market - MGL Signal</title>
+
+    <meta name="description" content="Real-time Binance Spot market data with network information for each cryptocurrency.">
+    <meta name="keywords" content="Binance, Spot Market, Crypto Exchange, Real-time prices, Network info, BEP20, ERC20, MGL Signal">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://mglsignal.com/main_exchange.html"> 
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 'dark': '#05070a', 'dark-blue': '#0f1217', 'gold': '#c5a059', 'border': '#1f242d' }
+                    },
+                    fontFamily: { 'inter': ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/static/main_style.css">
+</head>
+<body class="bg-brand-dark text-white font-inter flex flex-col min-h-screen">
+
+    <script src="/static/js/main_translate.js"></script>
+    <script src="/static/js/header.js"></script>
+
+    <main class="flex-grow pt-24 pb-12 px-6">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-16">
+                <h1 data-i18n="exchange-page-title" class="text-3xl md:text-5xl font-black uppercase tracking-tight text-white mb-4">
+                    Binance Spot <span class="text-brand-gold italic">Market</span>
+                </h1>
+                <p data-i18n="exchange-subtitle" class="text-gray-400 max-w-2xl mx-auto">Бодит цагийн үнэ болон сүлжээний мэдээлэл.</p>
+                <div class="w-20 h-1 bg-brand-gold mx-auto mt-6"></div>
+            </div>
+
+            <div class="bg-brand-dark-blue border border-brand-border rounded-xl overflow-hidden shadow-2xl">
+                <table class="w-full text-left">
+                    <thead class="bg-black/40 text-[10px] font-black uppercase tracking-widest text-gray-500 border-b border-brand-border">
+                        <tr>
+                            <th class="p-4" data-i18n="exchange-table-symbol">Symbol (Click for Networks)</th>
+                            <th class="p-4" data-i18n="exchange-table-last">Last Price</th>
+                            <th class="p-4" data-i18n="exchange-table-bid">Bid (Sell)</th>
+                            <th class="p-4" data-i18n="exchange-table-ask">Ask (Buy)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="binance-spot-table-body" class="text-xs">
+                        <tr>
+                            <td colspan="4" class="p-4 text-center text-gray-500 italic">
+                                <span data-i18n="exchange-table-loading"><i class="fas fa-spinner fa-spin mr-2"></i> Loading Binance data... Please wait.</span>
+                            </td>
+                        </tr>
+                        <!-- Data loaded via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Network Info Modal -->
+    <div id="network-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/90 backdrop-blur-sm px-4">
+        <div class="bg-brand-dark-blue border border-brand-gold rounded-2xl p-6 md:p-8 max-w-md w-full relative shadow-2xl transform scale-100 transition-all">
+            <button onclick="document.getElementById('network-modal').classList.add('hidden')" class="absolute top-4 right-4 text-gray-500 hover:text-white transition">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <div class="text-center mb-6">
+                <h3 data-i18n="exchange-network-modal-title" class="text-xl font-black text-white uppercase tracking-wider mb-2">Network Information</h3>
+                <p id="modal-coin-symbol" class="text-brand-gold text-sm font-bold uppercase"></p>
+            </div>
+
+            <div id="modal-network-details" class="space-y-4 text-sm text-gray-300">
+                <!-- Network details will be injected here -->
+                <p class="text-center text-gray-500 italic">No network information available for this coin.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/footer.js"></script>
+    <script src="/static/lock.js"></script>
+    <script src="/static/js/exchange_dashboard.js"></script>
+</body>
+</html>

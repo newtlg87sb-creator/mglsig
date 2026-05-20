@@ -91,6 +91,18 @@
 
     <script src="/static/js/header.js"></script>
 
+    <!-- Live Trade Status Indicator -->
+    <div class="fixed top-[92px] right-6 z-40">
+        <a href="live_trade.html" class="flex items-center space-x-3 bg-brand-dark-blue/80 backdrop-blur-md border border-brand-border hover:border-brand-gold transition-all px-4 py-2.5 rounded-xl group shadow-2xl">
+            <span class="flex h-2 w-2 relative">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            </span>
+            <span data-i18n="trade-status-msg" class="text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-white transition-colors">Нээлттэй арилжаа явагдаж байна:</span>
+            <span data-i18n="trade-status-opened" class="text-[9px] font-black bg-green-500 text-black px-2 py-0.5 rounded uppercase tracking-tighter shadow-lg shadow-green-500/20">OPENED</span>
+        </a>
+    </div>
+
     <header class="hero-bg min-h-screen flex flex-col justify-center items-center text-center pt-24 px-4">
         <h1 class="text-5xl md:text-8xl font-extrabold mb-8 tracking-tighter leading-tight text-white drop-shadow-lg">
             <span data-i18n="hero-title1">TRADE WITH</span> <br> 
@@ -219,7 +231,7 @@
                     </p>
                     
                     <div class="grid grid-cols-2 gap-4 mb-10">
-                        <div class="flex items-center text-[11px] text-gray-300 font-bold"><i class="fas fa-shield-alt text-[#f3ba2f] mr-2"></i> <span data-i18n="feat-high-sec">High Security</span></div>
+                        <div class="flex items-center text-[11px] text-gray-300 font-bold"><i class="fas fa-shield-alt text-[#f3ba2f] mr-2"></i> <span data-i18n="feat-high-sec">Өндөр Аюулгүй Байдал</span></div>
                         <div class="flex items-center text-[11px] text-gray-300 font-bold"><i class="fas fa-coins text-[#f3ba2f] mr-2"></i> <span data-i18n="feat-low-fee">Lowest Fees</span></div>
                         <div class="flex items-center text-[11px] text-gray-300 font-bold"><i class="fas fa-bolt text-[#f3ba2f] mr-2"></i> <span data-i18n="feat-fast-trade">Fast Trading</span></div>
                         <div class="flex items-center text-[11px] text-gray-300 font-bold"><i class="fas fa-globe text-[#f3ba2f] mr-2"></i> <span data-i18n="feat-p2p">P2P Support</span></div>
@@ -255,8 +267,8 @@
                     </p>
 
                     <div class="grid grid-cols-2 gap-4 mb-10">
-                        <div class="flex items-center text-[11px] text-gray-300 font-bold"><i class="fas fa-leaf text-[#24ae8f] mr-2"></i> <span data-i18n="feat-min-entry">Min Entry $1</span></div>
-                        <div class="flex items-center text-[11px] text-gray-300 font-bold"><i class="fas fa-gem text-[#24ae8f] mr-2"></i> <span data-i18n="feat-new-gems">Hidden Gems</span></div>
+                        <div class="flex items-center text-[11px] text-gray-300 font-bold"><i class="fas fa-leaf text-[#24ae8f] mr-2"></i> <span data-i18n="feat-min-entry">Бага дүнгээр эхлэх</span></div>
+                        <div class="flex items-center text-[11px] text-gray-300 font-bold"><i class="fas fa-gem text-[#24ae8f] mr-2"></i> <span data-i18n="feat-new-gems">Шинэ 'Gem' койнууд</span></div>
                         <div class="flex items-center text-[11px] text-gray-300 font-bold"><i class="fas fa-robot text-[#24ae8f] mr-2"></i> <span data-i18n="feat-trading-bot">Trading Bots</span></div>
                         <div class="flex items-center text-[11px] text-gray-300 font-bold"><i class="fas fa-user-graduate text-[#24ae8f] mr-2"></i> <span data-i18n="feat-easy-ui">Simple UI</span></div>
                     </div>
