@@ -198,38 +198,73 @@
         </div>
     </section>
 
-    <section class="py-12 px-6">
-        <div class="max-w-7xl mx-auto">
-            <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#0b0e11] to-[#1e2329] border border-[#f3ba2f]/20 p-8 md:p-12">
-                <div class="absolute top-0 right-0 w-64 h-64 bg-[#f3ba2f] opacity-5 blur-[100px] -mr-32 -mt-32"></div>
+    <section class="py-16 px-6 bg-brand-dark">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- Improved Binance Card -->
+            <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0b0e11] to-[#1e2329] border border-[#f3ba2f]/10 p-8 md:p-10 group hover:border-[#f3ba2f]/30 transition-all duration-500 shadow-2xl">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-[#f3ba2f] opacity-[0.03] blur-[100px] -mr-32 -mt-32 group-hover:opacity-[0.07] transition-opacity"></div>
                 
-                <div class="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
-                    <div class="flex-1 text-center md:text-left">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e8/Binance_Logo.svg" alt="Binance Logo" class="h-8 mb-6 mx-auto md:mx-0">
-                        <h2 class="text-2xl md:text-4xl font-bold text-white mb-4">
-                            Binance - <span class="text-[#f3ba2f]" data-i18n="binance-title">Дэлхийн #1 Крипто бирж</span>
-                        </h2>
-                        <p class="text-gray-400 text-sm md:text-base max-w-xl leading-relaxed mb-8" data-i18n="binance-desc">
-                            Binance-ээр криптог хялбар, аюулгүй, найдвартай арилжаалаарай. Дэлхий даяар сая сая хүн итгэдэг.
-                        </p>
-                        <a href="https://www.binance.com/join?ref=I921NTOR" target="_blank" class="inline-flex items-center bg-[#f3ba2f] text-black px-8 py-3.5 rounded-lg font-bold text-sm hover:bg-[#e2ad24] transition-all transform hover:scale-105 shadow-lg shadow-[#f3ba2f]/10">
-                            <span data-i18n="binance-btn">Арилжааг эхлүүлэх</span>
-                            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                        </a>
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-8">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e8/Binance_Logo.svg" alt="Binance" class="h-7 opacity-90 group-hover:opacity-100 transition-opacity">
+                        <span class="text-[9px] font-black bg-[#f3ba2f]/10 text-[#f3ba2f] px-3 py-1 rounded-full uppercase tracking-widest border border-[#f3ba2f]/20">World No. 1</span>
+                    </div>
+                    
+                    <h2 class="text-2xl md:text-3xl font-black text-white mb-4 leading-tight">
+                        Binance - <span class="text-[#f3ba2f]" data-i18n="binance-title">Дэлхийн #1 Крипто бирж</span>
+                    </h2>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-8 max-w-md" data-i18n="binance-desc">
+                        Binance-ээр криптог хялбар, аюулгүй, найдвартай арилжаалаарай. Дэлхий даяар сая сая хүн итгэдэг.
+                    </p>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-10">
+                        <div class="flex items-center text-[11px] text-gray-300 font-bold"><i class="fas fa-shield-alt text-[#f3ba2f] mr-2"></i> <span data-i18n="feat-high-sec">High Security</span></div>
+                        <div class="flex items-center text-[11px] text-gray-300 font-bold"><i class="fas fa-coins text-[#f3ba2f] mr-2"></i> <span data-i18n="feat-low-fee">Lowest Fees</span></div>
+                        <div class="flex items-center text-[11px] text-gray-300 font-bold"><i class="fas fa-bolt text-[#f3ba2f] mr-2"></i> <span data-i18n="feat-fast-trade">Fast Trading</span></div>
+                        <div class="flex items-center text-[11px] text-gray-300 font-bold"><i class="fas fa-globe text-[#f3ba2f] mr-2"></i> <span data-i18n="feat-p2p">P2P Support</span></div>
                     </div>
 
-                    <div class="hidden lg:block">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-white/5 p-4 rounded-xl border border-white/10 text-center w-32">
-                                <span class="text-[#f3ba2f] block text-xl mb-1"><i class="fab fa-bitcoin"></i></span>
-                                <span class="text-[10px] text-gray-500 font-bold uppercase">Bitcoin</span>
+                    <a href="https://www.binance.com/join?ref=I921NTOR" target="_blank" class="inline-flex w-full items-center justify-center bg-[#f3ba2f] text-black px-8 py-4 rounded-xl font-black text-sm hover:bg-white transition-all transform hover:scale-[1.02] shadow-xl shadow-[#f3ba2f]/10 uppercase tracking-widest">
+                        <span data-i18n="binance-btn">Арилжааг эхлүүлэх</span>
+                        <i class="fas fa-arrow-right ml-3"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- New KuCoin Card -->
+            <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0b0e11] to-[#111c24] border border-[#24ae8f]/10 p-8 md:p-10 group hover:border-[#24ae8f]/30 transition-all duration-500 shadow-2xl">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-[#24ae8f] opacity-[0.03] blur-[100px] -mr-32 -mt-32 group-hover:opacity-[0.07] transition-opacity"></div>
+                
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-8">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 bg-[#24ae8f] rounded-lg flex items-center justify-center">
+                                <i class="fas fa-coins text-white text-xs"></i>
                             </div>
-                            <div class="bg-white/5 p-4 rounded-xl border border-white/10 text-center w-32 mt-4">
-                                <span class="text-[#f3ba2f] block text-xl mb-1"><i class="fab fa-ethereum"></i></span>
-                                <span class="text-[10px] text-gray-500 font-bold uppercase">Ethereum</span>
-                            </div>
+                            <span class="text-xl font-black text-white tracking-tighter uppercase">KuCoin</span>
                         </div>
+                        <span class="text-[9px] font-black bg-[#24ae8f]/10 text-[#24ae8f] px-3 py-1 rounded-full uppercase tracking-widest border border-[#24ae8f]/20">People's Exchange</span>
                     </div>
+                    
+                    <h2 class="text-2xl md:text-3xl font-black text-white mb-4 leading-tight">
+                        <span class="text-[#24ae8f]" data-i18n="kucoin-title">KuCoin - Эхлэгчдэд хамгийн ээлтэй</span>
+                    </h2>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-8 max-w-md" data-i18n="kucoin-desc">
+                        Хамгийн бага дүнгээр ($1) арилжаа хийх боломж болон шинэ койнуудыг түрүүлж авах хамгийн том боломж.
+                    </p>
+
+                    <div class="grid grid-cols-2 gap-4 mb-10">
+                        <div class="flex items-center text-[11px] text-gray-300 font-bold"><i class="fas fa-leaf text-[#24ae8f] mr-2"></i> <span data-i18n="feat-min-entry">Min Entry $1</span></div>
+                        <div class="flex items-center text-[11px] text-gray-300 font-bold"><i class="fas fa-gem text-[#24ae8f] mr-2"></i> <span data-i18n="feat-new-gems">Hidden Gems</span></div>
+                        <div class="flex items-center text-[11px] text-gray-300 font-bold"><i class="fas fa-robot text-[#24ae8f] mr-2"></i> <span data-i18n="feat-trading-bot">Trading Bots</span></div>
+                        <div class="flex items-center text-[11px] text-gray-300 font-bold"><i class="fas fa-user-graduate text-[#24ae8f] mr-2"></i> <span data-i18n="feat-easy-ui">Simple UI</span></div>
+                    </div>
+
+                    <a href="https://www.kucoin.com/r/rf/CXE345F6" target="_blank" class="inline-flex w-full items-center justify-center bg-[#24ae8f] text-white px-8 py-4 rounded-xl font-black text-sm hover:bg-white hover:text-[#24ae8f] transition-all transform hover:scale-[1.02] shadow-xl shadow-[#24ae8f]/10 uppercase tracking-widest">
+                        <span data-i18n="kucoin-btn">KuCoin-д нэгдэх</span>
+                        <i class="fas fa-rocket ml-3"></i>
+                    </a>
                 </div>
             </div>
         </div>
