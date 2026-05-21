@@ -181,14 +181,15 @@ async function fetchKucoinSpotData() {
     if (!isKucoinScanning) return;
     
     try {
-        // Гадны прокси биш, өөрийн бичсэн /api/ хаягийг ашиглана
         const response = await fetch('/api/arbitrage');
         
-        if (!response.ok) throw new Error(`API error: ${response.status}. Run 'vercel dev' locally.`);
+        if (!response.ok) {
+             addKucoinLog(`⚠️ Сервер түр саатлаа (${response.status}). Дахин оролдож байна...`);
+             return;
+        }
 
         const result = await response.json();
-
-        if (result && result.data) {
+        if (result && Array.isArray(result.data)) {
             // api/arbitrage.js-ээс ирж буй өгөгдлийн бүтцэд тааруулж форматлах
             const newData = result.data.filter(item => item.k).map(item => ({
                 symbol: item.symbol,

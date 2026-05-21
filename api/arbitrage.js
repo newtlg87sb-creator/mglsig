@@ -9,13 +9,22 @@ export default async function handler(req, res) {
         kucoin: 'https://api.kucoin.com/api/v1/market/allTickers'
     };
 
+    const safeFetch = async (url, defaultVal) => {
+        try {
+            const r = await fetch(url);
+            if (!r.ok) return defaultVal;
+            return await r.json();
+        } catch (e) {
+            return defaultVal;
+        }
+    };
+
     try {
-        // Fetch all data in parallel with error recovery
         const [bRes, mRes, byRes, kRes] = await Promise.all([
-            fetch(EXCHANGES.binance).then(r => r.json()).catch(() => []),
-            fetch(EXCHANGES.mexc).then(r => r.json()).catch(() => []),
-            fetch(EXCHANGES.bybit).then(r => r.json()).catch(() => ({ result: { list: [] } })),
-            fetch(EXCHANGES.kucoin).then(r => r.json()).catch(() => ({ data: { ticker: [] } }))
+            safeFetch(EXCHANGES.binance, []),
+            safeFetch(EXCHANGES.mexc, []),
+            safeFetch(EXCHANGES.bybit, { result: { list: [] } }),
+            safeFetch(EXCHANGES.kucoin, { data: { ticker: [] } })
         ]);
 
         // Ensure we have arrays to prevent .filter/.map crashes if an API returns an error object
@@ -31,6 +40,11 @@ export default async function handler(req, res) {
             kucoin: kData,
             lastUpdate: new Date()
         };
+
+        // Хэрэв Binance-аас дата ирээгүй бол алдаа өгөхгүйгээр хоосон буцаах
+        if (marketData.binance.length === 0) {
+            return res.status(200).json({ data: [], message: "No data from Binance" });
+        }
 
         // Use Maps for O(1) lookups to prevent execution timeouts on Vercel
         const mPool = new Map(marketData.mexc.map(t => [t.symbol, t]));
