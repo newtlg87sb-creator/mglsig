@@ -34,7 +34,7 @@ async function updateMarketDataCache() {
         };
 
         if (supabase && state.marketData.binance.length > 0) {
-            await supabase.from('market_snapshots').insert([{ data: state.marketData, created_at: new Date() }]);
+            await supabase.from('market_data').insert([{ data: state.marketData, created_at: new Date() }]);
         }
     } catch (error) {
         console.error(`Market Service Fetch error: ${error.message}`);
