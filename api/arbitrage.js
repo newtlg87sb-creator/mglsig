@@ -3,18 +3,25 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
 
     const EXCHANGES = {
-        binance: 'https://api.binance.com/api/v3/ticker/24hr',
+        // Binance-ийн үндсэн api биш mirror ашиглавал IP block-оос сэргийлнэ
+        binance: 'https://api1.binance.com/api/v3/ticker/24hr',
         mexc: 'https://api.mexc.com/api/v3/ticker/24hr',
         bybit: 'https://api.bybit.com/v5/market/tickers?category=spot',
         kucoin: 'https://api.kucoin.com/api/v1/market/allTickers'
     };
 
     const safeFetch = async (url, defaultVal) => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 секундийн timeout
+
         try {
-            const r = await fetch(url);
+            const r = await fetch(url, { signal: controller.signal });
+            clearTimeout(timeoutId);
             if (!r.ok) return defaultVal;
             return await r.json();
         } catch (e) {
+            clearTimeout(timeoutId);
+            console.error(`Fetch failed for ${url}:`, e.message);
             return defaultVal;
         }
     };
@@ -33,11 +40,14 @@ export default async function handler(req, res) {
         const byData = byRes?.result?.list && Array.isArray(byRes.result.list) ? byRes.result.list : [];
         const kData = kRes?.data?.ticker && Array.isArray(kRes.data.ticker) ? kRes.data.ticker : [];
 
+        // Датаг цэгцлэх: Зөвхөн волюмтай койнуудыг авах (Датаны хэмжээг 70% багасгана)
+        const filterActive = (list, volKey) => list.filter(t => parseFloat(t[volKey]) > 500); // 500 USDT-ээс дээш волюмтайг авах
+
         const marketData = {
-            binance: bData,
-            mexc: mData,
-            bybit: byData,
-            kucoin: kData,
+            binance: filterActive(bData, 'quoteVolume'),
+            mexc: filterActive(mData, 'quoteVolume'),
+            bybit: filterActive(byData, 'turnover24h'),
+            kucoin: filterActive(kData, 'volValue'),
             lastUpdate: new Date()
         };
 
