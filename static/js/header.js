@@ -249,9 +249,9 @@ async function checkUserLogin() {
             if (session && session.user) {
                 const user = session.user;
                 
-                // Профайл хүснэгтээс мэдээлэл татах (RLS асаалттай байх ёстой)
+                // Профайл хүснэгтээс мэдээлэл татах
                 const { data: profile, error: profileError } = await sb
-                    .from('User control') // Хүснэгтийн нэр зөв эсэхийг шалгаарай (User control эсвэл Users control)
+                    .from('User control')
                     .select('username, membership_type, membership_expires_at')
                     .eq('id', user.id)
                     .maybeSingle(); // .single() ашиглавал өгөгдөл байхгүй үед алдаа заадаг

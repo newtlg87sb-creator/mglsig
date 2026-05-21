@@ -34,7 +34,33 @@ async function updateMarketDataCache() {
         };
 
         if (supabase && state.marketData.binance.length > 0) {
-            await supabase.from('market_data').insert([{ data: state.marketData, created_at: new Date() }]);
+            // KuCoin Intelligence хүснэгтэд зориулж датаг мөр бүрээр форматлах
+            const records = state.marketData.kucoin.map(k => {
+                const symbol = k.symbol.replace('-', '');
+                const b = state.marketData.binance.find(t => t.symbol === symbol);
+                
+                const bid = parseFloat(k.buy) || 0;
+                const ask = parseFloat(k.sell) || 0;
+
+                return {
+                    symbol: k.symbol, // Жишээ нь: BTC-USDT
+                    bid: bid,
+                    ask: ask,
+                    spread: bid > 0 ? ((ask - bid) / bid) * 100 : 0,
+                    min_usdt: 1.0,
+                    volume: parseFloat(k.volValue) || 0,
+                    real_change: b ? parseFloat(b.priceChangePercent) : 0,
+                    change_24h: (parseFloat(k.changeRate) || 0) * 100,
+                    updated_at: new Date()
+                };
+            }).filter(r => r.volume > 1000); // Зөвхөн идэвхтэй арилжааг авах
+
+            // Датаг Upsert хийх (Байвал шинэчилнэ, байхгүй бол нэмнэ)
+            const { error } = await supabase
+                .from('market_data')
+                .upsert(records, { onConflict: 'symbol' });
+
+            if (error) console.error("Supabase Sync Error:", error.message);
         }
     } catch (error) {
         console.error(`Market Service Fetch error: ${error.message}`);
