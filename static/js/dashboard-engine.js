@@ -21,7 +21,7 @@ function showTool(toolId) {
     if (window.kucoinSpotInterval) clearInterval(window.kucoinSpotInterval); // Clear new interval
 
     if (toolId === 'arbitrage') {
-        toolTitle.innerHTML = 'Arbitrage <span class="text-brand-gold">Scanner</span>';
+        toolTitle.innerHTML = 'Arbitrage <span class="text-brand-gold">Price Comparison</span>';
         contentArea.innerHTML = `
             <!-- Search Section -->
             <div class="mb-4 glass-card p-4 rounded-xl border border-brand-border flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -39,7 +39,7 @@ function showTool(toolId) {
                         <option value="100000">$100K+</option>
                     </select>
                 </div>
-                <div class="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em] hidden md:block">Real-time Multi-Exchange Spread</div>
+                <div class="text-[10px] text-brand-gold font-black uppercase tracking-[0.2em] hidden md:block italic">Buy Low / Sell High Signal</div>
             </div>
 
             <div class="glass-card rounded-2xl overflow-hidden shadow-2xl">
@@ -58,7 +58,7 @@ function showTool(toolId) {
                     <tbody id="arbitrage-table-body" class="text-xs">
                         <tr>
                             <td colspan="7" class="p-4 text-center text-gray-500 italic">
-                                <i class="fas fa-spinner fa-spin mr-2"></i> Loading arbitrage data... Please wait.
+                                <i class="fas fa-spinner fa-spin mr-2"></i> Comparing exchange prices...
                             </td>
                         </tr>
                         <!-- Data loaded via JS -->
@@ -70,13 +70,13 @@ function showTool(toolId) {
         if (window.arbInterval) clearInterval(window.arbInterval);
         window.arbInterval = setInterval(fetchArbitrageData, 15000);
     } else if (toolId === 'kucoin_spot') {
-        toolTitle.innerHTML = 'KuCoin <span class="text-brand-gold">Spot Live</span>';
+        toolTitle.innerHTML = 'KuCoin <span class="text-brand-gold">Partner Exchange</span>';
         contentArea.innerHTML = `
             <div class="flex flex-col lg:flex-row gap-6 h-[calc(100vh-250px)] animate-in fade-in duration-500">
                 <!-- Left Panel: Logs (Python-той адил) -->
                 <div class="w-full lg:w-1/3 flex flex-col gap-3">
                     <div class="flex items-center justify-between px-2">
-                        <h3 class="text-[10px] font-black text-brand-gold uppercase tracking-widest">KUCOIN LOGS</h3>
+                        <h3 class="text-[10px] font-black text-brand-gold uppercase tracking-widest">EXCHANGE LOGS</h3>
                         <span id="kucoin-status-badge" class="text-[9px] px-2 py-0.5 rounded bg-red-500/20 text-red-400 font-bold uppercase">Stopped</span>
                     </div>
                     <div id="kucoin-logs" class="flex-1 bg-black border border-brand-border rounded-xl p-4 font-mono text-[10px] text-green-500 overflow-y-auto shadow-inner">
@@ -88,7 +88,7 @@ function showTool(toolId) {
                 <div class="w-full lg:w-2/3 flex flex-col gap-4">
                     <div class="flex flex-col sm:flex-row gap-4">
                         <button id="btn-kucoin-toggle" onclick="toggleKucoinScan()" class="flex-1 bg-[#009292] hover:opacity-90 text-white font-black py-4 rounded-xl transition-all uppercase text-xs tracking-widest shadow-lg">
-                            START KUCOIN LIST
+                            CONNECT TO KUCOIN
                         </button>
                         <div class="relative flex-1">
                             <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
