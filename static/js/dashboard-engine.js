@@ -43,27 +43,29 @@ function showTool(toolId) {
             </div>
 
             <div class="glass-card rounded-2xl overflow-hidden shadow-2xl">
-                <table class="w-full text-left">
-                    <thead class="bg-black/40 text-[10px] font-black uppercase tracking-widest text-gray-500 border-b border-brand-border">
-                        <tr>
-                            <th class="p-4">Asset (USDT)</th>
-                            <th class="p-4">Binance</th>
-                            <th class="p-4">MEXC</th>
-                            <th class="p-4">Bybit</th>
-                            <th class="p-4">KuCoin</th>
-                            <th class="p-4">Spread</th>
-                            <th class="p-4 text-right">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="arbitrage-table-body" class="text-xs">
-                        <tr>
-                            <td colspan="7" class="p-4 text-center text-gray-500 italic">
-                                <i class="fas fa-spinner fa-spin mr-2"></i> Comparing exchange prices...
-                            </td>
-                        </tr>
-                        <!-- Data loaded via JS -->
-                    </tbody>
-                </table>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left min-w-[800px] md:min-w-0">
+                        <thead class="bg-black/40 text-[10px] font-black uppercase tracking-widest text-gray-500 border-b border-brand-border">
+                            <tr>
+                                <th class="p-4">Asset (USDT)</th>
+                                <th class="p-4">Binance</th>
+                                <th class="p-4">MEXC</th>
+                                <th class="p-4">Bybit</th>
+                                <th class="p-4">KuCoin</th>
+                                <th class="p-4">Spread</th>
+                                <th class="p-4 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="arbitrage-table-body" class="text-xs">
+                            <tr>
+                                <td colspan="7" class="p-4 text-center text-gray-500 italic">
+                                    <i class="fas fa-spinner fa-spin mr-2"></i> Comparing exchange prices...
+                                </td>
+                            </tr>
+                            <!-- Data loaded via JS -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         `;
         fetchArbitrageData();
@@ -108,25 +110,27 @@ function showTool(toolId) {
                     </div>
 
                     <div class="glass-card rounded-2xl overflow-hidden shadow-2xl flex-1 flex flex-col min-h-0">
-                        <div class="overflow-y-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead class="sticky top-0 bg-black/80 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-gray-500 border-b border-brand-border z-10">
-                                    <tr>
-                                        <th class="p-4 border-r border-brand-border/30">Symbol</th>
-                                        <th class="p-4">Last Price</th>
-                                        <th class="p-4">Bid (Sell)</th>
-                                        <th class="p-4">Ask (Buy)</th>
-                                        <th class="p-4 text-right">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="exchange-spot-table-body" class="text-xs">
-                                    <tr>
-                                        <td colspan="5" class="p-12 text-center text-gray-600 font-bold uppercase tracking-widest italic">
-                                            Press START to fetch market data
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <div class="overflow-x-auto overflow-y-auto">
+                            <div class="min-w-[600px] md:min-w-0">
+                                <table class="w-full text-left border-collapse">
+                                    <thead class="sticky top-0 bg-black/80 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-gray-500 border-b border-brand-border z-10">
+                                        <tr>
+                                            <th class="p-4 border-r border-brand-border/30">Symbol</th>
+                                            <th class="p-4">Last Price</th>
+                                            <th class="p-4">Bid (Sell)</th>
+                                            <th class="p-4">Ask (Buy)</th>
+                                            <th class="p-4 text-right">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="exchange-spot-table-body" class="text-xs">
+                                        <tr>
+                                            <td colspan="5" class="p-12 text-center text-gray-600 font-bold uppercase tracking-widest italic">
+                                                Press START to fetch market data
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>

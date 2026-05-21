@@ -27,16 +27,16 @@
         .sidebar-item:hover:not(.active-link) { background: rgba(240, 185, 11, 0.1); color: #f0b90b; }
     </style>
 </head>
-<body class="bg-brand-dark text-white min-h-screen overflow-hidden">
+<body class="bg-brand-dark text-white min-h-screen md:overflow-hidden">
 
     <!-- Global Header Integration -->
     <script src="/static/js/main_translate.js"></script>
     <script src="/static/js/header.js"></script>
 
-    <div class="flex h-screen pt-[84px]"> <!-- Header-ийн өндөртэй тааруулж (Donate bar 28px + Nav 56px) pt-[84px] болгов -->
+    <div class="flex h-auto md:h-[calc(100vh-84px)] pt-[84px]"> <!-- Өндрийг динамикаар тохируулав -->
 
     <!-- Sidebar -->
-    <aside class="w-64 border-r border-brand-border flex flex-col h-full bg-brand-dark-blue">
+    <aside class="w-64 border-r border-brand-border hidden md:flex flex-col h-full bg-brand-dark-blue flex-shrink-0">
         <div class="p-6 text-xl font-black tracking-tighter italic">PRO <span class="text-brand-gold">DASHBOARD</span></div>
         
         <nav class="flex-1 px-4 space-y-2 mt-4 font-bold text-xs uppercase tracking-wider text-gray-400">
@@ -73,7 +73,7 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 overflow-y-auto p-8 relative">
+    <main class="flex-1 overflow-y-auto p-4 md:p-8 relative">
         <div id="update-alert-placeholder"></div>
         
         <header class="flex justify-between items-center mb-8">
