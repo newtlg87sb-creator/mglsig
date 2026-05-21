@@ -1,6 +1,8 @@
 window.arbInterval = window.arbInterval || null;
 window.detailInterval = window.detailInterval || null;
 window.exchangeSpotInterval = window.exchangeSpotInterval || null;
+window.marketIntelInterval = window.marketIntelInterval || null;
+window.marketIntelChannel = window.marketIntelChannel || null;
 let lastExchangeSpotData = []; 
 let isExchangeScanning = false;
 let currentExchange = ''; // 'binance', 'mexc', 'bybit', 'kucoin'
@@ -19,6 +21,11 @@ function showTool(toolId) {
     if (window.arbInterval) clearInterval(window.arbInterval);
     if (window.detailInterval) clearInterval(window.detailInterval);
     if (window.exchangeSpotInterval) clearInterval(window.exchangeSpotInterval);
+    if (window.marketIntelInterval) clearInterval(window.marketIntelInterval);
+    if (window.marketIntelChannel) {
+        if (typeof sb !== 'undefined' && sb) sb.removeChannel(window.marketIntelChannel);
+        window.marketIntelChannel = null;
+    }
 
     if (toolId === 'arbitrage') {
         toolTitle.innerHTML = 'Arbitrage <span class="text-brand-gold">Price Comparison</span>';
@@ -71,6 +78,52 @@ function showTool(toolId) {
         fetchArbitrageData();
         if (window.arbInterval) clearInterval(window.arbInterval);
         window.arbInterval = setInterval(fetchArbitrageData, 15000);
+    } else if (toolId === 'market_intelligence') {
+        toolTitle.innerHTML = 'KuCoin <span class="text-brand-gold">Market Intelligence</span>';
+        contentArea.innerHTML = `
+            <div class="mb-4 glass-card p-4 rounded-xl border border-brand-border flex justify-between items-center">
+                <p class="text-[10px] text-gray-500 font-black uppercase tracking-widest italic">Powered by Railway VPS & Supabase Realtime</p>
+                <div id="sync-status" class="text-[9px] font-bold text-green-400 uppercase flex items-center">
+                    <span class="w-1.5 h-1.5 bg-green-400 rounded-full mr-2 animate-pulse"></span> Synchronized
+                </div>
+            </div>
+            <div class="glass-card rounded-2xl overflow-hidden shadow-2xl">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left min-w-[1000px]">
+                        <thead class="bg-black/40 text-[10px] font-black uppercase tracking-widest text-gray-500 border-b border-brand-border">
+                            <tr>
+                                <th class="p-4">#</th>
+                                <th class="p-4">Asset</th>
+                                <th class="p-4">Bid</th>
+                                <th class="p-4">Ask</th>
+                                <th class="p-4">Spread%</th>
+                                <th class="p-4">Min $</th>
+                                <th class="p-4">Volume</th>
+                                <th class="p-4">Real%</th>
+                                <th class="p-4">24h%</th>
+                                <th class="p-4 text-right">Updated At</th>
+                            </tr>
+                        </thead>
+                        <tbody id="market-data-body" class="text-[11px] font-mono">
+                            <tr><td colspan="10" class="p-12 text-center text-gray-500 italic">Connecting to Supabase...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+        
+        fetchMarketIntelligenceData();
+        
+        // Setup Realtime if Supabase (sb) is available
+        if (typeof sb !== 'undefined' && sb) {
+            window.marketIntelChannel = sb.channel('market_changes')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'market_data' }, (payload) => {
+                    fetchMarketIntelligenceData();
+                })
+                .subscribe();
+        }
+        
+        window.marketIntelInterval = setInterval(fetchMarketIntelligenceData, 10000);
     } else if (toolId.endsWith('_spot')) {
         const exchangeId = toolId.replace('_spot', '');
         currentExchange = exchangeId;
@@ -274,4 +327,55 @@ function renderExchangeSpotTable() {
             </tr>
         `;
     }).join('');
+}
+
+async function fetchMarketIntelligenceData() {
+    const tableBody = document.getElementById('market-data-body');
+    if (!tableBody || typeof sb === 'undefined' || !sb) return;
+
+    try {
+        const { data, error } = await sb
+            .from('market_data')
+            .select('*')
+            .order('volume', { ascending: false });
+
+        if (error) throw error;
+
+        if (data) {
+            tableBody.innerHTML = data.map((row, index) => {
+                const realChangeClass = row.real_change >= 0 ? 'text-green-500' : 'text-red-500';
+                const change24hClass = row.change_24h >= 0 ? 'text-green-500' : 'text-red-500';
+                const spreadClass = row.spread > 0.3 ? 'text-brand-gold' : 'text-gray-400';
+                
+                // Reusing formatters from arbitrage-scanner.js if available
+                const pF = typeof formatArbPrice === 'function' ? formatArbPrice : (v) => v.toFixed(6);
+                const vF = typeof formatVol === 'function' ? formatVol : (v) => (v / 1000000).toFixed(2) + 'M';
+
+                return `
+                    <tr class="border-b border-brand-border hover:bg-white/5 transition-colors">
+                        <td class="p-4 text-gray-600 font-bold">${index + 1}</td>
+                        <td class="p-4 font-black text-white italic">${row.symbol}</td>
+                        <td class="p-4 text-gray-400">$${pF(row.bid)}</td>
+                        <td class="p-4 text-gray-400">$${pF(row.ask)}</td>
+                        <td class="p-4 font-bold ${spreadClass}">${row.spread.toFixed(2)}%</td>
+                        <td class="p-4 text-brand-gold/80">$${row.min_usdt.toFixed(4)}</td>
+                        <td class="p-4 text-gray-400">${vF(row.volume)}</td>
+                        <td class="p-4 font-bold ${realChangeClass}">${row.real_change.toFixed(2)}%</td>
+                        <td class="p-4 font-bold ${change24hClass}">${row.change_24h.toFixed(2)}%</td>
+                        <td class="p-4 text-right text-[10px] text-gray-600">
+                            ${new Date(row.updated_at).toLocaleTimeString('en-GB', { hour12: false })}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            
+            const statusBadge = document.getElementById('sync-status');
+            if (statusBadge) {
+                statusBadge.innerHTML = `<span class="w-1.5 h-1.5 bg-green-400 rounded-full mr-2"></span> Updated ${new Date().toLocaleTimeString('en-GB', { hour12: false })}`;
+            }
+        }
+    } catch (error) {
+        console.error('Supabase fetch error:', error);
+        if (tableBody) tableBody.innerHTML = `<tr><td colspan="10" class="p-8 text-center text-red-500 font-bold uppercase">Sync Error: ${error.message}</td></tr>`;
+    }
 }

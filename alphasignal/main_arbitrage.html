@@ -47,6 +47,9 @@
                 <a href="#" onclick="showTool('arbitrage')" id="link-arbitrage" class="sidebar-item flex items-center p-3 rounded-lg transition-all active-link">
                     <i class="fas fa-exchange-alt mr-3"></i> Arbitrage Scanner
                 </a>
+                <a href="#" onclick="showTool('market_intelligence')" id="link-market_intelligence" class="sidebar-item flex items-center p-3 rounded-lg transition-all hover:text-brand-gold">
+                    <i class="fas fa-brain mr-3"></i> KuCoin Intelligence
+                </a>
             </div>
 
             <!-- Referral/Exchange Section -->
@@ -98,7 +101,15 @@
     <script src="/static/js/dashboard-engine.js"></script>    
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            showTool('arbitrage');
+            // Check URL parameters for specific tool
+            const urlParams = new URLSearchParams(window.location.search);
+            const tool = urlParams.get('tool');
+            
+            if (tool && ['arbitrage', 'market_intelligence', 'binance_spot', 'mexc_spot', 'bybit_spot', 'kucoin_spot'].includes(tool)) {
+                showTool(tool);
+            } else {
+                showTool('arbitrage');
+            }
             if (typeof fetchMarketOverview === 'function') fetchMarketOverview();
         });
     </script>
