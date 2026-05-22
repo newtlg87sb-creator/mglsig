@@ -3,99 +3,235 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KuCoin Live Dashboard</title>
+    <title>KuCoin Pro Terminal - MGL Signal</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background-color: #0f172a; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; }
-        .container { max-width: 1200px; margin: auto; }
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #1e293b; padding-bottom: 10px; }
-        h1 { color: #38bdf8; font-size: 24px; margin: 0; }
-        .status { font-size: 14px; color: #22c55e; }
-        
-        table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 8px; overflow: hidden; }
-        th { background-color: #334155; color: #94a3b8; text-align: left; padding: 12px; font-size: 13px; text-transform: uppercase; }
-        td { padding: 12px; border-bottom: 1px solid #0f172a; font-family: 'Consolas', monospace; }
-        tr:hover { background-color: #334155; }
-        
-        .up { color: #22c55e; }
-        .down { color: #ef4444; }
-        .gold { color: #fbbf24; }
-        .sky { color: #38bdf8; }
+        body { background-color: #05070a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+        .terminal-table { border-collapse: separate; border-spacing: 0; width: 100%; }
+        .terminal-table th { position: sticky; top: 0; background: #1e293b; z-index: 40; border-bottom: 2px solid #0f172a; }
+        .group-header { background: #1e293b; color: #fbbf24; font-weight: 900; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; }
+        .news-scroll::-webkit-scrollbar { width: 4px; }
+        .news-scroll::-webkit-scrollbar-track { background: #0f172a; }
+        .news-scroll::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+        tr:nth-child(even) { background-color: rgba(30, 41, 59, 0.3); }
+        .cell-mono { font-family: 'JetBrains Mono', 'Consolas', monospace; font-size: 13px; }
     </style>
 </head>
-<body>
-    <div class="container">
-        <header>
-            <h1>📡 LIVE MARKET TERMINAL</h1>
-            <div class="status" id="last-sync">Синхрончилж байна...</div>
+<body class="p-4 md:p-6">
+    <div class="max-w-[1400px] mx-auto space-y-4">
+        
+        <!-- Top Control Bar -->
+        <header class="bg-[#0f172a] border border-[#1e293b] p-4 rounded-xl flex flex-col md:flex-row justify-between items-center gap-4 shadow-2xl">
+            <div class="flex items-center space-x-4">
+                <h1 class="text-xl font-black text-[#38bdf8] tracking-tighter uppercase flex items-center">
+                    <i class="fas fa-microchip mr-3 animate-pulse"></i> KuCoin Terminal
+                </h1>
+                <div id="sentiment-badge" class="px-3 py-1 rounded bg-[#1e293b] border border-[#334155] text-[10px] font-black uppercase">
+                    📡 Scanning...
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Search -->
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+                    <input type="text" id="symbol-search" placeholder="Search Symbols..." class="bg-[#05070a] border border-[#334155] rounded-lg py-1.5 pl-9 pr-4 text-xs focus:border-[#38bdf8] outline-none transition w-44">
+                </div>
+
+                <!-- Hide Filters -->
+                <div class="flex bg-[#05070a] border border-[#334155] rounded-lg p-0.5">
+                    <button onclick="toggleHide('low-vol')" id="btn-low-vol" class="px-3 py-1 rounded text-[9px] font-bold uppercase transition bg-[#334155] text-white">Hide Low Vol</button>
+                    <button onclick="toggleHide('high-spr')" id="btn-high-spr" class="px-3 py-1 rounded text-[9px] font-bold uppercase transition bg-[#334155] text-white ml-1">Hide Spread</button>
+                </div>
+
+                <div id="last-sync" class="text-[10px] font-mono text-gray-500">Initializing...</div>
+            </div>
         </header>
 
-        <table id="market-table">
-            <thead>
-                <tr>
-                    <th>Coin</th>
-                    <th>Ask Price</th>
-                    <th>Spread</th>
-                    <th>Real%</th>
-                    <th>1h%</th>
-                    <th>24h%</th>
-                    <th>Volume</th>
-                </tr>
-            </thead>
-            <tbody id="market-body">
-                <!-- Өгөгдөл энд орж ирнэ -->
-            </tbody>
-        </table>
+        <!-- Main Table Area -->
+        <div class="bg-[#0f172a] border border-[#1e293b] rounded-xl overflow-hidden shadow-2xl overflow-x-auto news-scroll" style="max-height: calc(100vh - 180px);">
+            <table class="terminal-table text-left">
+                <thead>
+                    <tr class="text-[10px] text-gray-400 uppercase font-black tracking-widest">
+                        <th class="p-4 w-12 text-center">#</th>
+                        <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('symbol')">Symbol <i class="fas fa-sort ml-1"></i></th>
+                        <th class="p-4">Bid Price</th>
+                        <th class="p-4">Ask Price</th>
+                        <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('spread')">Spread <i class="fas fa-sort ml-1"></i></th>
+                        <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('real_change')">Real% <i class="fas fa-sort ml-1"></i></th>
+                        <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('h1_change')">1H% <i class="fas fa-sort ml-1"></i></th>
+                        <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('change_24h')">24H% <i class="fas fa-sort ml-1"></i></th>
+                        <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('volume')">Volume <i class="fas fa-sort ml-1"></i></th>
+                    </tr>
+                </thead>
+                <tbody id="market-body" class="cell-mono">
+                    <!-- Data rows injected by JS -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer Totals -->
+        <footer class="bg-[#1e293b] border border-[#334155] p-3 rounded-xl grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div class="border-r border-[#334155]">
+                <p class="text-[9px] text-gray-500 uppercase font-black">Total Market Gain (Real%)</p>
+                <p id="total-real" class="text-lg font-black text-white">0.00%</p>
+            </div>
+            <div class="border-r border-[#334155] hidden md:block">
+                <p class="text-[9px] text-gray-500 uppercase font-black">Avg 1H Change</p>
+                <p id="total-h1" class="text-lg font-black text-white">0.00%</p>
+            </div>
+            <div class="border-r border-[#334155] hidden md:block">
+                <p class="text-[9px] text-gray-500 uppercase font-black">24H Performance</p>
+                <p id="total-24h" class="text-lg font-black text-white">0.00%</p>
+            </div>
+            <div>
+                <p class="text-[9px] text-gray-500 uppercase font-black">Active Terminal Status</p>
+                <p class="text-sm font-black text-[#22c55e] uppercase">Live Sync Online</p>
+            </div>
+        </footer>
     </div>
 
     <script>
-        // 1. Өөрийн Supabase мэдээллээ энд оруул
         const SUPABASE_URL = "https://bsdkbxyjwjljximdxdst.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzZGtieHlqd2psanhpbWR4ZHN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzODg1MTQsImV4cCI6MjA5MDk2NDUxNH0.Qwfpd0cEaAKwlv5B-Uh0MlTLR-WH8qt19HHlTxUnUYs";
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        let allData = [];
+        let currentSort = { col: 'real_change', desc: true };
+        let hideSettings = { lowVol: true, highSpr: true };
+        const blacklist = ['LUNC-USDT', 'USTC-USDT']; // Example blacklist
+
+        function toggleHide(type) {
+            if(type === 'low-vol') hideSettings.lowVol = !hideSettings.lowVol;
+            if(type === 'high-spr') hideSettings.highSpr = !hideSettings.highSpr;
+            
+            document.getElementById('btn-low-vol').className = `px-3 py-1 rounded text-[9px] font-bold uppercase transition ${hideSettings.lowVol ? 'bg-[#334155] text-white' : 'bg-[#05070a] text-gray-500 border border-[#334155]'}`;
+            document.getElementById('btn-high-spr').className = `px-3 py-1 rounded text-[9px] font-bold uppercase transition ${hideSettings.highSpr ? 'bg-[#334155] text-white' : 'bg-[#05070a] text-gray-500 border border-[#334155]'}`;
+            
+            renderUI();
+        }
+
+        function updateSort(col) {
+            if(currentSort.col === col) currentSort.desc = !currentSort.desc;
+            else { currentSort.col = col; currentSort.desc = true; }
+            renderUI();
+        }
+
         async function fetchMarketData() {
             try {
-                // Supabase-ээс бүх өгөгдлийг татах (Real% -аар эрэмбэлэх жишээ)
-                const { data, error } = await supabaseClient
-                    .from('market_data')
-                    .select('*')
-                    .order('real_change', { ascending: false });
-
-                if (error) {
-                    console.error("Supabase Error:", error.message);
-                    return;
-                }
-
-                const tbody = document.getElementById('market-body');
-                tbody.innerHTML = '';
-
-                data.forEach(coin => {
-                    const row = document.createElement('tr');
-                    
-                    // Өнгөний логик
-                    const realClass = coin.real_change >= 0 ? 'up gold' : 'down';
-                    const h1Class = coin.h1_change >= 0 ? 'up sky' : 'down';
-                    const ch24Class = coin.change_24h >= 0 ? 'up' : 'down';
-                    const sprClass = coin.spread > 0.5 ? 'gold' : '';
-
-                    row.innerHTML = `
-                        <td style="font-weight: bold;">${coin.symbol}</td>
-                        <td>${coin.ask.toFixed(8)}</td>
-                        <td class="${sprClass}">${coin.spread.toFixed(2)}%</td>
-                        <td class="${realClass}">${coin.real_change > 0 ? '+' : ''}${coin.real_change.toFixed(2)}%</td>
-                        <td class="${h1Class}">${coin.h1_change > 0 ? '+' : ''}${coin.h1_change.toFixed(2)}%</td>
-                        <td class="${ch24Class}">${coin.change_24h > 0 ? '+' : ''}${coin.change_24h.toFixed(2)}%</td>
-                        <td style="color: #94a3b8;">${formatVol(coin.volume)}</td>
-                    `;
-                    tbody.appendChild(row);
-                });
-
+                const { data, error } = await supabaseClient.from('market_data').select('*');
+                if (error) throw error;
+                allData = data;
+                renderUI();
                 document.getElementById('last-sync').innerText = "Last Sync: " + new Date().toLocaleTimeString();
+            } catch (err) { console.error("Fetch Error:", err); }
+        }
 
-            } catch (err) {
-                console.error("Error fetching data:", err);
-            }
+        function renderUI() {
+            const tbody = document.getElementById('market-body');
+            const search = document.getElementById('symbol-search').value.toUpperCase();
+            
+            // 1. Filter & Sort
+            let filtered = allData.filter(d => d.symbol.includes(search));
+            
+            // Sort logic
+            filtered.sort((a, b) => {
+                let vA = a[currentSort.col], vB = b[currentSort.col];
+                return currentSort.desc ? (vB > vA ? 1 : -1) : (vA > vB ? 1 : -1);
+            });
+
+            // 2. Categorization Logic from coins_market.py
+            const groups = {
+                ST: { title: "🚫 BLACKLISTED / ST RISK", list: [], color: "bg-[#7f1d1d]" },
+                HIGH_SPR: { title: "⚠️ HIGH SPREAD (>0.3%)", list: [], color: "bg-[#92400e]" },
+                LOW_VOL: { title: "📉 VOLUME LOW (<30K)", list: [], color: "bg-[#4c1d95]" },
+                MARKET: { title: "📊 MARKET LIST", list: [], color: "bg-[#334155]" }
+            };
+
+            filtered.forEach(d => {
+                if (blacklist.includes(d.symbol)) groups.ST.list.push(d);
+                else if (d.spread > 0.3) { if(!hideSettings.highSpr) groups.HIGH_SPR.list.push(d); }
+                else if (d.volume < 30000) { if(!hideSettings.lowVol) groups.LOW_VOL.list.push(d); }
+                else groups.MARKET.list.push(d);
+            });
+
+            // 3. Generate HTML
+            tbody.innerHTML = '';
+            let idx = 1;
+            let totals = { real: 0, h1: 0, c24: 0, ups: 0, dns: 0 };
+
+            Object.values(groups).forEach(g => {
+                if (g.list.length === 0) return;
+
+                // Group Header
+                const hRow = document.createElement('tr');
+                hRow.innerHTML = `<td colspan="9" class="group-header p-2 px-4 ${g.color}">${g.title} (${g.list.length})</td>`;
+                tbody.appendChild(hRow);
+
+                g.list.forEach(d => {
+                    const rRow = document.createElement('tr');
+                    rRow.className = "hover:bg-[#1e293b] transition duration-150";
+                    
+                    const realColor = d.real_change >= 0 ? 'text-[#fbbf24]' : 'text-[#ef4444]';
+                    const h1Color = d.h1_change >= 0 ? 'text-[#38bdf8]' : 'text-[#fb7185]';
+                    const chColor = d.change_24h >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]';
+                    
+                    rRow.innerHTML = `
+                        <td class="p-3 text-center text-gray-600 text-[10px] border-b border-[#1e293b]">${idx++}</td>
+                        <td class="p-3 font-bold text-white border-b border-[#1e293b]">${d.symbol}</td>
+                        <td class="p-3 text-gray-400 border-b border-[#1e293b]">${d.bid.toFixed(8)}</td>
+                        <td class="p-3 text-white border-b border-[#1e293b]">${d.ask.toFixed(8)}</td>
+                        <td class="p-3 ${d.spread > 1.0 ? 'text-[#fbbf24]' : 'text-gray-400'} border-b border-[#1e293b]">${d.spread.toFixed(2)}%</td>
+                        <td class="p-3 font-bold ${realColor} border-b border-[#1e293b]">${d.real_change > 0 ? '+' : ''}${d.real_change.toFixed(2)}%</td>
+                        <td class="p-3 font-bold ${h1Color} border-b border-[#1e293b]">${d.h1_change > 0 ? '+' : ''}${d.h1_change.toFixed(2)}%</td>
+                        <td class="p-3 font-bold ${chColor} border-b border-[#1e293b]">${d.change_24h > 0 ? '+' : ''}${d.change_24h.toFixed(2)}%</td>
+                        <td class="p-3 text-gray-500 border-b border-[#1e293b]">${formatVol(d.volume)}</td>
+                    `;
+                    tbody.appendChild(rRow);
+
+                    // Update totals for footer
+                    totals.real += d.real_change;
+                    totals.h1 += d.h1_change;
+                    totals.c24 += d.change_24h;
+                    if(d.real_change > 0.5) totals.ups++;
+                    if(d.real_change < -0.5) totals.dns++;
+                });
+            });
+
+            updateSentiment(totals);
+            updateFooter(totals, filtered.length);
+        }
+
+        function updateSentiment(t) {
+            const badge = document.getElementById('sentiment-badge');
+            let text, color;
+            
+            if (t.ups > t.dns * 3 && t.ups > 5) { text = "🚀 Strong Bull"; color = "text-[#22c55e] border-[#22c55e]/30 bg-[#22c55e]/10"; }
+            else if (t.ups > t.dns * 1.5) { text = "📈 Bullish"; color = "text-[#4ade80] border-[#4ade80]/30 bg-[#4ade80]/10"; }
+            else if (t.dns > t.ups * 1.5) { text = "📉 Bearish"; color = "text-[#f87171] border-[#f87171]/30 bg-[#f87171]/10"; }
+            else { text = "⚖️ Flat Market"; color = "text-gray-400 border-gray-400/30 bg-gray-400/10"; }
+
+            badge.className = `px-3 py-1 rounded border text-[10px] font-black uppercase transition-all duration-500 ${color}`;
+            badge.innerText = `${text} (U:${t.ups} D:${t.dns})`;
+        }
+
+        function updateFooter(t, count) {
+            if(count === 0) return;
+            const avgReal = t.real / count;
+            const avgH1 = t.h1 / count;
+            const avg24 = t.c24 / count;
+
+            const setVal = (id, val) => {
+                const el = document.getElementById(id);
+                el.innerText = `${val > 0 ? '+' : ''}${val.toFixed(2)}%`;
+                el.className = `text-lg font-black ${val >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]'}`;
+            };
+
+            setVal('total-real', avgReal);
+            setVal('total-h1', avgH1);
+            setVal('total-24h', avg24);
         }
 
         function formatVol(vol) {
@@ -104,9 +240,10 @@
             return vol.toFixed(0);
         }
 
-        // 5 секунд тутамд өгөгдлийг шинэчлэх
-        setInterval(fetchMarketData, 5000);
+        document.getElementById('symbol-search').addEventListener('input', renderUI);
+        
         fetchMarketData();
+        setInterval(fetchMarketData, 5000);
     </script>
 </body>
 </html>
