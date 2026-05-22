@@ -62,7 +62,10 @@
                     .select('*')
                     .order('real_change', { ascending: false });
 
-                if (error) throw error;
+                if (error) {
+                    console.error("Supabase Error:", error.message);
+                    return;
+                }
 
                 const tbody = document.getElementById('market-body');
                 tbody.innerHTML = '';

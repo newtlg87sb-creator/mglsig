@@ -2,7 +2,7 @@ import ccxt
 import time
 import os
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from supabase import create_client, Client
 
 # Railway-ийн Environment Variables-д эдгээрийг тохируулах хэрэгтэй
@@ -95,7 +95,7 @@ def run_engine():
                     "real_change": round(real_change, 2),
                     "h1_change": round(h1_change, 2),
                     "change_24h": round(ch_24, 2),
-                    "updated_at": datetime.now().isoformat()
+                    "updated_at": datetime.now(timezone.utc).isoformat()
                 })
 
             # Supabase-д БӨӨНӨӨР нь хадгалах (Upsert)

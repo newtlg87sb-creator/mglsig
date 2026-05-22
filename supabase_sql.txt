@@ -1,0 +1,21 @@
+-- market_data хүснэгтийг үүсгэх
+create table market_data (
+  symbol text primary key,
+  full_symbol text,
+  bid float8,
+  ask float8,
+  spread float8,
+  min_usdt float8,
+  volume float8,
+  real_change float8,
+  h1_change float8,
+  change_24h float8,
+  updated_at timestamptz default now()
+);
+
+-- Realtime-ийг идэвхжүүлэх (Сайт дээр шууд харагдахад хэрэгтэй)
+alter publication supabase_realtime add table market_data;
+
+-- Фронтенд дээр өгөгдөл унших эрх нэмэх (Select Policy)
+create policy "Enable read access for all users" on market_data
+for select using (true);
