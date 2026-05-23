@@ -120,7 +120,7 @@
             limitHigh: false  // Default: Limit High is SHOWN
         };
         const blacklist = ['LUNC-USDT', 'USTC-USDT', 'BSV-USDT']; // Example blacklist
-        let sentimentType = 'client_real_change'; // Default sentiment type
+        let sentimentType = 'real_change'; // Тооцооллыг харагдах Real% баганатай ижил болгов
 
         function getButtonText(type, isHidden) { // isHidden is the value of hideSettings[type]
             const texts = { blacklist: 'BL', lowVol: 'LV', highSpr: 'HS', minHigh: 'MH', limitHigh: 'LH' };
@@ -249,16 +249,16 @@
 
                 // Group Header
                 const hRow = document.createElement('tr');
-                hRow.innerHTML = `<td colspan="11" class="group-header p-2 px-4 ${g.color}">${g.title} (${g.list.length})</td>`;
+                hRow.innerHTML = `<td colspan="11" class="group-header p-2 px-4 ${g.color} text-white font-black">${g.title} (${g.list.length})</td>`;
                 tbody.appendChild(hRow);
 
                 g.list.forEach(d => {
                     const rRow = document.createElement('tr');
                     rRow.className = "hover:bg-[#1e293b] transition duration-150";
                     
-                    const realColor = d.real_change >= 0 ? 'text-[#fbbf24]' : 'text-[#ef4444]';
-                    const h1Color = d.h1_change >= 0 ? 'text-[#38bdf8]' : 'text-[#fb7185]';
-                    const chColor = d.change_24h >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]';
+                    const realColor = (d.real_change || 0) >= 0 ? 'text-[#fbbf24]' : 'text-[#ef4444]';
+                    const h1Color = (d.h1_change || 0) >= 0 ? 'text-[#38bdf8]' : 'text-[#fb7185]';
+                    const chColor = (d.change_24h || 0) >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]';
                     const minUsdtColor = (d.min_usdt || 0) <= 0.11 ? 'text-[#22c55e]' : 'text-gray-400'; // Use (d.min_usdt || 0) for safety
                     const limitColor = (d.min_order_cost || 0) <= 0.1 ? 'text-[#22c55e]' : 'text-gray-400'; // Use (d.min_order_cost || 0) for safety
                     
@@ -267,21 +267,20 @@
                         <td class="p-3 font-bold text-white border-b border-[#1e293b]">${d.symbol}</td>
                         <td class="p-3 text-gray-400 border-b border-[#1e293b]">${(d.bid || 0).toFixed(8)}</td>
                         <td class="p-3 text-white border-b border-[#1e293b]">${(d.ask || 0).toFixed(8)}</td>
-                        <td class="p-3 ${d.spread > 0.3 ? 'text-[#fbbf24]' : 'text-gray-400'} border-b border-[#1e293b]">${(d.spread || 0).toFixed(2)}%</td>
+                        <td class="p-3 ${(d.spread || 0) > 0.3 ? 'text-[#fbbf24]' : 'text-gray-400'} border-b border-[#1e293b]">${(d.spread || 0).toFixed(2)}%</td>
                         <td class="p-3 ${minUsdtColor} border-b border-[#1e293b]">${(d.min_usdt || 0).toFixed(4)}</td> 
-                        <td class="p-3 font-bold ${realColor} border-b border-[#1e293b]">${d.real_change > 0 ? '+' : ''}${d.real_change.toFixed(2)}%</td>
-                        <td class="p-3 font-bold ${h1Color} border-b border-[#1e293b]">${d.h1_change > 0 ? '+' : ''}${d.h1_change.toFixed(2)}%</td>
-                        <td class="p-3 font-bold ${chColor} border-b border-[#1e293b]">${d.change_24h > 0 ? '+' : ''}${d.change_24h.toFixed(2)}%</td>
-                        <td class="p-3 text-gray-500 border-b border-[#1e293b]">${formatVol(d.volume)}</td>
+                        <td class="p-3 font-bold ${realColor} border-b border-[#1e293b]">${(d.real_change || 0) > 0 ? '+' : ''}${(d.real_change || 0).toFixed(2)}%</td>
+                        <td class="p-3 font-bold ${h1Color} border-b border-[#1e293b]">${(d.h1_change || 0) > 0 ? '+' : ''}${(d.h1_change || 0).toFixed(2)}%</td>
+                        <td class="p-3 font-bold ${chColor} border-b border-[#1e293b]">${(d.change_24h || 0) > 0 ? '+' : ''}${(d.change_24h || 0).toFixed(2)}%</td>
+                        <td class="p-3 text-gray-500 border-b border-[#1e293b]">${formatVol(d.volume || 0)}</td>
                         <td class="p-3 ${limitColor} border-b border-[#1e293b]">${(d.min_order_cost || 0).toFixed(4)}</td>
                     `;
                     tbody.appendChild(rRow);
-
                 });
             });
 
             updateSentiment(totals);
-            updateFooter(totals, filtered.length);
+            updateFooter(totals, totals.count);
         }
 
         function updateSentiment(t) {
