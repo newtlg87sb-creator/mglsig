@@ -90,9 +90,10 @@
                         <tr class="text-[10px] text-gray-400 uppercase font-black tracking-widest">
                             <th class="p-4 w-12 text-center">#</th>
                             <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('symbol')">Symbols <i class="fas fa-sort ml-1"></i></th>
-                            <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('ask')">Bid Price <i class="fas fa-sort ml-1"></i></th>
+                            <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('bid')">Bid Price <i class="fas fa-sort ml-1"></i></th>
                             <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('ask')">Ask Price <i class="fas fa-sort ml-1"></i></th>
                             <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('spread')">Spread <i class="fas fa-sort ml-1"></i></th>
+                            <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('min_usdt')">Min $ <i class="fas fa-sort ml-1"></i></th>
                             <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('client_real_change')">Real% <i class="fas fa-sort ml-1"></i></th>
                             <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('h1_change')">1H% <i class="fas fa-sort ml-1"></i></th>
                             <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('volume')">Volume <i class="fas fa-sort ml-1"></i></th>
@@ -149,7 +150,8 @@
             const search = document.getElementById('symbol-search').value.toUpperCase();
             
             // 1. Шүүлтүүр
-            let searchedData = allData.filter(d => d.symbol.includes(search));
+            // Үнэгүй эсвэл үхмэл койнуудыг хасч тоог цэгцлэх
+            let searchedData = allData.filter(d => d.symbol.includes(search) && d.ask > 0);
 
             let visibleCoins = searchedData.filter(d => {
                 if (hideSettings.blacklist && d.is_st) return false;
@@ -178,7 +180,7 @@
             const groups = {
                 ST: { title: "🚫 BLACKLISTED / ST RISK", list: [], color: "bg-[#7f1d1d]" },
                 HIGH_SPR: { title: "⚠️ HIGH SPREAD (>1.0%)", list: [], color: "bg-[#92400e]" },
-                LOW_VOL: { title: "📉 VOLUME LOW (<100K)", list: [], color: "bg-[#4c1d95]" },
+                LOW_VOL: { title: "📉 VOLUME LOW (<100K)", list: [], color: "bg-[#2e1065]" },
                 MARKET: { title: "📊 MARKET LIST", list: [], color: "bg-[#334155]" }
             };
 
@@ -196,7 +198,7 @@
                 if (g.list.length === 0) return;
                 
                 const hRow = document.createElement('tr');
-                hRow.innerHTML = `<td colspan="8" class="group-header p-2 px-4 ${g.color} text-white font-black">${g.title} (${g.list.length})</td>`;
+                hRow.innerHTML = `<td colspan="9" class="group-header p-2 px-4 ${g.color} text-white font-black">${g.title} (${g.list.length})</td>`;
                 tbody.appendChild(hRow);
 
                 g.list.forEach(d => {
@@ -204,13 +206,15 @@
                     rRow.className = "hover:bg-[#1e293b] transition duration-150";
                     const realColor = (d.client_real_change || 0) >= 0 ? 'text-[#f3ba2f]' : 'text-[#ef4444]';
                     const h1Color = (d.h1_change || 0) >= 0 ? 'text-[#38bdf8]' : 'text-[#fb7185]';
+                    const minUsdtColor = (d.min_usdt || 0) <= 0.11 ? 'text-[#10b981]' : 'text-white';
                     
                     rRow.innerHTML = `
                         <td class="p-3 text-center text-gray-600 text-[10px] border-b border-[#1e293b]">${idx++}</td>
                         <td class="p-3 font-bold ${d.is_st ? 'text-[#f87171]' : 'text-white'} border-b border-[#1e293b]">${d.symbol}</td>
-                        <td class="p-3 text-gray-400 border-b border-[#1e293b]">${(d.bid || 0).toFixed(4)}</td>
-                        <td class="p-3 text-white border-b border-[#1e293b]">${(d.ask || 0).toFixed(4)}</td>
+                        <td class="p-3 text-gray-400 border-b border-[#1e293b]">${(d.bid || 0).toFixed(8)}</td>
+                        <td class="p-3 text-white border-b border-[#1e293b]">${(d.ask || 0).toFixed(8)}</td>
                         <td class="p-3 ${(d.spread || 0) > 1.0 ? 'text-[#f3ba2f]' : 'text-gray-400'} border-b border-[#1e293b]">${(d.spread || 0).toFixed(2)}%</td>
+                        <td class="p-3 ${minUsdtColor} border-b border-[#1e293b]">${(d.min_usdt || 0).toFixed(4)}</td>
                         <td class="p-3 font-bold ${realColor} border-b border-[#1e293b]">${(d.client_real_change || 0) > 0 ? '+' : ''}${(d.client_real_change || 0).toFixed(2)}%</td>
                         <td class="p-3 font-bold ${h1Color} border-b border-[#1e293b]">${(d.h1_change || 0) > 0 ? '+' : ''}${(d.h1_change || 0).toFixed(2)}%</td>
                         <td class="p-3 text-gray-500 border-b border-[#1e293b]">${((d.volume || 0)/1e6).toFixed(2)}M</td>
@@ -225,7 +229,7 @@
             tRow.innerHTML = `
                 <td class="p-3 text-center text-[#f3ba2f] text-[10px]">Σ</td>
                 <td class="p-3 text-white uppercase tracking-widest text-[10px]">BINANCE TOTALS (${totals.count})</td>
-                <td colspan="3"></td>
+                <td colspan="4"></td>
                 <td class="p-3 font-black text-lg ${totals.real >= 0 ? 'text-[#f3ba2f]' : 'text-red-500'}">${totals.real > 0 ? '+' : ''}${totals.real.toFixed(2)}%</td>
                 <td class="p-3 font-black text-lg ${totals.h1 >= 0 ? 'text-[#38bdf8]' : 'text-rose-500'}">${totals.h1 > 0 ? '+' : ''}${totals.h1.toFixed(2)}%</td>
                 <td></td>

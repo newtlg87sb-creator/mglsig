@@ -76,13 +76,17 @@ def run_engine():
             for sym in usdt_pairs:
                 if sym not in tickers: continue
                 
-                # Binance-ийн хувьд is_st-ийг өөрөөр шалгана (Monitoring, Delisting, etc.)
                 market_info = cached_markets[sym].get('info', {})
                 is_st = market_info.get('isSpotTradingAllowed', True) == False or \
                         market_info.get('status') != 'TRADING'
 
                 t = tickers[sym]
                 ask = float(t.get('ask') or t.get('last') or 0.0)
+                
+                # Үнэ 0 байгаа үхмэл зооснуудыг алгасах (Delisted tokens check)
+                if ask <= 0:
+                    continue
+
                 bid = float(t.get('bid') or 0)
 
                 if sym not in session_initial_prices and ask > 0:
