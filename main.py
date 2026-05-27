@@ -3,7 +3,7 @@ import time
 import os
 import json
 from datetime import datetime, timezone
-from supabase import create_client, Client
+from supabase import create_client, Client # type: ignore
 
 # Railway-ийн Environment Variables-д эдгээрийг тохируулах хэрэгтэй
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip()
