@@ -91,15 +91,27 @@
 
     <script src="/static/js/header.js"></script>
 
-    <!-- Live Trade Status Indicator -->
-    <div class="fixed top-[92px] right-6 z-40">
-        <a href="live_trade.html" class="flex items-center space-x-3 bg-brand-dark-blue/80 backdrop-blur-md border border-brand-border hover:border-brand-gold transition-all px-4 py-2.5 rounded-xl group shadow-2xl">
-            <span class="flex h-2 w-2 relative">
+    <!-- Exchanges Live Data Indicator -->
+    <div class="fixed top-[88px] left-4 sm:left-6 sm:top-[92px] z-40">
+        <a href="exchanges.html" class="flex items-center space-x-2 sm:space-x-3 bg-brand-dark-blue/80 backdrop-blur-md border border-brand-border hover:border-brand-gold transition-all px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-xl group shadow-2xl">
+            <span class="flex h-1.5 w-1.5 sm:h-2 sm:w-2 relative">
                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                <span class="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 bg-green-500"></span>
             </span>
-            <span data-i18n="trade-status-msg" class="text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-white transition-colors">Нээлттэй арилжаа явагдаж байна:</span>
-            <span data-i18n="trade-status-opened" class="text-[9px] font-black bg-green-500 text-black px-2 py-0.5 rounded uppercase tracking-tighter shadow-lg shadow-green-500/20">OPENED</span>
+            <span data-i18n="exchanges-data-msg" class="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-white transition-colors">Exchanges Data:</span>
+            <span data-i18n="exchanges-data-live" class="text-[7px] sm:text-[9px] font-black bg-green-500 text-black px-1.5 py-0.5 rounded uppercase tracking-tighter shadow-lg shadow-green-500/20">LIVE</span>
+        </a>
+    </div>
+
+    <!-- Live Trade Status Indicator -->
+    <div class="fixed top-[124px] left-4 sm:top-[92px] sm:left-auto sm:right-6 sm:w-auto z-40">
+        <a href="live_trade.html" class="flex items-center space-x-2 sm:space-x-3 bg-brand-dark-blue/80 backdrop-blur-md border border-brand-border hover:border-brand-gold transition-all px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-xl group shadow-2xl">
+            <span class="flex h-1.5 w-1.5 sm:h-2 sm:w-2 relative">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 bg-green-500"></span>
+            </span>
+            <span data-i18n="trade-status-msg" class="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-white transition-colors text-ellipsis overflow-hidden whitespace-nowrap max-w-[120px] sm:max-w-none">Live Trade:</span>
+            <span data-i18n="trade-status-opened" class="text-[7px] sm:text-[9px] font-black bg-green-500 text-black px-1.5 py-0.5 rounded uppercase tracking-tighter shadow-lg shadow-green-500/20">OPENED</span>
         </a>
     </div>
 
@@ -473,6 +485,5 @@
         setInterval(fetchMarketData, 30000);
     </script>
     <script src="/static/js/footer.js"></script>
-    <script src="/static/lock.js"></script>
 </body>
 </html>

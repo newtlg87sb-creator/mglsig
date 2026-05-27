@@ -88,6 +88,39 @@
 <body class="bg-brand-dark text-white font-inter flex flex-col min-h-screen">
 
     <script src="/static/js/main_translate.js"></script>
+    <script>
+        const pageTranslations = {
+            mn: {
+                "contact-page-title": 'Холбоо <span class="text-brand-gold italic">Барих</span>',
+                "social-title": "Биднийг сошиал орчинд дагаарай",
+                "social-desc": "Бидэнтэй холбогдох болон мэдээлэл авах хамгийн хурдан арга бол манай сошиал сувгууд юм.",
+                "form-title": "Эсвэл бидэнд зурвас илгээх",
+                "lbl-name": "Таны нэр",
+                "lbl-email": "Таны и-мэйл",
+                "lbl-message": "Таны зурвас",
+                "ph-name": "Нэрээ оруулна уу",
+                "ph-email": "И-мэйл хаягаа оруулна уу",
+                "ph-message": "Та юуны талаар лавлахыг хүсэж байна вэ?",
+                "btn-send": "Зурвас илгээх",
+                "contact-btn-messenger": "Facebook Messenger-ээр илгээх"
+            },
+            en: {
+                "contact-page-title": 'Contact <span class="text-brand-gold italic">Us</span>',
+                "social-title": "Follow Us on Social Media",
+                "social-desc": "The fastest way to get in touch and stay updated is through our social channels.",
+                "form-title": "Or Send Us a Message",
+                "lbl-name": "Your Name",
+                "lbl-email": "Your Email",
+                "lbl-message": "Your Message",
+                "ph-name": "Enter your name",
+                "ph-email": "Enter your email",
+                "ph-message": "How can we help you?",
+                "btn-send": "Send Message",
+                "contact-btn-messenger": "Send via Facebook Messenger"
+            }
+        };
+        Object.keys(pageTranslations).forEach(lang => Object.assign(translations[lang], pageTranslations[lang]));
+    </script>
 
     <script src="/static/js/header.js"></script>
 

@@ -23,7 +23,167 @@
 </head>
 <body class="bg-brand-dark text-gray-400 font-inter antialiased">
 
-    <script src="/static/js/main_translate.js"></script>
+    <script>
+        // Хуудасны өөрийн орчуулгын өгөгдөл
+        const translations = {
+            mn: {
+                "nav-home": "Нүүр",
+                "nav-forex": "Форекс",
+                "nav-crypto": "Крипто",
+                "nav-news": "Мэдээ",
+                "drop-major": "Гол хослолууд",
+                "drop-minor": "Туслах хослолууд",
+                "drop-btc": "Биткойн хэрэгсэл",
+                "drop-alt": "Алткойн хэрэгсэл",
+                "btn-login": "НЭВТРЭХ",
+                "btn-reg": "БҮРТГҮҮЛЭХ",
+                "foot-links-title": "Хурдан холбоос",
+                "foot-about-title": "Бидний тухай",
+                "foot-social-title": "Сошиал сувгууд",
+                "foot-about": "Танилцуулга",
+                "foot-contact": "Холбоо барих",
+                "foot-tagline": "Дэлхийн зах зээлийн хөдөлгөөнийг дата шинжилгээгээр түрүүлж мэдэр.",
+                "nav-more": "ЦЭС",
+                "nav-alpha": "Alpha Signals",
+                "nav-kucoin-spot": "KuCoin Live Data",
+                "nav-projects": "Шинэ төслүүд",
+                "nav-knowledge": "Мэдлэг",
+                "back-to-home": '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>Нүүр хуудас руу буцах',
+                "gnw-page-title": "21 Billion BEP Төсөл",
+                "gnw-subtitle": "5 USDT-гээр санхүүгийн эрх чөлөөнд хүрэх зам",
+                "gnw-s1-title": '<i class="fas fa-info-circle text-brand-gold mr-3"></i>21 Billion BEP гэж юу вэ?',
+                "gnw-s1-p1": "21 Billion BEP нь Binance Smart Chain (BEP20) сүлжээнд суурилсан, 100% төвлөрсөн бус (Decentralized) санхүүгийн систем юм. Энэхүү төсөл нь бага хөрөнгө оруулалтаар (ердөө 5$) урт хугацаанд тогтвортой орлого олох боломжийг хүн бүрт олгодог.",
+                "gnw-s1-p2": "Блокчэйн технологийн ачаар систем нь бүрэн ил тод, автомат бөгөөд ямар нэгэн хөндлөнгийн оролцоогүйгээр ажилладаг. Таны орлого шууд таны хэтэвчинд орж, хүссэн үедээ авах боломжтой.",
+                "gnw-s2-title": '<i class="fas fa-list-check text-brand-gold mr-3"></i>Төслийн онцлог',
+                "proj-21b-feat1": "100% Шууд урилгын бонус",
+                "proj-21b-feat3": "40% Түвшний орлого",
+                "proj-21b-feat4": "100% Төвлөрсөн бус",
+                "proj-21b-feat5": "Автомат татан авалт",
+                "gnw-royalty-title": "Рояалти & Лидершип",
+                "gnw-royalty-desc": "Таны идэвхтэй багцаас хамааран өдөр бүр 1%-2%-ийн пассив орлого олоорой.",
+                "gnw-leadership": "Лидершип шагнал (Долоо хоног бүр) ✅",
+                "gnw-s3-title": "Хэрхэн ажилладаг вэ?",
+                "gnw-s3-step1-title": "Бүртгүүлэх",
+                "gnw-s3-step1-desc": "BEP20 дэмждэг хэтэвч ашиглан бүртгүүлнэ",
+                "gnw-s3-step2-title": "Идэвхжүүлэх",
+                "gnw-s3-step2-desc": "5 USDT-ээр идэвхжүүлнэ",
+                "gnw-s3-step3-title": "Орлого олох",
+                "gnw-s3-step3-desc": "Шуурхай төлбөрүүд",
+                "gnw-s4-title": "Бүртгүүлэх заавар",
+                "gnw-s4-step1-title": "Хэтэвч бэлдэх",
+                "gnw-s4-step1-desc": "TokenPocket, TrustWallet, гэх мэт.",
+                "gnw-s4-step2-title": "DApps ашиглах",
+                "gnw-s4-step2-desc": "Браузерт холбоосыг хуулж тавина",
+                "gnw-s4-step3-title": "Баталгаажуулах",
+                "gnw-s4-step3-desc": "Гүйлгээг зөвшөөрөх",
+                "gnw-related-guides-title": "Холбоотой зааврууд",
+                "gnw-guide-tokenpocket": "TokenPocket суулгах заавар",
+                "gnw-guide-usdt-bep20": "5 USDT (BEP20) цэнэглэх заавар",
+                "gnw-guide-metamask": "MetaMask суулгах заавар",
+                "gnw-s5-title": '<i class="fas fa-wallet mr-3"></i>Автомат татан авалт',
+                "gnw-s5-p1": "Системийн төлбөрүүд нь агшин зуурынх бөгөөд автомат татан авалттай. Таны орлого системд түгжигдэхгүй, шууд таны хэтэвчинд орно.",
+                "gnw-more-info-prompt": "Эсвэл илүү их мэдээлэл авах уу?",
+                "btn-marketing-info": "21 terbum bep Marketing",
+                "btn-download-pdf": "PDF Монголоор татах",
+                "donate-bar-text": "Хөгжүүлэлтийг дэмжих",
+                "update-info-btn": "Шинэчлэлтийн тухай",
+                "donate-bar-btn": "Хандивлах",
+                "update-modal-title": "Сайтын Шинэчлэлт",
+                "update-modal-desc": "Бид сайтыг өдөр бүр шинэчилж байна. Refresh хийнэ үү.",
+                "btn-refresh": "Одоо шинэчлэх",
+                "privacy-page-title": "Нууцлалын Бодлого",
+                "terms-page-title": "Үйлчилгээний нөхцөл",
+                "risk-page-title": "Эрсдэлийн анхааруулга"
+            },
+            en: {
+                "nav-home": "Home",
+                "nav-forex": "Forex",
+                "nav-crypto": "Crypto",
+                "nav-news": "News",
+                "drop-major": "Major Pairs",
+                "drop-minor": "Minor Pairs",
+                "drop-btc": "Bitcoin Tools",
+                "drop-alt": "Altcoin Tools",
+                "btn-login": "LOGIN",
+                "btn-reg": "REGISTER",
+                "foot-links-title": "Fast Links",
+                "foot-about-title": "About",
+                "foot-social-title": "Social Links",
+                "foot-about": "Introduction",
+                "foot-contact": "Contact Us",
+                "foot-tagline": "Experience global market movements ahead with data intelligence.",
+                "nav-more": "MENU",
+                "nav-alpha": "Alpha Signals",
+                "nav-kucoin-spot": "KuCoin Live Data",
+                "nav-projects": "New Projects",
+                "nav-knowledge": "Knowledge Base",
+                "back-to-home": '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>Back to Home',
+                "gnw-page-title": "21 Billion BEP Project",
+                "gnw-subtitle": "Your Path to Financial Freedom with 5 USDT",
+                "gnw-s1-title": '<i class="fas fa-info-circle text-brand-gold mr-3"></i>What is 21 Billion BEP?',
+                "gnw-s1-p1": "21 Billion BEP is a 100% decentralized financial system built on the Binance Smart Chain (BEP20). This project allows everyone to earn sustainable income over a long period with a very low initial investment (only 5$).",
+                "gnw-s1-p2": "Thanks to blockchain technology, the system is fully transparent, automatic, and works without any third-party interference. Your earnings go directly to your personal wallet and can be accessed anytime.",
+                "gnw-s2-title": '<i class="fas fa-list-check text-brand-gold mr-3"></i>Project Features',
+                "proj-21b-feat1": "100% Direct referrals bonus",
+                "proj-21b-feat3": "40% Level Income",
+                "proj-21b-feat4": "100% Decentralized",
+                "proj-21b-feat5": "Automatic Withdrawal",
+                "gnw-royalty-title": "Royalty & Leadership",
+                "gnw-royalty-desc": "Earn passive income daily depending on your active package.",
+                "gnw-leadership": "Leadership Rewards (Weekly) ✅",
+                "gnw-s3-title": "How It Works",
+                "gnw-s3-step1-title": "Register",
+                "gnw-s3-step1-desc": "Using BEP20 Wallet",
+                "gnw-s3-step2-title": "Activate",
+                "gnw-s3-step2-desc": "With 5 USDT",
+                "gnw-s3-step3-title": "Earn",
+                "gnw-s3-step3-desc": "Instant Payouts",
+                "gnw-s4-title": "Registration Guide",
+                "gnw-s4-step1-title": "Prepare Wallet",
+                "gnw-s4-step1-desc": "TokenPocket, TrustWallet, etc.",
+                "gnw-s4-step2-title": "Use DApps",
+                "gnw-s4-step2-desc": "Paste link in browser",
+                "gnw-s4-step3-title": "Confirm",
+                "gnw-s4-step3-desc": "Approve transaction",
+                "gnw-related-guides-title": "Related Guides",
+                "gnw-guide-tokenpocket": "TokenPocket Setup Guide",
+                "gnw-guide-usdt-bep20": "5 USDT (BEP20) Deposit Guide",
+                "gnw-guide-metamask": "MetaMask Setup Guide",
+                "gnw-s5-title": '<i class="fas fa-wallet mr-3"></i>Automatic Withdrawal',
+                "gnw-s5-p1": "System payments are instant and feature automatic withdrawal. Your earnings are not locked in the system; they go straight to your personal wallet.",
+                "gnw-more-info-prompt": "Or do you want more information?",
+                "btn-marketing-info": "21 Billion BEP Marketing",
+                "btn-download-pdf": "Download PDF (Mongolian)",
+                "donate-bar-text": "Support the Community",
+                "update-info-btn": "About Update",
+                "donate-bar-btn": "Donate Now",
+                "update-modal-title": "Daily Updates",
+                "update-modal-desc": "We update the site daily. Please Refresh.",
+                "btn-refresh": "REFRESH NOW",
+                "privacy-page-title": "Privacy Policy",
+                "terms-page-title": "Terms of Service",
+                "risk-page-title": "Risk Warning"
+            }
+        };
+
+        // Хэл солих үед UI-г шинэчлэх
+        function changeLang(lang) {
+            localStorage.setItem('lang', lang);
+            if (typeof translations !== 'undefined' && translations[lang]) {
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    if (translations[lang][key]) el.innerHTML = translations[lang][key];
+                });
+            }
+            // Header дээрх хэлний товчлуурын загварыг солих
+            const btnMn = document.getElementById('btn-mn');
+            const btnEn = document.getElementById('btn-en');
+            if (btnMn && btnEn) {
+                btnMn.className = lang === 'mn' ? "px-2.5 py-1 rounded-full bg-brand-gold text-black transition" : "px-2.5 py-1 rounded-full text-gray-500 hover:text-white transition";
+                btnEn.className = lang === 'en' ? "px-2.5 py-1 rounded-full bg-brand-gold text-black transition" : "px-2.5 py-1 rounded-full text-gray-500 hover:text-white transition";
+            }
+        }
+    </script>
     <script src="/static/js/header.js"></script>
 
     <div class="max-w-4xl mx-auto px-6 py-12">

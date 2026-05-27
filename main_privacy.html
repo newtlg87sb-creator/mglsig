@@ -88,6 +88,59 @@
 <body class="bg-brand-dark text-gray-400 font-inter antialiased">
 
     <script src="/static/js/main_translate.js"></script>
+    <script>
+        // Хуудасны өөрийн орчуулгыг үндсэн объект руу нэмэх
+        const pageTranslations = {
+            mn: {
+                "privacy-page-title": "Нууцлалын Бодлого",
+                "privacy-s1-title": "1. Оршил",
+                "privacy-s1-p1": "MGL Signal-д тавтай морил. Бид таны хувийн нууцыг хүндэтгэж, таны хувийн мэдээллийг хамгаалах үүрэгтэй. Энэхүү нууцлалын бодлого нь таныг манай вэбсайтад зочлох үед бид таны хувийн мэдээллийг хэрхэн хамгаалдаг болон таны нууцлалтай холбоотой эрхийн талаар мэдээлэх болно.",
+                "privacy-s2-title": "2. Бидний цуглуулдаг мэдээлэл",
+                "privacy-s2-p1": "Бид тантай холбоотой дараах төрлийн хувийн мэдээллийг цуглуулж, ашиглаж, хадгалж, дамжуулж болно:",
+                "privacy-s2-li1": "<strong>Таних мэдээлэл:</strong> Хэрэглэгчийн нэр болон түүнтэй ижил төстэй танигч.",
+                "privacy-s2-li2": "<strong>Холбоо барих мэдээлэл:</strong> И-мэйл хаяг.",
+                "privacy-s2-li3": "<strong>Техникийн мэдээлэл:</strong> Интернэт протокол (IP) хаяг, хөтчийн төрөл ба хувилбар, цагийн бүсийн тохиргоо ба байршил, хөтчийн залгаасуудын төрөл ба хувилбар, үйлдлийн систем ба платформ.",
+                "privacy-s3-title": "3. Бид таны мэдээллийг хэрхэн ашигладаг вэ",
+                "privacy-s3-p1": "Бид таны хувийн мэдээллийг зөвхөн хуулиар зөвшөөрөгдсөн тохиолдолд ашиглана. Ихэнхдээ бид таны хувийн мэдээллийг дараах нөхцөлд ашиглах болно:",
+                "privacy-s3-li1": "Таны хүссэн арилжааны дохио болон үйлчилгээг үзүүлэх.",
+                "privacy-s3-li2": "Манай вэбсайт, бүтээгдэхүүн/үйлчилгээ, маркетинг, хэрэглэгчийн харилцааг сайжруулах.",
+                "privacy-s3-li3": "Танд сонирхолтой байж болох бүтээгдэхүүн, үйлчилгээг санал болгох.",
+                "privacy-s4-title": "4. Күүки (Cookies)",
+                "privacy-s4-p1": "Бид таныг манай вэбсайтын бусад хэрэглэгчдээс ялгахын тулд күүки ашигладаг. Энэ нь таныг манай вэбсайтыг үзэх үед сайн туршлагаар хангахад тусалдаг бөгөөд мөн манай сайтыг сайжруулах боломжийг олгодог.",
+                "privacy-s5-title": "5. Гуравдагч талын холбоосууд",
+                "privacy-s5-p1": "Энэхүү вэбсайт нь гуравдагч талын вэбсайт, залгаас, аппликейшн руу (Binance гэх мэт) холбоостой байж болно. Эдгээр холбоос дээр дарах эсвэл эдгээр холболтыг идэвхжүүлэх нь гуравдагч талд таны тухай мэдээлэл цуглуулах, хуваалцах боломжийг олгож болзошгүй. Бид эдгээр гуравдагч талын вэбсайтыг хянахгүй бөгөөд тэдний нууцлалын мэдэгдэлд хариуцлага хүлээхгүй.",
+                "privacy-s6-title": "6. Бидэнтэй холбоо барих",
+                "privacy-s6-p1": "Хэрэв танд энэхүү нууцлалын бодлогын талаар асуух зүйл байвал манай холбоо барих хуудас эсвэл и-мэйлээр холбогдоно уу.",
+                "last-updated": "Сүүлд шинэчилсэн",
+                "back-to-home": '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>Буцах'
+            },
+            en: {
+                "privacy-page-title": "Privacy Policy",
+                "privacy-s1-title": "1. Introduction",
+                "privacy-s1-p1": "Welcome to MGL Signal. We respect your privacy and are committed to protecting your personal data. This privacy policy will inform you as to how we look after your personal data when you visit our website and tell you about your privacy rights.",
+                "privacy-s2-title": "2. Data We Collect",
+                "privacy-s2-p1": "We may collect, use, store and transfer different kinds of personal data about you which we have grouped together follows:",
+                "privacy-s2-li1": "<strong>Identity Data:</strong> includes username or similar identifier.",
+                "privacy-s2-li2": "<strong>Contact Data:</strong> includes email address.",
+                "privacy-s2-li3": "<strong>Technical Data:</strong> includes internet protocol (IP) address, browser type and version, time zone setting and location, browser plug-in types and versions, operating system and platform.",
+                "privacy-s3-title": "3. How We Use Your Data",
+                "privacy-s3-p1": "We will only use your personal data when the law allows us to. Most commonly, we will use your personal data in the following circumstances:",
+                "privacy-s3-li1": "To provide the trading signals and services you requested.",
+                "privacy-s3-li2": "To improve our website, products/services, marketing and customer relationships.",
+                "privacy-s3-li3": "To recommend products or services that may be of interest to you.",
+                "privacy-s4-title": "4. Cookies",
+                "privacy-s4-p1": "We use cookies to distinguish you from other users of our website. This helps us to provide you with a good experience when you browse our website and also allows us to improve our site.",
+                "privacy-s5-title": "5. Third-Party Links",
+                "privacy-s5-p1": "This website may include links to third-party websites, plug-ins and applications (such as Binance). Clicking on those links or enabling those connections may allow third parties to collect or share data about you.",
+                "privacy-s6-title": "6. Contact Us",
+                "privacy-s6-p1": "If you have any questions about this privacy policy, please contact us via our contact page or email.",
+                "last-updated": "Last Updated",
+                "back-to-home": '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>Back to Home'
+            }
+        };
+        // Merge into global translations
+        Object.keys(pageTranslations).forEach(lang => Object.assign(translations[lang], pageTranslations[lang]));
+    </script>
 
     <script src="/static/js/header.js"></script>
 

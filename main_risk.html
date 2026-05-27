@@ -88,6 +88,41 @@
 <body class="bg-brand-dark text-gray-400 font-inter antialiased">
 
     <script src="/static/js/main_translate.js"></script>
+    <script>
+        const pageTranslations = {
+            mn: {
+                "risk-page-title": "Эрсдэлийн анхааруулга",
+                "risk-s1-title": "Өндөр эрсдэлтэй хөрөнгө оруулалт",
+                "risk-s1-p1": "Форекс, Криптовалют, CFD арилжаа нь өндөр эрсдэл дагуулдаг бөгөөд бүх хөрөнгө оруулагчдад тохиромжгүй байж болно. Өндөр хөшүүрэг нь таны эсрэг болон таны талд ажиллах боломжтой. Аливаа санхүүгийн бүтээгдэхүүнийг арилжаалахаар шийдэхээсээ өмнө хөрөнгө оруулалтын зорилго, туршлагын түвшин, эрсдэл даах чадвараа сайтар бодож үзэх хэрэгтэй.",
+                "risk-s2-title": "Алдагдал хүлээх боломж",
+                "risk-s2-p1": "Та анхны хөрөнгө оруулалтынхаа зарим хэсгийг эсвэл бүгдийг алдаж болзошгүйг мэдэж байх ёстой тул алдаж болохгүй мөнгөөр хөрөнгө оруулалт хийх ёсгүй. Та арилжаатай холбоотой бүх эрсдэлийг мэдэж байх ёстой бөгөөд эргэлзээтэй зүйл байвал бие даасан санхүүгийн зөвлөхөөс зөвлөгөө авах хэрэгтэй.",
+                "risk-s3-title": "Баталгаа байхгүй",
+                "risk-s3-p1": "Өнгөрсөн үеийн гүйцэтгэл нь ирээдүйн үр дүнг илтгэхгүй. MGL Signal нь ямар нэгэн тодорхой үр дүн, ашгийг баталгаажуулахгүй. Өгөгдсөн дохионууд нь шинжилгээнд суурилсан боловч зах зээлийн нөхцөл байдал урьдчилан таамаглах боломжгүй юм.",
+                "risk-s4-title": "Гуравдагч талын эрсдэл",
+                "risk-s4-p1": "MGL Signal нь гуравдагч талын үйлчилгээ эсвэл биржүүд (Binance гэх мэт) рүү холбоос өгч болно. Бид аливаа гуравдагч талын байгууллагын аюулгүй байдал, төлбөрийн чадвар, үйл ажиллагааг хариуцахгүй.",
+                "risk-s5-title": "Зөвхөн мэдээллийн зорилготой",
+                "risk-s5-p1": "Энэхүү вэбсайтын агуулга нь зөвхөн мэдээллийн зорилготой бөгөөд санхүүгийн зөвлөгөө болохгүй.",
+                "acknowledgement": "Энэхүү вэбсайтыг ашигласнаар та энэхүү Эрсдэлийн Анхааруулгыг уншиж, ойлгосноо хүлээн зөвшөөрч байна.",
+                "back-to-home": '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>Буцах'
+            },
+            en: {
+                "risk-page-title": "Risk Warning",
+                "risk-s1-title": "High Risk Investment",
+                "risk-s1-p1": "Trading Forex, Cryptocurrencies, and CFDs carries a high level of risk and may not be suitable for all investors. The high degree of leverage can work against you as well as for you.",
+                "risk-s2-title": "Possibility of Loss",
+                "risk-s2-p1": "You should be aware that you could sustain a loss of some or all of your initial investment and therefore you should not invest money that you cannot afford to lose.",
+                "risk-s3-title": "No Guarantees",
+                "risk-s3-p1": "Past performance is not indicative of future results. MGL Signal does not guarantee any specific outcome or profit.",
+                "risk-s4-title": "Third Party Risks",
+                "risk-s4-p1": "MGL Signal may provide links to third-party services or exchanges (such as Binance). We are not responsible for the security, solvency, or actions of any third-party entity.",
+                "risk-s5-title": "Information Only",
+                "risk-s5-p1": "The content on this website is for informational purposes only and does not constitute financial advice.",
+                "acknowledgement": "By using this website, you acknowledge that you have read and understood this Risk Warning.",
+                "back-to-home": '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>Back to Home'
+            }
+        };
+        Object.keys(pageTranslations).forEach(lang => Object.assign(translations[lang], pageTranslations[lang]));
+    </script>
 
     <script src="/static/js/header.js"></script>
 

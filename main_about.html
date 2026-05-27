@@ -89,6 +89,47 @@
 
     <!-- Navigation -->
     <script src="/static/js/main_translate.js"></script>
+    <script>
+        const pageTranslations = {
+            mn: {
+                "about-page-title": 'Бидний <span class="text-brand-gold italic">тухай</span>',
+                "about-title": "MGL Signal-ийн тухай",
+                "about-p1": "Энэхүү сайтад олон жилийн туршлагатай мэргэжлийн арилжаачин гол зорилго болох 90% амжилттай, төлбөргүй сигналууд өгөх бөгөөд арилжаатай холбоотой бүх төрлийн мэдээлэл нэмэлтээр ордог.",
+                "about-p2": "Сайтын загвар, нэмэлт чиг хандлага, болон нэмэлт мэдээлэлүүд зөвхөн сайт эзэмшигчийн санаа бодлоор хийгддэг бөгөөд хөрөнгө оруулагчид болон хандив өгөх хүмүүс шинэ санаа болон захиалгат сигналууд хийлгэж болно.",
+                "about-p3": "Mglsignal сайтад Crypto, Forex, Stock дээр өдөрт 24 цагийн турш тасралтгүй төлбөргүй сигналууд өдөр бүр орно:",
+                "about-li1": '<span class="font-bold text-brand-gold">Crypto:</span> 900+ койн, 10,000+ сигнал',
+                "about-li2": '<span class="font-bold text-brand-gold">Forex:</span> GOLD (XAU/USD) 50 - 100 сигнал',
+                
+                "support-title": "МGLsignal-ыг Дэмжиж Туслаарай",
+                "support-p1": "Бид танд өндөр чанартай бодит цаг үеийн Арилжааны сигналуудыг хүргэхэд зориулж ажиллаж байна, гэхдээ сайтаа тасралтгүй ажиллуулах, сайжруулахад таны тусламж хэрэгтэй байна. Таны хандив дараах зорилгод шууд чиглэнэ:",
+                "support-li1": '<i class="fas fa-check-circle text-brand-gold mt-1 mr-3"></i><span>Вэб дизайн сайтын шинэчлэлтүүд болон сайжруулалт</span>',
+                "support-li2": '<i class="fas fa-check-circle text-brand-gold mt-1 mr-3"></i><span>Дохионы шинэчлэлтүүд болон сайжруулалт</span>',
+                "support-li3": '<i class="fas fa-check-circle text-brand-gold mt-1 mr-3"></i><span>Вэбсайт болон хостингийн зардал</span>',
+                "support-li4": '<i class="fas fa-check-circle text-brand-gold mt-1 mr-3"></i><span>Сигналууд өндөр нарийвчлалтай гарахад хурдан боловсруулагдах нөхцөл бүрдүүлэх</span>',
+                "support-li5": '<i class="fas fa-check-circle text-brand-gold mt-1 mr-3"></i><span>Шинэ онцлог, багаж хэрэгслүүдийг хөгжүүлэх</span>',
+                "support-thanks": "Таны дэмжлэгт баярлалаа!"
+            },
+            en: {
+                "about-page-title": 'About <span class="text-brand-gold italic">Us</span>',
+                "about-title": "About MGL Signal",
+                "about-p1": "This site is run by a professional trader with many years of experience, with the main goal of providing free signals with 90% success, along with all kinds of additional trading-related information.",
+                "about-p2": "The site's design, additional features, and extra information are created based on the site owner's ideas. Investors and donors can suggest new ideas and request custom signals.",
+                "about-p3": "Mglsignal provides 24/7 continuous free signals for Crypto, Forex, and Stocks every day:",
+                "about-li1": '<span class="font-bold text-brand-gold">Crypto:</span> 900+ coins, 10,000+ signals',
+                "about-li2": '<span class="font-bold text-brand-gold">Forex:</span> GOLD (XAU/USD) 50 - 100 signals',
+                
+                "support-title": "Support MGLsignal",
+                "support-p1": "We are dedicated to bringing you high-quality, real-time Trading Signals, but we need your help to continuously operate and improve the site. Your donation will directly contribute to:",
+                "support-li1": '<i class="fas fa-check-circle text-brand-gold mt-1 mr-3"></i><span>Web design updates and improvements</span>',
+                "support-li2": '<i class="fas fa-check-circle text-brand-gold mt-1 mr-3"></i><span>Signal updates and enhancements</span>',
+                "support-li3": '<i class="fas fa-check-circle text-brand-gold mt-1 mr-3"></i><span>Website and hosting costs</span>',
+                "support-li4": '<i class="fas fa-check-circle text-brand-gold mt-1 mr-3"></i><span>Creating conditions for faster processing to produce high-accuracy signals</span>',
+                "support-li5": '<i class="fas fa-check-circle text-brand-gold mt-1 mr-3"></i><span>Development of new features and tools</span>',
+                "support-thanks": "Thank you for your support!"
+            }
+        };
+        Object.keys(pageTranslations).forEach(lang => Object.assign(translations[lang], pageTranslations[lang]));
+    </script>
 
     <script src="/static/js/header.js"></script>
 

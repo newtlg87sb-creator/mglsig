@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exchange Terminals - MGL Signal</title>
+    <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 'dark': '#05070a', 'dark-blue': '#0f1217', 'gold': '#c5a059', 'border': '#1f242d' }
+                    },
+                    fontFamily: { 'inter': ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/main_style.css">
+</head>
+<body class="bg-brand-dark text-white font-inter flex flex-col min-h-screen">
+
+    <script src="/static/js/main_translate.js"></script>
+    <script src="/static/js/header.js"></script>
+
+    <main class="flex-grow pt-24 pb-12 px-6">
+        <div class="max-w-4xl mx-auto">
+            <!-- Back to Home Button -->
+            <div class="flex justify-between items-center mb-10">
+                <a href="index.html" data-i18n="back-to-home" class="inline-flex items-center text-brand-gold hover:text-white transition text-sm font-bold uppercase tracking-widest">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    Back to Home
+                </a>
+                <!-- Language Switcher (Optional, if you want it on this page too) -->
+                <!-- <div class="flex bg-brand-dark-blue border border-brand-border rounded-full p-0.5 text-[9px] font-black">
+                    <button id="btn-mn" onclick="changeLang('mn')" class="px-2.5 py-1 rounded-full bg-brand-gold text-black transition">MN</button>
+                    <button id="btn-en" onclick="changeLang('en')" class="px-2.5 py-1 rounded-full text-gray-500 hover:text-white transition">EN</button>
+                </div> -->
+            </div>
+            <!-- Header -->
+            <div class="text-center mb-12">
+                <h1 data-i18n="exchanges-page-title" class="text-3xl md:text-5xl font-black uppercase tracking-tight text-white mb-4">
+                    Exchange <span class="text-brand-gold italic">Terminals</span>
+                </h1>
+                <p data-i18n="exchanges-page-desc" class="text-gray-400 max-w-2xl mx-auto">Real-time market data and professional terminals from world top exchanges.</p>
+                <div class="w-20 h-1 bg-brand-gold mx-auto mt-6"></div>
+            </div>
+
+            <!-- Exchanges List -->
+            <div id="exchanges-container" class="space-y-4">
+                <!-- Binance -->
+                <a href="#" class="group block bg-brand-dark-blue border border-brand-border rounded-xl p-5 hover:border-[#F3BA2F]/50 transition duration-300 shadow-lg relative overflow-hidden">
+                    <div class="flex items-center justify-between relative z-10">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 rounded-lg bg-[#F3BA2F]/10 flex items-center justify-center border border-[#F3BA2F]/20 group-hover:bg-[#F3BA2F]/20 transition">
+                                <i class="fab fa-binance text-[#F3BA2F] text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-white font-bold text-lg group-hover:text-[#F3BA2F] transition uppercase tracking-wider">Binance Terminal</h3>
+                                <p class="text-gray-500 text-[10px] mt-1 uppercase tracking-widest font-black">Coming Soon</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-lock text-gray-700"></i>
+                    </div>
+                </a>
+
+                <!-- KuCoin (ACTIVE) -->
+                <a href="kucoin_market.html" class="group block bg-brand-dark-blue border border-brand-border rounded-xl p-5 hover:border-[#24ae8f]/50 transition duration-300 shadow-lg relative overflow-hidden">
+                    <div class="flex items-center justify-between relative z-10">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 rounded-lg bg-[#24ae8f]/10 flex items-center justify-center border border-[#24ae8f]/20 group-hover:bg-[#24ae8f]/20 transition">
+                                <i class="fas fa-bolt text-[#24ae8f] text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-white font-bold text-lg group-hover:text-[#24ae8f] transition uppercase tracking-wider">KuCoin Terminal</h3>
+                                <p class="text-green-500 text-[10px] mt-1 uppercase tracking-widest font-black animate-pulse">Live Now</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-600 group-hover:text-[#24ae8f] transform group-hover:translate-x-1 transition"></i>
+                    </div>
+                </a>
+
+                <!-- Bybit, OKX, LBank, etc. (Placeholders) -->
+                <script>
+                    const otherExchanges = [
+                        { name: 'Bybit Terminal', color: '#ffb11a' },
+                        { name: 'OKX Terminal', color: '#ffffff' },
+                        { name: 'MEXC Terminal', color: '#00ccff' },
+                        { name: 'Gate.io Terminal', color: '#f04a5a' },
+                        { name: 'Bitget Terminal', color: '#00f0ff' },
+                        { name: 'LBank Terminal', color: '#e6b800' },
+                        { name: 'HTX Terminal', color: '#0052ff' },
+                        { name: 'Phemex Terminal', color: '#ffffff' }
+                    ];
+                    
+                    document.write(otherExchanges.map(exch => `
+                        <div class="group bg-brand-dark-blue/40 border border-brand-border/50 rounded-xl p-5 opacity-60 grayscale cursor-not-allowed">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-12 h-12 rounded-lg bg-gray-800/30 flex items-center justify-center border border-brand-border">
+                                        <i class="fas fa-server text-gray-600 text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-gray-400 font-bold text-lg uppercase tracking-wider">${exch.name}</h3>
+                                        <p class="text-gray-600 text-[10px] mt-1 uppercase tracking-widest font-black">Under Development</p>
+                                    </div>
+                                </div>
+                                <i class="fas fa-clock text-gray-800"></i>
+                            </div>
+                        </div>
+                    `).join(''));
+                </script>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/footer.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof changeLang === 'function') changeLang(localStorage.getItem('lang') || 'mn');
+        });
+    </script>
+</body>
+</html>

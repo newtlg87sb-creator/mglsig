@@ -88,6 +88,18 @@
 <body class="bg-brand-dark text-white font-inter flex flex-col min-h-screen">
 
     <script src="/static/js/main_translate.js"></script>
+    <script>
+        const pageTranslations = {
+            mn: {
+                "crypto-news-title": "Крипто Мэдээ (Live API)"
+            },
+            en: {
+                "crypto-news-title": "Crypto News (Live API)"
+            }
+        };
+        Object.keys(pageTranslations).forEach(lang => Object.assign(translations[lang], pageTranslations[lang]));
+    </script>
+
 
     <script src="/static/js/header.js"></script>
 

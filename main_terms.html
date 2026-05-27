@@ -87,6 +87,49 @@
 <body class="bg-brand-dark text-gray-400 font-inter antialiased">
 
     <script src="/static/js/main_translate.js"></script>
+    <script>
+        const pageTranslations = {
+            mn: {
+                "terms-page-title": "Үйлчилгээний нөхцөл",
+                "terms-s1-title": "1. Нөхцөлийг хүлээн зөвшөөрөх",
+                "terms-s1-p1": "MGL Signal (\"Вэбсайт\")-д нэвтэрч, ашигласнаар та энэхүү гэрээний нөхцөл, заалтыг хүлээн зөвшөөрч, дагаж мөрдөхөд бэлэн гэдгээ илэрхийлж байна.",
+                "terms-s2-title": "2. Үйлчилгээний тодорхойлолт",
+                "terms-s2-p1": "MGL Signal нь зөвхөн мэдээллийн зорилгоор санхүүгийн мэдээлэл, зах зээлийн өгөгдөл, арилжааны дохиог өгдөг. Энэ вэбсайтад агуулагдаж буй ямар ч мэдээлэл санхүүгийн зөвлөгөө болохгүй.",
+                "terms-s3-title": "3. Санхүүгийн зөвлөгөө биш",
+                "terms-s3-p1": "MGL Signal дээрх агуулга нь зөвхөн боловсролын болон мэдээллийн зорилготой. Бид санхүүгийн зөвлөх биш бөгөөд та энэ вэбсайт дээр илэрхийлэгдсэн аливаа саналыг тодорхой хөрөнгө оруулалт хийх эсвэл тодорхой стратегийг дагах уриалга гэж үзэж болохгүй.",
+                "terms-s4-title": "4. Мэдээллийн үнэн зөв байдал",
+                "terms-s4-p1": "Бид үнэн зөв, шинэ мэдээллээр хангахыг хичээдэг ч өгөгдсөн мэдээллийн бүрэн бүтэн, үнэн зөв байдлыг баталгаажуулахгүй. Зах зээлийн нөхцөл байдал хурдацтай өөрчлөгддөг тул дохио нийтлэгдсэнээс хойш богино хугацаанд хүчингүй болж болзошгүй.",
+                "terms-s5-title": "5. Хариуцлагын хязгаарлалт",
+                "terms-s5-p1": "MGL Signal нь ямар ч хохирлыг хариуцахгүй бөгөөд ялангуяа энэ вэбсайт эсвэл түүнд агуулагдах мэдээлэлтэй холбоотойгоор үүссэн алдагдсан ашиг, орлогын алдагдал, ашиглалтын алдагдал зэрэг онцгой, шууд бус, үр дагавартай, санамсаргүй хохирлыг хариуцахгүй.",
+                "terms-s6-title": "6. Хэрэглэгчийн үүрэг хариуцлага",
+                "terms-s6-p1": "Та вэбсайтыг зөвхөн хууль ёсны зорилгоор ашиглахыг зөвшөөрч байна. Вэбсайтыг бусдын эрхийг зөрчсөн хууль ёсны болон хууль бус үйл ажиллагаанд ашиглахыг хатуу хориглоно.",
+                "terms-s7-title": "7. Нөхцөлд оруулах өөрчлөлт",
+                "terms-s7-p1": "Бид эдгээр нөхцөлийг хүссэн үедээ өөрчлөх эрхтэй. Та эдгээр нөхцөлийг үе үе шалгаж байх ёстой.",
+                "last-updated": "Сүүлд шинэчилсэн",
+                "back-to-home": '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>Буцах'
+            },
+            en: {
+                "terms-page-title": "Terms of Service",
+                "terms-s1-title": "1. Acceptance of Terms",
+                "terms-s1-p1": "By accessing and using MGL Signal (the \"Website\"), you accept and agree to be bound by the terms and provision of this agreement.",
+                "terms-s2-title": "2. Description of Service",
+                "terms-s2-p1": "MGL Signal provides financial information, market data, and trading signals for informational purposes only. None of the information contained on this website constitutes financial advice.",
+                "terms-s3-title": "3. No Financial Advice",
+                "terms-s3-p1": "The content provided on MGL Signal is strictly for educational and informational purposes. We are not financial advisors, and you should not treat any opinion expressed on this website as a specific inducement to make a particular investment.",
+                "terms-s4-title": "4. Accuracy of Information",
+                "terms-s4-p1": "While we strive to provide accurate and up-to-date information, we do not warrant the completeness or accuracy of the information provided.",
+                "terms-s5-title": "5. Limitation of Liability",
+                "terms-s5-p1": "MGL Signal shall not be liable for any damages whatsoever, and in particular MGL Signal shall not be liable for any special, indirect, consequential, or incidental damages.",
+                "terms-s6-title": "6. User Responsibilities",
+                "terms-s6-p1": "You agree to use the website only for lawful purposes. You are strictly prohibited from using the website to engage in any legal or illegal activity that violates the rights of others.",
+                "terms-s7-title": "7. Changes to Terms",
+                "terms-s7-p1": "We reserve the right to modify these terms at any time. You should check these terms periodically for changes.",
+                "last-updated": "Last Updated",
+                "back-to-home": '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>Back to Home'
+            }
+        };
+        Object.keys(pageTranslations).forEach(lang => Object.assign(translations[lang], pageTranslations[lang]));
+    </script>
 
     <script src="/static/js/header.js"></script>
 
