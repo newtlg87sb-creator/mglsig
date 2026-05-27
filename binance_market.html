@@ -96,6 +96,7 @@
                             <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('min_usdt')">Min $ <i class="fas fa-sort ml-1"></i></th>
                             <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('client_real_change')">Real% <i class="fas fa-sort ml-1"></i></th>
                             <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('h1_change')">1H% <i class="fas fa-sort ml-1"></i></th>
+                            <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('change_24h')">24H% <i class="fas fa-sort ml-1"></i></th>
                             <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('volume')">Volume <i class="fas fa-sort ml-1"></i></th>
                         </tr>
                     </thead>
@@ -164,6 +165,7 @@
             let totals = { real: 0, h1: 0, count: visibleCoins.length, ups: 0, dns: 0 };
             visibleCoins.forEach(d => {
                 totals.real += d.client_real_change;
+                totals.c24 += d.change_24h; // 24H% нийлбэрт нэмэх
                 totals.h1 += d.h1_change;
                 if(d[sentimentType] > 0.5) totals.ups++; // 0.5%-иас дээш өссөн
                 if(d[sentimentType] < -0.5) totals.dns++; // -0.5%-иас доош унасан
@@ -205,8 +207,9 @@
                     const rRow = document.createElement('tr');
                     rRow.className = "hover:bg-[#1e293b] transition duration-150";
                     const realColor = (d.client_real_change || 0) >= 0 ? 'text-[#f3ba2f]' : 'text-[#ef4444]';
-                    const h1Color = (d.h1_change || 0) >= 0 ? 'text-[#38bdf8]' : 'text-[#fb7185]';
-                    const minUsdtColor = (d.min_usdt || 0) <= 0.11 ? 'text-[#10b981]' : 'text-white';
+                    const h1Color = (d.h1_change || 0) >= 0 ? 'text-[#38bdf8]' : 'text-[#fb7185]'; // KuCoin-той ижил
+                    const chColor = (d.change_24h || 0) >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]'; // KuCoin-той ижил
+                    const minUsdtColor = (d.min_usdt || 0) <= 10.01 ? 'text-[#10b981]' : 'text-gray-400'; // 10 USDT-ээс бага бол ногоон
                     
                     rRow.innerHTML = `
                         <td class="p-3 text-center text-gray-600 text-[10px] border-b border-[#1e293b]">${idx++}</td>
@@ -218,6 +221,7 @@
                         <td class="p-3 font-bold ${realColor} border-b border-[#1e293b]">${(d.client_real_change || 0) > 0 ? '+' : ''}${(d.client_real_change || 0).toFixed(2)}%</td>
                         <td class="p-3 font-bold ${h1Color} border-b border-[#1e293b]">${(d.h1_change || 0) > 0 ? '+' : ''}${(d.h1_change || 0).toFixed(2)}%</td>
                         <td class="p-3 text-gray-500 border-b border-[#1e293b]">${((d.volume || 0)/1e6).toFixed(2)}M</td>
+                        <td class="p-3 font-bold ${chColor} border-b border-[#1e293b]">${(d.change_24h || 0) > 0 ? '+' : ''}${(d.change_24h || 0).toFixed(2)}%</td>
                     `;
                     tbody.appendChild(rRow);
                 });
@@ -229,9 +233,10 @@
             tRow.innerHTML = `
                 <td class="p-3 text-center text-[#f3ba2f] text-[10px]">Σ</td>
                 <td class="p-3 text-white uppercase tracking-widest text-[10px]">BINANCE TOTALS (${totals.count})</td>
-                <td colspan="4"></td>
+                <td colspan="3"></td>
                 <td class="p-3 font-black text-lg ${totals.real >= 0 ? 'text-[#f3ba2f]' : 'text-red-500'}">${totals.real > 0 ? '+' : ''}${totals.real.toFixed(2)}%</td>
                 <td class="p-3 font-black text-lg ${totals.h1 >= 0 ? 'text-[#38bdf8]' : 'text-rose-500'}">${totals.h1 > 0 ? '+' : ''}${totals.h1.toFixed(2)}%</td>
+                <td class="p-3 font-black text-lg ${totals.c24 >= 0 ? 'text-[#22c55e]' : 'text-red-500'}">${totals.c24 > 0 ? '+' : ''}${totals.c24.toFixed(2)}%</td>
                 <td></td>
                 `;
             tbody.appendChild(tRow);

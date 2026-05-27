@@ -102,11 +102,8 @@ def run_engine():
                 vol = float(t.get('quoteVolume') or 0)
                 ch_24 = float(t.get('percentage') or 0)
                 
-                # Binance-д min_usdt болон min_order_cost-ийг KuCoin-той адилхан авах боломжгүй байж магадгүй.
-                # Эсвэл өөр талбараас авах хэрэгтэй. Одоогоор 0-ээр тохируулъя.
-                min_amount = float(cached_markets[sym]['limits']['amount']['min'] or 0)
-                min_usdt = min_amount * ask if ask > 0 else 0
-                min_order_cost = float(cached_markets[sym]['limits']['cost']['min'] or 0)
+                # Binance-ийн хамгийн бага арилжааны дүнг (Min Order Cost) min_usdt болгож ашиглана
+                min_usdt = float(cached_markets[sym]['limits']['cost']['min'] or 0)
 
                 payload.append({
                     "symbol": sym.replace('/', '-'),
@@ -114,9 +111,8 @@ def run_engine():
                     "bid": bid,
                     "ask": ask,
                     "spread": round(spread, 2),
-                    "min_usdt": round(min_usdt, 4),
+                    "min_usdt": round(min_usdt, 4), # Хамгийн бага арилжааны дүн
                     "volume": round(vol, 2),
-                    "min_order_cost": round(min_order_cost, 4),
                     "real_change": round(real_change, 2),
                     "h1_change": round(h1_change, 2),
                     "change_24h": round(ch_24, 2),
