@@ -24,6 +24,8 @@ const headerHTML = `    <style>
                 <div class="flex items-center space-x-1.5 bg-black/5 px-3 py-0.5 rounded-full hover:bg-black/10 transition border border-black/5">
                     <i class="fas fa-info-circle text-[9px] text-black"></i>
                     <span data-i18n="update-info-btn" class="text-[9px] font-black text-black uppercase tracking-tight">About Update</span>
+                    <span data-i18n="last-update-prefix" class="text-[9px] font-black text-black opacity-70 ml-1"></span>
+                    <span id="header-last-update-time" class="text-[9px] font-black text-black opacity-70"></span>
                 </div>
             </div>
 
@@ -362,6 +364,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const savedLang = localStorage.getItem('lang') || 'mn';
     changeLang(savedLang);
     
+    // --- AUTOMATIC UPDATE DETECTION ---
+    async function autoDetectUpdateTime() {
+        const updateTimeSpan = document.getElementById('header-last-update-time');
+        if (!updateTimeSpan) return;
+
+        try {
+            // Үндсэн index.html файлын серверийн мэдээллийг шалгах
+            const response = await fetch(window.location.origin + '/index.html', { method: 'HEAD' });
+            const lastModified = response.headers.get('Last-Modified');
+            
+            if (lastModified) {
+                const date = new Date(lastModified);
+                const HH = String(date.getHours()).padStart(2, '0');
+                const mm = String(date.getMinutes()).padStart(2, '0');
+                const DD = String(date.getDate()).padStart(2, '0');
+                const MM = String(date.getMonth() + 1).padStart(2, '0');
+                const YY = String(date.getFullYear()).slice(-2);
+                
+                updateTimeSpan.textContent = `${HH}:${mm} ${DD}/${MM}/${YY}`;
+            }
+        } catch (e) {
+            console.warn("Update check failed, keeping fallback time");
+        }
+    }
+    autoDetectUpdateTime();
+    // ----------------------------------
+
     // Check login status on page load
     checkUserLogin();
 });

@@ -205,6 +205,7 @@ const translations = {
         "update-modal-title": "Сайтын Шинэчлэлт",
         "update-modal-desc": "Бид сайтыг өдөр бүр шинэчилж байна. Хэрэв та шинэ өөрчлөлтүүдийг харахгүй байгаа бол хуучин хувилбар хадгалагдсан (Cache) байж болзошгүй тул Refresh хийнэ үү.",
         "btn-refresh": "Одоо шинэчлэх",
+        "last-update-prefix": "Сүүлийн шинэчлэлт:",
         "btc-tools-title": 'Bitcoin <span class="text-brand-gold italic">Tools</span>',
         "btc-tools-desc": "BTC зах зээлийг шинжлэх мэргэжлийн түвшний хэрэгслүүд.",
         "tool-btc-intel-title": "Bitcoin Intelligence",
