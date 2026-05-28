@@ -136,27 +136,30 @@
                     .order('asset', { ascending: true });
 
                 if (balError) throw balError;
-                if (!balanceList) return;
 
                 // 2. Нийт USDT тооцох
                 let totalUsdt = 0;
                 const priceMap = {};
-                balanceList.forEach(b => {
-                    const usdVal = parseFloat(b.total_usd) || 0;
-                    totalUsdt += usdVal;
-                    const qty = (parseFloat(b.trade) || 0) + (parseFloat(b.fund) || 0);
-                    if (qty > 0) priceMap[b.asset] = usdVal / qty;
-                });
+                if (balanceList) {
+                    balanceList.forEach(b => {
+                        const usdVal = parseFloat(b.total_usd) || 0;
+                        totalUsdt += usdVal;
+                        const qty = (parseFloat(b.trade) || 0) + (parseFloat(b.fund) || 0);
+                        if (qty > 0) priceMap[b.asset.toUpperCase()] = usdVal / qty;
+                    });
+                }
 
                 // 3. Түүх татах
                 const { data: history, error: histError } = await client
                     .from('trade_history') 
                     .select('*')
                     .order('time', { ascending: false })
-                    .limit(50); // Гүйцэтгэлд сайнаар нөлөөлнө
+                    .limit(1000); 
 
                 // Update History
                 const histBody = document.getElementById('history-body');
+                if (!histBody) return;
+
                 const tradeHistory = history || [];
                 document.getElementById('history-count').innerText = `${tradeHistory.length} Trades`;
                 
@@ -164,7 +167,7 @@
                 const uniquePairs = new Set();
 
                 histBody.innerHTML = tradeHistory.map(h => {
-                    const currentPrice = priceMap[h.symbol];
+                    const currentPrice = priceMap[h.symbol.toUpperCase()];
                     let profitHtml = '<span class="text-gray-600">--</span>';
                     uniquePairs.add(h.symbol);
 
