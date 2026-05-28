@@ -133,20 +133,15 @@ def fetch_and_sync_balance():
         
         all_assets = set(spot['total'].keys()) | set(fund['total'].keys())
         
-        # 2. active_auto.json-оос нээлттэй арилжааны хэмжээг унших (Exceed тооцоолоход хэрэгтэй)
+        # 2. Supabase-ээс "OPEN" төлөвтэй арилжаануудыг уншиж Exceed тооцох
         tracked_holdings = {}
-        active_auto_path = "active_auto.json" # Railway deployment дотор байрлуулсан гэж үзнэ
-        if os.path.exists(active_auto_path):
-            try:
-                with open(active_auto_path, "r") as f:
-                    active_data = json.load(f)
-                # active_auto.json нь {"GIGGLE": qty} гэсэн хэлбэртэй байж болно
-                # эсвэл {"BTC": 0.001, "ETH": 0.01} гэсэн хэлбэртэй байж болно.
-                # Энд бид asset-ээр хандах боломжтой болгож байна.
-                for asset, qty in active_data.items():
-                    tracked_holdings[asset.upper()] = qty
-            except Exception as e:
-                print(f"⚠️ Error reading active_auto.json: {e}")
+        try:
+            open_trades = supabase.table("trade_history").select("symbol, amount").eq("status", "OPEN").execute()
+            for t_item in open_trades.data:
+                sym = t_item['symbol'].upper()
+                tracked_holdings[sym] = tracked_holdings.get(sym, 0) + float(t_item['amount'])
+        except Exception as e:
+            print(f"⚠️ Error fetching open trades from DB: {e}")
 
         for asset in sorted(all_assets):
             s_qty = float(spot['total'].get(asset, 0))
