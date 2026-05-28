@@ -69,11 +69,12 @@
                 
                 <!-- 2. BALANCE WINDOW (1/2 of sidebar height) -->
                 <div class="flex-1 bg-brand-dark-blue border border-brand-border rounded-xl flex flex-col shadow-2xl overflow-hidden min-h-0">
-                    <div class="bg-black/40 p-3 border-b border-brand-border flex items-center justify-between">
-                        <h2 data-i18n="win-balance" class="text-[10px] font-black uppercase tracking-widest text-brand-gold flex items-center">
-                            <i class="fas fa-wallet mr-2"></i> Wallet: 
-                            <span id="total-balance" class="ml-2 text-sm font-mono text-green-500 font-black">$0.00</span>
+                    <div class="bg-black/40 p-3 border-b border-brand-border flex items-center">
+                        <h2 class="text-[10px] font-black uppercase tracking-widest text-brand-gold flex items-center mr-2">
+                            <i class="fas fa-wallet mr-2"></i> 
+                            <span data-i18n="win-balance">Active Balance</span>:
                         </h2>
+                        <span id="total-balance" class="text-sm font-mono text-green-500 font-black leading-none">0.000</span>
                     </div>
                     <div class="flex-1 overflow-y-auto" id="balance-container">
                         <table class="w-full text-left border-collapse">
@@ -202,7 +203,7 @@
 
                 // Update Balance
                 const totalBalEl = document.getElementById('total-balance');
-                if (totalBalEl) totalBalEl.innerText = `$${totalUsdt.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                if (totalBalEl) totalBalEl.innerText = totalUsdt.toFixed(3);
                 
                 const balBody = document.getElementById('balance-body');
                 if (balBody) {
