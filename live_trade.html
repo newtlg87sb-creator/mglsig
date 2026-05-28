@@ -121,12 +121,12 @@
                 if (balError) throw balError;
 
                 // 2. Нийт USDT үнийг тооцоолох
-                const totalUsdt = balanceList.reduce((sum, item) => sum + (item.total_usd || 0), 0);
+                const totalUsdt = balanceList.reduce((sum, item) => sum + (parseFloat(item.total_usd) || 0), 0);
 
                 // Ашгийг тооцоолохын тулд одоогийн үнийн map үүсгэх
                 const priceMap = {};
                 balanceList.forEach(b => {
-                    const qty = parseFloat(b.trade) + parseFloat(b.fund);
+                    const qty = (parseFloat(b.trade) || 0) + (parseFloat(b.fund) || 0);
                     if (qty > 0) {
                         priceMap[b.asset] = parseFloat(b.total_usd) / qty;
                     }
@@ -175,13 +175,19 @@
                 `}).join('');
 
                 // Update Footer Stats
-                document.getElementById('total-pairs').innerText = `${uniquePairs.size} Coins`;
-                document.getElementById('total-profit-sum').innerHTML = `<span class="${totalProfit >= 0 ? 'text-green-500' : 'text-red-500'}">${totalProfit.toFixed(2)}%</span>`;
+                const totalPairsEl = document.getElementById('total-pairs');
+                if (totalPairsEl) totalPairsEl.innerText = `${uniquePairs.size} Coins`;
+                
+                const totalProfitEl = document.getElementById('total-profit-sum');
+                if (totalProfitEl) totalProfitEl.innerHTML = `<span class="${totalProfit >= 0 ? 'text-green-500' : 'text-red-500'}">${totalProfit.toFixed(2)}%</span>`;
 
                 // Update Balance
-                document.getElementById('total-balance').innerText = `$${totalUsdt.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+                const totalBalEl = document.getElementById('total-balance');
+                if (totalBalEl) totalBalEl.innerText = `$${totalUsdt.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                
                 const balBody = document.getElementById('balance-body');
-                balBody.innerHTML = balanceList.map(b => `
+                if (balBody) {
+                    balBody.innerHTML = balanceList.map(b => `
                     <tr class="border-b border-brand-border/20 hover:bg-white/5 transition-colors">
                         <td class="p-2 font-black text-brand-gold">${b.asset}</td>
                         <td class="p-2 text-gray-300">${parseFloat(b.trade).toFixed(4)}</td>
@@ -191,10 +197,11 @@
                         <td class="p-2 text-right text-white font-bold">$${parseFloat(b.total_usd).toFixed(2)}</td>
                     </tr>
                 `).join('') || '<tr><td colspan="4" class="p-10 text-center text-gray-600 italic">No Assets</td></tr>';
+                }
 
                 // Simulated Logs (In real app, fetch from a log endpoint)
                 const logsBody = document.getElementById('logs-container');
-                if (tradeHistory.length > 0 && lastProcessedTradeId !== tradeHistory[0].id) {
+                if (logsBody && tradeHistory.length > 0 && lastProcessedTradeId !== tradeHistory[0].id) {
                     const last = tradeHistory[0];
                     lastProcessedTradeId = last.id;
                     const time = new Date().toLocaleTimeString();
