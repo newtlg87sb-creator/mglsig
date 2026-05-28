@@ -162,8 +162,10 @@
         async function fetchCryptoNews() {
             const container = document.getElementById('crypto-news-container');
             try {
-                // Өөрийн үүсгэсэн API route рүү хандана
-                const response = await fetch('/api/news');
+                // CryptoCompare API-руу шууд хандах (Анхааруулга: API Key ил харагдана)
+                const apiKey = "e1a405da7b5c9741bea263ba620e6de9eeea91b8d1cafc81e36dd5d0ebdaa6ea"; 
+                const response = await fetch(`https://min-api.cryptocompare.com/data/v2/news/?lang=EN&api_key=${apiKey}`);
+                
                 const data = await response.json();
                 
                 // More robust check for API errors or empty data

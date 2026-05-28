@@ -116,11 +116,17 @@ def run_engine():
             # Supabase-д БӨӨНӨӨР нь хадгалах (Upsert)
             if payload:
                 # 100 100-аар багцалж илгээх (Supabase limit-ээс сэргийлнэ)
-                for i in range(0, len(payload), 100):
-                    batch = payload[i:i+100]
-                    supabase.table("market_data").upsert(batch).execute()
-                
-                print(f"✅ Synced {len(payload)} coins at {time.strftime('%H:%M:%S')}")
+                try:
+                    for i in range(0, len(payload), 100):
+                        batch = payload[i:i+100]
+                        supabase.table("market_data").upsert(batch).execute()
+                    
+                    print(f"✅ Synced {len(payload)} Kucoin coins at {time.strftime('%H:%M:%S')}")
+                except Exception as db_err:
+                    print(f"❌ Supabase Sync Error: {db_err}")
+                    # Өгөгдлийн сан руу холбогдож чадахгүй бол хэсэг хүлээх
+                    time.sleep(10)
+                    continue
 
             time.sleep(5) # 5 секунд тутамд шинэчлэх
 

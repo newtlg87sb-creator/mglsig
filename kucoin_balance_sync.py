@@ -6,25 +6,25 @@ import random
 from datetime import datetime, timezone
 from supabase import create_client, Client # type: ignore
 
-# Supabase Environment Variables (Railway дээр тохируулах)
+# Системийн Environment Variables-аас тохиргоог унших
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip()
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
 
-# KuCoin Environment Variables (Railway дээр тохируулах)
+# KuCoin API эрхүүдийг унших
 KUCOIN_API_KEY = os.environ.get('KUCOIN_API_KEY')
 KUCOIN_SECRET = os.environ.get('KUCOIN_SECRET')
 KUCOIN_PASSWORD = os.environ.get('KUCOIN_PASSWORD')
 
 # Supabase client үүсгэх
 if not SUPABASE_URL or not SUPABASE_KEY:
-    print(f"❌ Error: Supabase Environment variables are missing! URL: {'Set' if SUPABASE_URL else 'Not Set'}, Key: {'Set' if SUPABASE_KEY else 'Not Set'}")
-    exit(1) # Алдаатай бол програмыг зогсооно
+    print("❌ Error: Supabase system environment variables are not set correctly!")
+    exit(1)
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # KuCoin Exchange холболт
 if not KUCOIN_API_KEY or not KUCOIN_SECRET or not KUCOIN_PASSWORD:
-    print("❌ Error: KuCoin API credentials are missing from environment variables!")
+    print("❌ Error: KuCoin system environment variables are missing!")
     exit(1)
 
 ex = ccxt.kucoin({

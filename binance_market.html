@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Binance Pro Terminal - MGL Signal</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -145,8 +144,6 @@
     <script src="/static/js/footer.js"></script>
 
     <script>
-        const supabaseClient = sb;
-
         let allData = [];
         let sessionInitialPrices = {};
         let currentSort = { col: 'client_real_change', desc: true };

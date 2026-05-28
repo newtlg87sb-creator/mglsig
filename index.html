@@ -48,11 +48,10 @@
         style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com 'unsafe-inline';
         font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
         frame-src 'self' https://s.tradingview.com;
-        connect-src 'self' https://bsdkbxyjwjljximdxdst.supabase.co https://www.google-analytics.com https://api.binance.com https://fapi.binance.com https://api.coingecko.com https://api.alternative.me https://min-api.cryptocompare.com;
+        connect-src 'self' https://bsdkbxyjwjljximdxdst.supabase.co https://www.google-analytics.com https://api.binance.com https://fapi.binance.com https://api.mexc.com https://api.bybit.com https://api.kucoin.com https://api.coingecko.com https://api.alternative.me https://min-api.cryptocompare.com;
     ">
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -519,27 +518,6 @@
                 document.getElementById('ticker-losers').innerHTML = createHTML(topLosers) + createHTML(topLosers);
                 
             } catch (e) { console.error("Market Data Error:", e); }
-        }
-
-        async function checkLiveTradeStatus() {
-            try {
-                const response = await fetch('/api/live_trade');
-                const data = await response.json();
-                const badge = document.getElementById('trade-status-badge');
-                const ping = document.getElementById('trade-ping');
-                const dot = document.getElementById('trade-dot');
-
-                if (data.has_open_trade) {
-                    badge.innerHTML = "OPENED";
-                    badge.className = "text-[7px] sm:text-[9px] font-black bg-green-500 text-black px-1.5 py-0.5 rounded uppercase tracking-tighter shadow-lg shadow-green-500/20";
-                    ping.classList.remove('hidden');
-                } else {
-                    badge.innerHTML = "CLOSED";
-                    badge.className = "text-[7px] sm:text-[9px] font-black bg-gray-600 text-white px-1.5 py-0.5 rounded uppercase tracking-tighter";
-                    ping.classList.add('hidden');
-                    dot.className = "relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 bg-gray-500";
-                }
-            } catch (e) { console.error("Trade Status Error:", e); }
         }
 
         // Admin Notification Interaction Logic

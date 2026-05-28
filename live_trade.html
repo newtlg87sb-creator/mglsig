@@ -119,14 +119,8 @@
         let lastProcessedTradeId = null;
 
         // Supabase client байгаа эсэхийг баталгаажуулах туслах функц
-        function getSupabase() {
-            if (typeof sb !== 'undefined' && sb !== null) return sb;
-            if (typeof supabase !== 'undefined') {
-                const SB_URL = "https://bsdkbxyjwjljximdxdst.supabase.co";
-                const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzZGtieHlqd2psanhpbWR4ZHN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzODg1MTQsImV4cCI6MjA5MDk2NDUxNH0.Qwfpd0cEaAKwlv5B-Uh0MlTLR-WH8qt19HHlTxUnUYs";
-                return supabase.createClient(SB_URL, SB_KEY);
-            }
-            return null;
+        function getSupabase() { // header.js-ээс ирэх глобал 'sb' хувьсагчийг ашиглана
+            return typeof sb !== 'undefined' ? sb : null;
         }
 
         async function updateTerminal() {

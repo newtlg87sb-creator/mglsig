@@ -94,14 +94,10 @@
     </main>
 
     <script>
-        const SB_URL = "https://bsdkbxyjwjljximdxdst.supabase.co";
-        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzZGtieHlqd2psanhpbWR4ZHN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzODg1MTQsImV4cCI6MjA5MDk2NDUxNH0.Qwfpd0cEaAKwlv5B-Uh0MlTLR-WH8qt19HHlTxUnUYs";
-        const sb = supabase.createClient(SB_URL, SB_KEY);
+        // Supabase client-ийг header.js-д үүсгэсэн 'sb' глобал хувьсагчаас авна.
         let currentPassword = ""; // Нууц үгийг түр хадгалах
-
         async function checkAuth() {
             const pass = document.getElementById('admin-password').value;
-            
             // Supabase RPC-ээр нууц үгийг шалгах (Frontend дээр нууц үг байхгүй)
             const { data: isValid, error } = await sb.rpc('verify_admin_password', { 
                 input_password: pass 
