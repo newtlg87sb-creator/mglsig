@@ -192,7 +192,8 @@
 
         async function fetchMarketData() {
             try {
-                const { data, error } = await supabaseClient.from('binance_market_data').select('*');
+                // header.js-д үүссэн 'sb' объектыг ашиглана
+                const { data, error } = await sb.from('binance_market_data').select('*');
                 if (error) throw error;
                 console.log("Supabase raw data:", data); // Энд дата ирж байгааг шалгана
                 

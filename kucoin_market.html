@@ -258,7 +258,8 @@
 
         async function fetchMarketData() {
             try {
-                const { data, error } = await supabaseClient.from('market_data').select('*');
+                // header.js-д үүссэн 'sb' объектыг ашиглана
+                const { data, error } = await sb.from('market_data').select('*');
                 if (error) throw error;
                 allData = data;
 
