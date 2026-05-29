@@ -57,7 +57,7 @@
 
         // 🚨 ЧИНИЙ SUPABASE ТОХИРГОО (Үүнийг өөрийнхөөрөө солиорой)
         const SUPABASE_URL = "https://bsdkbxyjwjljximdxdst.supabase.co"; 
-        const SUPABASE_KEY = "чиний_нийтийн_anon_key"; // Түрүүн хуулж авсан анон түлхүүрээ тавиарай
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzZGtieHlqd2psanhpbWR4ZHN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzODg1MTQsImV4cCI6MjA5MDk2NDUxNH0.Qwfpd0cEaAKwlv5B-Uh0MlTLR-WH8qt19HHlTxUnUYs"; // Түрүүн хуулж авсан анон түлхүүрээ тавиарай
 
         function resize() {
             if (canvas.parentElement) {
@@ -89,13 +89,13 @@
                     // Супабэйсийн өгөгдлийг Canvas-ийн [Time, Open, High, Low, Close, Volume] формат руу гүйглэх
                     // Жишээ нь супабэйсийн баганы нэр чинь өөр бол d.open, d.high гэж солиорой
                     allData = supabaseData.map(d => [
-                        new Date(d.timestamp).getTime(), 
-                        Number(d.open), 
-                        Number(d.high), 
-                        Number(d.low), 
-                        Number(d.close), 
-                        Number(d.volume)
-                    ]).reverse(); // Хуучныг нь урд нь гаргахын тулд reverse хийнэ
+                        new Date(d.timestamp || d.created_at).getTime(), // 👈 Чиний хугацааны баганы нэр (timestamp эсвэл created_at)
+                        Number(d.open),   // 👈 Чиний open үнийн баганы нэр
+                        Number(d.high),   // 👈 Чиний high үнийн баганы нэр
+                        Number(d.low),    // 👈 Чиний low үнийн баганы нэр
+                        Number(d.close),  // 👈 Чиний close үнийн баганы нэр
+                        Number(d.volume || 0)
+                    ]).reverse();
                     
                     draw();
                 }
