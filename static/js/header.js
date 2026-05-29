@@ -292,11 +292,11 @@ async function checkUserLogin() {
                     membership_expires_at: profile?.membership_expires_at || user.user_metadata.membership_expires_at || null
                 };
                 
-                // Update local storage with latest DB data
                 localStorage.setItem('user', JSON.stringify(userData));
                 userStr = JSON.stringify(userData);
-            } else if (!session && userStr) {
-                localStorage.removeItem('user');
+            } else {
+                // Сесс байхгүй бол цэвэрлэнэ
+                if (userStr) localStorage.removeItem('user');
                 userStr = null;
             }
         } catch (err) {
@@ -304,19 +304,17 @@ async function checkUserLogin() {
         }
     }
 
+    // UI-г тодорхойлох элементүүд
+    const dGuest = document.getElementById('desktop-guest');
+    const dUser = document.getElementById('desktop-user');
+    const dName = document.getElementById('user-display-name');
+    const mGuest = document.getElementById('mobile-guest');
+    const mUser = document.getElementById('mobile-user');
+    const mName = document.getElementById('mobile-user-name');
+
     if (userStr && userStr !== "undefined") {
         try {
             const user = JSON.parse(userStr);
-            
-            // Desktop UI Update
-            const dGuest = document.getElementById('desktop-guest');
-            const dUser = document.getElementById('desktop-user');
-            const dName = document.getElementById('user-display-name');
-
-            // Mobile UI Update
-            const mGuest = document.getElementById('mobile-guest');
-            const mUser = document.getElementById('mobile-user');
-            const mName = document.getElementById('mobile-user-name');
 
             // Helper to generate the display HTML based on membership
             const getStatusHTML = (username, type, expiresAt) => {
@@ -348,6 +346,21 @@ async function checkUserLogin() {
         } catch (e) {
             console.error("Error parsing user data", e);
             localStorage.removeItem('user'); // Алдаатай өгөгдөл байвал устгана
+            userStr = null; // Дараагийн шат руу шилжүүлж Guest UI-г харуулна
+        }
+    } 
+    
+    // Хэрэв хэрэглэгч нэвтрээгүй бол (userStr байхгүй) UI-г Guest төлөв рүү буцаана
+    if (!userStr || userStr === "undefined") {
+        if(dGuest && dUser) {
+            dGuest.classList.remove('hidden');
+            dGuest.classList.add('flex');
+            dUser.classList.add('hidden');
+        }
+        if(mGuest && mUser) {
+            mGuest.classList.remove('hidden');
+            mGuest.classList.add('grid');
+            mUser.classList.add('hidden');
         }
     }
 }
