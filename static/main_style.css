@@ -66,21 +66,37 @@ html { scroll-behavior: smooth; scroll-padding-top: 70px; }
 
 /* 4. HERO TEXT SHIMMER on gold spans */
 .text-brand-gold, [class*="text-brand-gold"] {
-  background: linear-gradient(90deg, #c5a059 0%, #f5d680 40%, #c5a059 60%, #a07832 100%);
+  /* ── ТЕКСТИЙГ АМРАХ ҮЕД НЬ ТОД ШАРААР ҮЛДЭЭХ ШИНЭ GRADIENT ── */
+  /* Эхлэл (0%) болон Төгсгөл (100%) хэсгийг чиний дуртай тод алтлаг (#c5a059) өнгөөр хааж, зөвхөн дунд нь цэвэр цагаан оч оруулсан */
+  background: linear-gradient(90deg, #c5a059 0%, #c5a059 30%, #ffffff 50%, #c5a059 70%, #c5a059 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: goldShimmer 9s linear infinite;
+  
+  /* 2с гүйж, 8с амрах 10 секундын цикл */
+  animation: goldShimmer 10s cubic-bezier(0.19, 1, 0.22, 1) infinite;
 
-  /* ── БУХ ЮМЫГ ГАНЦХАН СЕКУНДЭД ЗАСАХ МӨРҮҮД ── */
+  /* Гарчиг таслагдахаас хамгаалах суурь */
   display: inline-block; 
-  padding-right: 0.15em; /* Италик налуу үсгийг баруун тийш таслахаас сэргийлнэ */
-  padding-bottom: 0.05em; /* Доошоо унжсан үсгийг бүтэн харуулна */
+  padding-right: 0.2em; 
+  padding-bottom: 0.05em; 
 }
+
+/* ── ЗӨВХӨН ГЭРЭЛ ГҮЙЛГЭХ ХӨДӨЛГӨӨН ── */
 @keyframes goldShimmer {
-  0% { background-position: 200% center; }
-  100% { background-position: -200% center; }
+  0% { 
+    /* Эхлэхдээ текст чинь бүтэн шараараа байна */
+    background-position: 0% center; 
+  }
+  15% { 
+    /* 1.5 секундын дотор цагаан оч баруун талаас зүүн тийш гялс гүйж өнгөрнө */
+    background-position: -200% center; 
+  }
+  100% { 
+    /* Үлдсэн 8.5 секунд амарч байхдаа ч текст тэр чигтээ тод шараараа л байна */
+    background-position: -200% center; 
+  }
 }
 
 /* 5. LIVE PING DOTS — pulse glow */
