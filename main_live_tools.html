@@ -10,7 +10,7 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
@@ -21,7 +21,7 @@
             theme: {
                 extend: {
                     colors: {
-                        brand: { 'dark': '#05070a', 'dark-blue': '#0f1217', 'gold': '#c5a059', 'border': '#1f242d' }
+                        brand: { 'dark': '#05070a', 'dark-blue': '#0c0e12', 'gold': '#c5a059', 'border': '#161b22' }
                     },
                     fontFamily: { 'inter': ['Inter', 'sans-serif'] }
                 }
@@ -37,85 +37,153 @@
     <script src="/static/js/header.js"></script>
 
     <!-- Main Content -->
-    <main class="flex-grow pt-32 pb-12 px-6">
-        <div class="max-w-5xl mx-auto">
-            <!-- Header -->
+    <main class="flex-grow pt-36 pb-20 px-6">
+        <div class="max-w-6xl mx-auto">
+            
+            <!-- Header (Үнэтэй Брэндийн Налуу Минимал Хэв Шинж) -->
             <div class="text-center mb-16">
                 <h1 data-i18n="live-hub-title" class="text-3xl md:text-5xl font-black uppercase tracking-tight text-white mb-4">
                     Live <span class="text-brand-gold italic">Tools</span>
                 </h1>
-                <p data-i18n="live-hub-desc" class="text-gray-400 max-w-2xl mx-auto">
-                    
+                <!-- Глобал текст сканерыг дээд тайлбар дээр ч суулгав -->
+                <p data-i18n="live-hub-desc" class="mgl-spotlight-text max-w-2xl mx-auto text-sm" data-text="Зах зээлийн бодит цагийн өгөгдөл болон амьд графикууд.">
+                    Зах зээлийн бодит цагийн өгөгдөл болон амьд графикууд.
                 </p>
-                <div class="w-20 h-1 bg-brand-gold mx-auto mt-6"></div>
+                <div class="w-12 h-[1px] bg-brand-gold/30 mx-auto mt-6"></div>
             </div>
 
-            <!-- Tools Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                
-                <!-- Card 1: Exchanges Data -->
-                <a href="/main_exchanges.html" class="bg-brand-dark-blue border border-brand-border rounded-2xl p-10 hover:border-brand-gold transition duration-300 group flex flex-col shadow-2xl relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
-                        <i class="fas fa-server text-6xl"></i>
-                    </div>
-                    <div class="w-14 h-14 bg-brand-gold/10 rounded-xl flex items-center justify-center mb-8 group-hover:bg-brand-gold/20 transition">
-                        <i class="fas fa-bolt text-brand-gold text-2xl"></i>
-                    </div>
-                    <h3 data-i18n="tool-ex-title" class="text-white text-xl font-bold mb-4 uppercase tracking-wider group-hover:text-brand-gold transition">Exchanges Data</h3>
-                    <p data-i18n="tool-ex-desc" class="text-gray-500 text-sm leading-relaxed mb-8 flex-grow">Биржүүдийн бодит цагийн үнэ, волюм болон сүлжээний мэдээллүүд.</p>
-                    <span data-i18n="open-terminal" class="text-brand-gold text-[10px] font-black uppercase tracking-[0.2em] flex items-center mt-auto">
-                        
-                    </span>
-                </a>
+            <!-- ШИНЭЧЛЭГДСЭН UX/UI ГРИД: ИКОНГҮЙ, НИМГЕН ТУУЗТАЙ, АМЬД ЛУГШИЛТТАЙ -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    
+    <!-- Card 1: Exchanges Data -->
+    <a href="/main_exchanges.html" class="group relative bg-brand-dark-blue border border-brand-border rounded-xl p-6 hover:border-brand-gold/30 transition duration-500 flex flex-col justify-between overflow-hidden">
+        <!-- ── ЖИНХЭНЭ luxury ТУУЗ: Зүүн дээд буланд байрлах нарийн алтлаг шугам ── -->
+        <div class="absolute top-0 left-0 w-16 h-[2px] bg-gradient-to-r from-brand-gold via-brand-gold/50 to-transparent shadow-[0_0_12px_rgba(197,160,89,0.5)]"></div>
+        
+        <div>
+            <!-- Иконы оронд орчин үеийн Live Pulse Dot (Амьд дата оч) -->
+            <div class="flex items-center space-x-2 mb-6">
+                <span class="flex h-1.5 w-1.5 relative">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-gold opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand-gold"></span>
+                </span>
+                <span class="text-[9px] font-bold tracking-[0.2em] text-brand-gold/60 uppercase group-hover:text-brand-gold transition duration-300">Live Stream</span>
+            </div>
+            
+            <h3 data-i18n="tool-ex-title" class="text-white text-base font-bold mb-2 tracking-wide group-hover:text-brand-gold transition uppercase">Exchanges Data</h3>
+            <p data-i18n="tool-ex-desc" class="mgl-spotlight-text text-gray-500 text-xs leading-relaxed mb-6" data-text="Биржүүдийн бодит цагийн үнэ, волюм болон сүлжээний мэдээллүүд.">
+                Биржүүдийн бодит цагийн үнэ, волюм болон сүлжээний мэдээллүүд.
+            </p>
+        </div>
+        <span data-i18n="open-terminal" class="text-brand-gold text-[10px] font-bold uppercase tracking-[0.15em] flex items-center mt-auto opacity-70 group-hover:opacity-100 transition duration-300">
+            Нээх <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition"></i>
+        </span>
+    </a>
 
                 <!-- Card 2: Live Trade Terminal -->
-                <a href="/mainlive_kucointrade.html" class="bg-brand-dark-blue border border-brand-border rounded-2xl p-10 hover:border-brand-gold transition duration-300 group flex flex-col shadow-2xl relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
-                        <i class="fas fa-terminal text-6xl"></i>
-                    </div>
-                    <div class="w-14 h-14 bg-brand-gold/10 rounded-xl flex items-center justify-center mb-8 group-hover:bg-brand-gold/20 transition">
-                        <i class="fas fa-satellite-dish text-brand-gold text-2xl"></i>
-                    </div>
-                    <h3 data-i18n="tool-trade-title" class="text-white text-xl font-bold mb-4 uppercase tracking-wider group-hover:text-brand-gold transition">Live Trade Terminal</h3>
-                    <p data-i18n="tool-trade-desc" class="text-gray-500 text-sm leading-relaxed mb-8 flex-grow">Автомат ботын идэвхтэй арилжаанууд, баланс болон системийн логуудыг шууд хянах.</p>
-                    <span data-i18n="open-terminal" class="text-brand-gold text-[10px] font-black uppercase tracking-[0.2em] flex items-center mt-auto">
+                <a href="/mainlive_kucointrade.html" class="group relative bg-brand-dark-blue border border-brand-border rounded-xl p-6 hover:border-brand-gold/30 transition duration-500 flex flex-col justify-between overflow-hidden">
+                    <!-- Жинхэнэ Luxury Тууз -->
+                    <div class="absolute top-0 left-0 w-16 h-[2px] bg-gradient-to-r from-brand-gold via-brand-gold/50 to-transparent shadow-[0_0_12px_rgba(197,160,89,0.5)]"></div>
+                    
+                    <div>
+                        <!-- Live Pulse Dot -->
+                        <div class="flex items-center space-x-2 mb-6">
+                            <span class="flex h-1.5 w-1.5 relative">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-gold opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand-gold"></span>
+                            </span>
+                            <span class="text-[9px] font-bold tracking-[0.2em] text-brand-gold/60 uppercase group-hover:text-brand-gold transition duration-300">Terminal Connected</span>
+                        </div>
                         
+                        <h3 data-i18n="tool-trade-title" class="text-white text-base font-bold mb-2 tracking-wide group-hover:text-brand-gold transition uppercase">Live Trade Terminal</h3>
+                        <p data-i18n="tool-trade-desc" class="mgl-spotlight-text text-gray-500 text-xs leading-relaxed mb-6" data-text="Автомат ботын идэвхтэй арилжаанууд, баланс болон системийн логуудыг шууд хянах.">
+                            Автомат ботын идэвхтэй арилжаанууд, баланс болон системийн логуудыг шууд хянах.
+                        </p>
+                    </div>
+                    <span data-i18n="open-terminal" class="text-brand-gold text-[10px] font-bold uppercase tracking-[0.15em] flex items-center mt-auto opacity-70 group-hover:opacity-100 transition duration-300">
+                        Нээх <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition"></i>
                     </span>
                 </a>
 
                 <!-- Card 3: Live Charts -->
-                <a href="/mainlive_binchart.html" class="bg-brand-dark-blue border border-brand-border rounded-2xl p-10 hover:border-brand-gold transition duration-300 group flex flex-col shadow-2xl relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
-                        <i class="fas fa-chart-line text-6xl"></i>
-                    </div>
-                    <div class="w-14 h-14 bg-brand-gold/10 rounded-xl flex items-center justify-center mb-8 group-hover:bg-brand-gold/20 transition">
-                        <i class="fas fa-wave-square text-brand-gold text-2xl"></i>
-                    </div>
-                    <h3 data-i18n="tool-chart-title" class="text-white text-xl font-bold mb-4 uppercase tracking-wider group-hover:text-brand-gold transition">Live Charts (Binance)</h3>
-                    <p data-i18n="tool-chart-desc" class="text-gray-500 text-sm leading-relaxed mb-8 flex-grow">Бинанс биржийн бүх хослолуудын амьд график. Spot болон Futures өгөгдөл.</p>
-                    <span data-i18n="open-charts" class="text-brand-gold text-[10px] font-black uppercase tracking-[0.2em] flex items-center mt-auto">
+                <a href="/mainlive_binchart.html" class="group relative bg-brand-dark-blue border border-brand-border rounded-xl p-6 hover:border-brand-gold/30 transition duration-500 flex flex-col justify-between overflow-hidden">
+                    <!-- Жинхэнэ Luxury Тууз -->
+                    <div class="absolute top-0 left-0 w-16 h-[2px] bg-gradient-to-r from-brand-gold via-brand-gold/50 to-transparent shadow-[0_0_12px_rgba(197,160,89,0.5)]"></div>
+                    
+                    <div>
+                        <!-- Live Pulse Dot -->
+                        <div class="flex items-center space-x-2 mb-6">
+                            <span class="flex h-1.5 w-1.5 relative">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-gold opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand-gold"></span>
+                            </span>
+                            <span class="text-[9px] font-bold tracking-[0.2em] text-brand-gold/60 uppercase group-hover:text-brand-gold transition duration-300">Charts Active</span>
+                        </div>
                         
+                        <h3 data-i18n="tool-chart-title" class="text-white text-base font-bold mb-2 tracking-wide group-hover:text-brand-gold transition uppercase">Live Charts (Binance)</h3>
+                        <p data-i18n="tool-chart-desc" class="mgl-spotlight-text text-gray-500 text-xs leading-relaxed mb-6" data-text="Бинанс биржийн бүх хослолуудын амьд график. Spot болон Futures өгөгдөл.">
+                            Бинанс биржийн бүх хослолуудын амьд график. Spot болон Futures өгөгдөл.
+                        </p>
+                    </div>
+                    <span data-i18n="open-charts" class="text-brand-gold text-[10px] font-bold uppercase tracking-[0.15em] flex items-center mt-auto opacity-70 group-hover:opacity-100 transition duration-300">
+                        Нээх <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition"></i>
                     </span>
                 </a>
 
                 <!-- Card 4: Gold Arbitrage -->
-                <a href="/mainlive_gold.html" class="bg-brand-dark-blue border border-brand-border rounded-2xl p-10 hover:border-brand-gold transition duration-300 group flex flex-col shadow-2xl relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
-                        <i class="fas fa-balance-scale text-6xl"></i>
-                    </div>
-                    <div class="w-14 h-14 bg-brand-gold/10 rounded-xl flex items-center justify-center mb-8 group-hover:bg-brand-gold/20 transition">
-                        <i class="fas fa-gem text-brand-gold text-2xl"></i>
-                    </div>
-                    <h3 data-i18n="tool-gold-title" class="text-white text-xl font-bold mb-4 uppercase tracking-wider group-hover:text-brand-gold transition">Gold Arbitrage</h3>
-                    <p data-i18n="tool-gold-desc" class="text-gray-500 text-sm leading-relaxed mb-8 flex-grow">Бодит алт болон Крипто алтны үнийн зөрүүг хянах терминал.</p>
-                    <span data-i18n="open-terminal" class="text-brand-gold text-[10px] font-black uppercase tracking-[0.2em] flex items-center mt-auto">
+                <a href="/mainlive_gold.html" class="group relative bg-brand-dark-blue border border-brand-border rounded-xl p-6 hover:border-brand-gold/30 transition duration-500 flex flex-col justify-between overflow-hidden">
+                    <!-- Жинхэнэ Luxury Тууз -->
+                    <div class="absolute top-0 left-0 w-16 h-[2px] bg-gradient-to-r from-brand-gold via-brand-gold/50 to-transparent shadow-[0_0_12px_rgba(197,160,89,0.5)]"></div>
+                    
+                    <div>
+                        <!-- Live Pulse Dot -->
+                        <div class="flex items-center space-x-2 mb-6">
+                            <span class="flex h-1.5 w-1.5 relative">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-gold opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand-gold"></span>
+                            </span>
+                            <span class="text-[9px] font-bold tracking-[0.2em] text-brand-gold/60 uppercase group-hover:text-brand-gold transition duration-300">Arbitrage Engine</span>
+                        </div>
                         
+                        <h3 data-i18n="tool-gold-title" class="text-white text-base font-bold mb-2 tracking-wide group-hover:text-brand-gold transition uppercase">Gold Arbitrage</h3>
+                        <p data-i18n="tool-gold-desc" class="mgl-spotlight-text text-gray-500 text-xs leading-relaxed mb-6" data-text="Бодит алт болон Крипто алтны үнийн зөрүүг хянах терминал.">
+                            Бодит алт болон Крипто алтны үнийн зөрүүг хянах терминал.
+                        </p>
+                    </div>
+                    <span data-i18n="open-terminal" class="text-brand-gold text-[10px] font-bold uppercase tracking-[0.15em] flex items-center mt-auto opacity-70 group-hover:opacity-100 transition duration-300">
+                        Нээх <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition"></i>
+                    </span>
+                </a>
+
+                <!-- Card 5: 3D Visual (Test) -->
+                <a href="/main_3D_material.html" class="group relative bg-brand-dark-blue border border-brand-border rounded-xl p-6 hover:border-brand-gold/30 transition duration-500 flex flex-col justify-between overflow-hidden">
+                    <!-- Жинхэнэ Luxury Тууз -->
+                    <div class="absolute top-0 left-0 w-16 h-[2px] bg-gradient-to-r from-brand-gold via-brand-gold/50 to-transparent shadow-[0_0_12px_rgba(197,160,89,0.5)]"></div>
+                    
+                    <div>
+                        <!-- Live Pulse Dot -->
+                        <div class="flex items-center space-x-2 mb-6">
+                            <span class="flex h-1.5 w-1.5 relative">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-gold opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand-gold"></span>
+                            </span>
+                            <span class="text-[9px] font-bold tracking-[0.2em] text-brand-gold/60 uppercase group-hover:text-brand-gold transition duration-300">BETA LAB</span>
+                        </div>
+                        
+                        <h3 data-i18n="tool-3d-test-title" class="text-white text-base font-bold mb-2 tracking-wide group-hover:text-brand-gold transition uppercase">3D Visual (Test)</h3>
+                        <p data-i18n="tool-3d-test-desc" class="mgl-spotlight-text text-gray-500 text-xs leading-relaxed mb-6" data-text="Арилжааны хөдөлгөөнийг 3D орон зайд шинэлэг байдлаар мэдрэх.">
+                            Арилжааны хөдөлгөөнийг 3D орон зайд шинэлэг байдлаар мэдрэх.
+                        </p>
+                    </div>
+                    <span data-i18n="open-terminal" class="text-brand-gold text-[10px] font-bold uppercase tracking-[0.15em] flex items-center mt-auto opacity-70 group-hover:opacity-100 transition duration-300">
+                        Нээх <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition"></i>
                     </span>
                 </a>
 
             </div>
         </div>
     </main>
+
     <script>
         const pageTranslations = {
             mn: {
@@ -129,8 +197,10 @@
                 "tool-chart-desc": "Бинанс биржийн бүх хослолуудын амьд график. Spot болон Futures өгөгдөл.",
                 "tool-gold-title": "Алтны Арбитраж",
                 "tool-gold-desc": "Бодит алт болон Крипто алтны үнийн зөрүүг хянах терминал.",
-                "open-terminal": "Нээх <i class=\"fas fa-arrow-right ml-2 group-hover:translate-x-2 transition\"></i>",
-                "open-charts": "Нээх <i class=\"fas fa-arrow-right ml-2 group-hover:translate-x-2 transition\"></i>"
+                "tool-3d-test-title": "3D Визуал (Тест)",
+                "tool-3d-test-desc": "Арилжааны хөдөлгөөнийг 3D орон зайд шинэлэг байдлаар мэдрэх.",
+                "open-terminal": "Нээх <i class=\"fas fa-arrow-right ml-2 group-hover:translate-x-1 transition\"></i>",
+                "open-charts": "Нээх <i class=\"fas fa-arrow-right ml-2 group-hover:translate-x-1 transition\"></i>"
             },
             en: {
                 "live-hub-title": 'Live <span class="text-brand-gold italic">Tools</span>',
@@ -143,8 +213,10 @@
                 "tool-chart-desc": "Live charts for all Binance pairs including Spot and Futures data.",
                 "tool-gold-title": "Gold Arbitrage",
                 "tool-gold-desc": "Terminal for tracking price differences between real gold and crypto gold.",
-                "open-terminal": "Open <i class=\"fas fa-arrow-right ml-2 group-hover:translate-x-2 transition\"></i>",
-                "open-charts": "Open <i class=\"fas fa-arrow-right ml-2 group-hover:translate-x-2 transition\"></i>"
+                "tool-3d-test-title": "3D Visual (Test)",
+                "tool-3d-test-desc": "Experience market movements in an innovative 3D environment.",
+                "open-terminal": "Open <i class=\"fas fa-arrow-right ml-2 group-hover:translate-x-1 transition\"></i>",
+                "open-charts": "Open <i class=\"fas fa-arrow-right ml-2 group-hover:translate-x-1 transition\"></i>"
             }
         };
 
@@ -152,6 +224,18 @@
         Object.keys(pageTranslations).forEach(lang => {
             window.translations[lang] = { ...window.translations[lang], ...pageTranslations[lang] };
         });
+
+        // ── БРО-ГИЙН ХЭЛНИЙ АВТОМАТ МАСК СИНХРОНЧЛОЛ (PAGE VERSION) ──
+        function syncPageSpotlightText() {
+            setTimeout(() => {
+                document.querySelectorAll('.mgl-spotlight-text').forEach(el => {
+                    const visibleText = el.textContent.trim();
+                    if (visibleText) {
+                        el.setAttribute('data-text', visibleText);
+                    }
+                });
+            }, 50);
+        }
 
         function changeLang(lang) {
             localStorage.setItem('lang', lang);
@@ -171,16 +255,21 @@
             if (btnMn && btnEn) {
                 const activeClass = "px-2.5 py-1 rounded-full bg-brand-gold text-black transition";
                 const inactiveClass = "px-2.5 py-1 rounded-full text-gray-500 hover:text-white transition";
-                
                 btnMn.className = lang === 'mn' ? activeClass : inactiveClass;
                 btnEn.className = lang === 'en' ? activeClass : inactiveClass;
             }
+            
+            // Хэл солигдоход хуудасны текстийн маскуудыг шинэчлэх
+            syncPageSpotlightText();
         }
         window.changeLang = changeLang;
 
         document.addEventListener('DOMContentLoaded', () => {
             const savedLang = localStorage.getItem('lang') || 'mn';
             changeLang(savedLang);
+            
+            // Анх ачаалагдахад гэрлийг тааруулах
+            syncPageSpotlightText();
         });
     </script>
 

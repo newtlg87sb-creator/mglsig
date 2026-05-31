@@ -213,30 +213,28 @@ section.in-view {
 }
 
 /* ═══════════════════════════════════════════════
-   15. GLOBAL TEXT SPOTLIGHT — ЦЭВЭР CSS ТҮРҮҮЛЭГ
+   15. GLOBAL TEXT SPOTLIGHT — ЗӨВХӨН ОНООСОН ГАЗАРТ
    ═══════════════════════════════════════════════ */
 
+/* Зөвхөн HTML дээр гараар .mgl-spotlight-text гэж бичсэн цөөн хэдэн газарт л ажиллана */
 .mgl-spotlight-text {
   position: relative;
-  /* Анхны суурь өнгө: Ул ялиг бараан саарал */
-  color: #64748b !important; 
   display: inline-block;
 }
 
 .mgl-spotlight-text::after {
-  content: attr(data-text); /* HTML-ээс үгийг хуулж авна */
+  content: attr(data-text);
   position: absolute;
   inset: 0;
   left: 0;
   top: 0;
+  width: 100%;
+  height: 100%;
   
-  /* ЦАВ ЦАГААН ГАР ЧИЙДЭНГИЙН ТУСГАЛ */
-  /* Хатуу зураасгүй, дундаа цав цагаан очтой, хоёр зах руугаа ууссан зөөлөн дугуй гэрэл */
   background: radial-gradient(circle, #ffffff 0%, rgba(255, 255, 255, 0.4) 30%, transparent 70%);
-  background-size: 150px 100%; /* Гар чийдэнгийн хэмжээ */
+  background-size: 150px 100%;
   background-repeat: no-repeat;
   
-  /* Текстийг маскдах нууц мөрүүд */
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -244,19 +242,11 @@ section.in-view {
   mix-blend-mode: lighten;
   pointer-events: none;
   
-  /* Дэлгэцээр тасралтгүй, гөлгөр тэнүүчлэх хөдөлгөөн */
   animation: flashlightWander 8s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
 }
 
-/* ── ГАР ЧИЙДЭНГИЙН БАЙРШЛЫГ ХӨДӨЛГӨХ (ЗУРААСГҮЙ) ── */
 @keyframes flashlightWander {
-  0% {
-    background-position: -50% center; /* Зүүн талд далд байна */
-  }
-  50% {
-    background-position: 50% center; /* Яг дунд нь ирж текстийг цав цагаан болгоно */
-  }
-  100% {
-    background-position: 150% center; /* Баруун тийшээ гараад алга болно */
-  }
+  0% { background-position: -50% center; }
+  50% { background-position: 50% center; }
+  100% { background-position: 150% center; }
 }

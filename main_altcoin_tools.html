@@ -16,7 +16,7 @@
             theme: {
                 extend: {
                     colors: {
-                        brand: { 'dark': '#05070a', 'dark-blue': '#0f1217', 'gold': '#c5a059', 'border': '#1f242d' }
+                        brand: { 'dark': '#05070a', 'dark-blue': '#0c0e12', 'gold': '#c5a059', 'border': '#161b22' }
                     },
                     fontFamily: { 'inter': ['Inter', 'sans-serif'] }
                 }
@@ -30,22 +30,24 @@
     <script src="/static/js/header.js"></script>
 
     <!-- Main Content -->
-    <main class="flex-grow pt-24 pb-12 px-6">
-        <div class="max-w-4xl mx-auto">
-            <!-- Header -->
-            <div class="text-center mb-12">
+    <main class="flex-grow pt-36 pb-20 px-6">
+        <div class="max-w-6xl mx-auto">
+            
+            <!-- Header (Үнэтэй Брэндийн Минимал Дизайн) -->
+            <div class="text-center mb-16">
                 <h1 class="text-3xl md:text-5xl font-black uppercase tracking-tight text-white mb-4">
                     Market <span class="text-brand-gold italic">Tools</span>
                 </h1>
-                <p data-i18n="tools-subtitle" class="text-gray-400 max-w-2xl mx-auto">
-                    
+                <!-- Дээд талын тайлбар дээр гэрлийг асаав -->
+                <p data-i18n="tools-subtitle" class="mgl-spotlight-text max-w-2xl mx-auto text-sm" data-text="Крипто арилжаанд зориулсан мэргэжлийн шинжилгээний хэрэгсэл болон сигналууд.">
+                    Крипто арилжаанд зориулсан мэргэжлийн шинжилгээний хэрэгсэл болон сигналууд.
                 </p>
-                <div class="w-20 h-1 bg-brand-gold mx-auto mt-6"></div>
+                <div class="w-12 h-[1px] bg-brand-gold/30 mx-auto mt-6"></div>
             </div>
 
-            <!-- Tools Grid -->
-            <div id="tools-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Content injected by JS -->
+            <!-- ШИНЭЧЛЭГДСЭН ТЕРМИНАЛ ГРИД: 3 баганаар маш нягт, цэгцтэй харагдана -->
+            <div id="tools-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Контент JavaScript-ээр маш цэвэрхэн тарилга хийгдэнэ -->
             </div>
         </div>
     </main>
@@ -60,26 +62,26 @@
                 "btn-open-tool": "Нээх",
                 "sig-coming-soon": "Тун удахгүй",
                 "signal-list": [
-                    { title: 'Binance Бөмбөлөг', description: 'Крипто зах зээлийн гүйцэтгэлийг интерактив бөмбөлөгөн графикаар дүрслэн хараарай.', link: '/altcointools/binance_bubble.html' },
-                    { title: 'Pro Хяналтын самбар', description: 'Зах зээлийн бүрэн дүр зургийг харахын тулд дохиог бодит цагийн тренд хэмжигчтэй хослуулсан.', link: '/altcointools/trendonator.html' },
-                    { title: 'BTC Хөрөнгө оруулагчийн хуудас', description: 'BTC хөрөнгө оруулагчдад "уналтыг худалдаж авах" боломжийг олоход зориулагдсан урт хугацааны дохио.', link: '/altcointools/btc_invest.html' },
-                    { title: 'KuCoin Intelligence', description: 'KuCoin болон Supabase-ээр тэжээгддэг бодит цагийн зах зээлийн нарийвчилсан өгөгдөл.', link: '/alphasignal/main_arbitrage.html?tool=market_intelligence' },
-                    { title: 'Гүйцэтгэлийн график', description: 'Сүүлийн 1-90 хоногийн хугацаанд хамгийн сайн гүйцэтгэлтэй шилдэг 100 зоосыг хараарай.', link: '/altcointools/performance.html' },
-                    { title: 'Стратеги шалгагч', description: 'EMA, MACD, RSI, Stoch... ашиглан өндөр ялалтын стратегиудыг туршиж, ашигтай оролтыг олоорой.', link: 'macd.signal.html', status: 'coming_soon' },
-                    { title: 'Telegram Олон Сигнал', description: 'Манай Telegram ботоос ирж буй олон арилжааны дохиог тусдаа графикууд дээр бодит цаг хугацаанд хараарай.', link: 'multi.interval.signal.html' },
-                    { title: 'Таамаглалын суваг', description: 'Аливаа зоосны хөрөнгө оруулагчдад зориулсан урт хугацааны үнийн таамаглалын сувгийг үүсгээрэй.', link: 'price.prediction.html' },
-                    { title: 'P2P Тэг хураамж', description: 'Манай платформ дээрх итгэмжлэгдсэн худалдаачнаас USDT-г тэг хураамжтайгаар худалдаж аваарай.', link: 'p2p.html', status: 'coming_soon' },
-                    { title: 'Арилжааны туннель', description: 'Дэмжлэг ба эсэргүүцлийг олохын тулд лааны бодит цагт суурилсан динамик арилжааны сувгийг дүрслэн хараарай.', link: 'tunnel.html' },
-                    { title: '50, 25, 75-ийн дүрэм', description: 'RSI-н мөчлөгт суурилсан хямд, үнэтэй бүсүүдийг харж, боломжит орох, гарах цэгүүдийг тодорхойлоорой.', link: '4x.html' },
-                    { title: 'Дэмжлэг ба Эсэргүүцэл', description: 'График дээр дэмжлэг ба эсэргүүцлийн шугамыг автоматаар зураарой.', link: 'supres.html' },
-                    { title: 'Ликвид бүс', description: 'Ликвид бүсүүдийг тодорхойлж, бух болон баавгайн даралтыг бодит цагт хараарай.', link: 'liquidity_zone.html' },
-                    { title: 'Хөрөнгө оруулагчийн дохио', description: 'Хөрөнгө оруулагчдад "уналтыг худалдаж авах" боломжийг олоход зориулагдсан урт хугацааны дохио.', link: 'signal/investment.html' },
-                    { title: 'Backtester', description: 'Өөрийн арилжааны стратегийг түүхэн өгөгдөл дээр тохируулж болох параметрүүдээр шалгаарай.', link: 'Backtest.html' },
-                    { title: 'Лааны хээ танигч', description: 'График дээрх нийтлэг лааны хээнүүдийг автоматаар тодорхойлно.', link: 'Candle_patterns.html' },
-                    { title: 'DEX Эрдэнэс Ангууч', description: 'Honeypot илрүүлэлт зэрэг аюулгүй байдлын шалгалттай шинэ токенуудыг бодит цагт хайгч.', link: 'dex_GEM_hunter.html' },
-                    { title: 'Футпринт Хяналт', description: 'Скальпинг хийхэд зориулсан бодит цагийн захиалгын урсгал ба футпринт график.', link: 'footprint.html' },
-                    { title: 'Захиалгын урсгалын бүтэн график', description: 'Бүтэн дэлгэцийн, нарийвчилсан канваст суурилсан захиалгын урсгалын футпринт график.', link: 'footprint_full.html' },
-                    { title: 'Arbitrage Scanner', description: 'Бирж хоорондын үнийн зөрүүг ашиглан ашиг олох боломжийг бодит цагт хайгч.', link: '/alphasignal/main_arbitrage.html' }
+                    { title: 'Binance Бөмбөлөг', description: 'Крипто зах зээлийн гүйцэтгэлийг интерактив бөмбөлөгөн графикаар дүрслэн хараарай.', link: '/altcointools/binance_bubble.html', badge: 'Market Bubble' },
+                    { title: 'Pro Хяналтын самбар', description: 'Зах зээлийн бүрэн дүр зургийг харахын тулд дохиог бодит цагийн тренд хэмжигчтэй хослуулсан.', link: '/altcointools/trendonator.html', badge: 'Trend Analyzer' },
+                    { title: 'BTC Хөрөнгө оруулагчийн хуудас', description: 'BTC хөрөнгө оруулагчдад "уналтыг худалдаж авах" боломжийг олоход зориулагдсан урт хугацааны дохио.', link: '/altcointools/btc_invest.html', badge: 'Macro Signal' },
+                    { title: 'KuCoin Intelligence', description: 'KuCoin болон Supabase-ээр тэжээгддэг бодит цагийн зах зээлийн нарийвчилсан өгөгдөл.', link: '/alphasignal/main_arbitrage.html?tool=market_intelligence', badge: 'Live Data Sync' },
+                    { title: 'Гүйцэтгэлийн график', description: 'Сүүлийн 1-90 хоногийн хугацаанд хамгийн сайн гүйцэтгэлтэй шилдэг 100 зоосыг хараарай.', link: '/altcointools/performance.html', badge: 'Top 100 Stats' },
+                    { title: 'Стратеги шалгагч', description: 'EMA, MACD, RSI, Stoch... ашиглан өндөр ялалтын стратегиудыг туршиж, ашигтай оролтыг олоорой.', link: 'macd.signal.html', status: 'coming_soon', badge: 'Backtest Algo' },
+                    { title: 'Telegram Олон Сигнал', description: 'Манай Telegram ботоос ирж буй олон арилжааны дохиог тусдаа графикууд дээр бодит цаг хугацаанд хараарай.', link: 'multi.interval.signal.html', badge: 'Bot Feed Stream' },
+                    { title: 'Таамаглалын суваг', description: 'Аливаа зоосны хөрөнгө оруулагчдад зориулсан урт хугацааны үнийн таамаглалын сувгийг үүсгээрэй.', link: 'price.prediction.html', badge: 'Price Model' },
+                    { title: 'P2P Тэг хураамж', description: 'Манай платформ дээрх итгэмжлэгдсэн худалдаачнаас USDT-г тэг хураамжтайгаар худалдаж аваарай.', link: 'p2p.html', status: 'coming_soon', badge: 'Zero-Fee Escrow' },
+                    { title: 'Арилжааны туннель', description: 'Дэмжлэг ба эсэргүүцлийг олохын тулд лааны бодит цагт суурилсан динамик арилжааны сувгийг дүрслэн хараарай.', link: 'tunnel.html', badge: 'Dynamic Channel' },
+                    { title: '50, 25, 75-ийн дүрэм', description: 'RSI-н мөчлөгт суурилсан хямд, үнятэй бүсүүдийг харж, боломжит орох, гарах цэгүүдийг тодорхойлоорой.', link: '4x.html', badge: 'RSI Momentum' },
+                    { title: 'Дэмжлэг ба Эсэргүүцэл', description: 'График дээр дэмжлэг ба эсэргүүцлийн шугамыг автоматаар зураарой.', link: 'supres.html', badge: 'Auto S/R Lines' },
+                    { title: 'Ликвид бүс', description: 'Ликвид бүсүүдийг тодорхойлж, бух болон баавгайн даралтыг бодит цагт хараарай.', link: 'liquidity_zone.html', badge: 'Orderbook Map' },
+                    { title: 'Хөрөнгө оруулагчийн дохио', description: 'Хөрөнгө оруулагчдад "уналтыг худалдаж авах" боломжийг олоход зориулагдсан урт хугацааны дохио.', link: 'signal/investment.html', badge: 'Holder Tracker' },
+                    { title: 'Backtester', description: 'Өөрийн арилжааны стратегийг түүхэн өгөгдөл дээр тохируулж болох параметрүүдээр шалгаарай.', link: 'Backtest.html', badge: 'History Audit' },
+                    { title: 'Лааны хээ танигч', description: 'График дээрх нийтлэг лааны хээнүүдийг автоматаар тодорхойлно.', link: 'Candle_patterns.html', badge: 'Pattern Recognition' },
+                    { title: 'DEX Эрдэнэс Ангууч', description: 'Honeypot илрүүлэлт зэрэг аюулгүй байдлын шалгалттай шинэ токенуудыг бодит цагт хайгч.', link: 'dex_GEM_hunter.html', badge: 'Meme Sniper Scan' },
+                    { title: 'Футпринт Хяналт', description: 'Скальпинг хийхэд зориулсан бодит цагийн захиалгын урсгал ба футпринт график.', link: 'footprint.html', badge: 'Orderflow Core' },
+                    { title: 'Захиалгын урсгалын бүтэн график', description: 'Бүтэн дэлгэцийн, нарийвчилсан канваст суурилсан захиалгын урсгалын футпринт график.', link: 'footprint_full.html', badge: 'Pro Footprint UX' },
+                    { title: 'Arbitrage Scanner', description: 'Бирж хоорондын үнийн зөрүүг ашиглан ашиг олох боломжийг бодит цагт хайгч.', link: '/alphasignal/main_arbitrage.html', badge: 'Delta Arbitrage' }
                 ]
             },
             en: {
@@ -87,40 +89,46 @@
                 "btn-open-tool": "Open",
                 "sig-coming-soon": "Coming Soon",
                 "signal-list": [
-                    { title: 'Binance Bubbles', description: 'Visualize the entire crypto market\'s performance in an interactive bubble chart.', link: '/altcointools/binance_bubble.html' },
-                    { title: 'Pro Dashboard', description: 'Combines a signal with a real-time trend meter for a complete market view.', link: '/altcointools/trendonator.html' },
-                    { title: 'BTC Investor Page', description: 'A long-term signal for BTC investors to find \'buy the dip\' opportunities.', link: '/altcointools/btc_invest.html' },
-                    { title: 'KuCoin Intelligence', description: 'Real-time detailed market data powered by KuCoin and Supabase.', link: '/alphasignal/main_arbitrage.html?tool=market_intelligence' },
-                    { title: 'Performance Chart', description: 'See the top 100 performing coins over various periods (1-90 days).', link: '/altcointools/performance.html' },
-                    { title: 'Strategy Tester', description: 'Backtest a high-winrate strategy using EMA, MACD, rsi, stoch... to find profitable entries.', link: 'macd.signal.html', status: 'coming_soon' },
-                    { title: 'Telegram Multiple Signal', description: 'View multiple trading signals from our Telegram bot in real-time on separate charts.', link: 'multi.interval.signal.html' },
-                    { title: 'Prediction Channels', description: 'Generate long-term price prediction channels for any coin investor.', link: 'price.prediction.html' },
-                    { title: 'P2P Zero-Fee', description: 'Buy USDT with zero fees directly from a trusted merchant on our platform.', link: 'p2p.html', status: 'coming_soon' },
-                    { title: 'Trading Tunnel', description: 'Visualize a dynamic trading channel based on candle real-time to find support and resistance.', link: 'tunnel.html' },
-                    { title: 'The Rule of 50, 25, 75', description: 'Visualize cheap and expensive zones based on RSI cycles to identify potential entry and exit points.', link: '4x.html' },
-                    { title: 'Support & Resistance', description: 'Automatically draw support and resistance lines on the chart.', link: 'supres.html' },
-                    { title: 'Liquidity Zone', description: 'Identify liquidity zones and see bull vs bear pressure in real-time.', link: 'liquidity_zone.html' },
-                    { title: 'Investor Signal', description: 'A long-term signal designed for investors to find \'buy the dip\' opportunities.', link: 'signal/investment.html' },
-                    { title: 'Backtester', description: 'Test your trading strategies against historical data with customizable parameters.', link: 'Backtest.html' },
-                    { title: 'Candlestick Patterns', description: 'Automatically identify common candlestick patterns on the chart.', link: 'Candle_patterns.html' },
-                    { title: 'DEX Gem Hunter', description: 'Live scanner for new tokens with safety checks like honeypot detection.', link: 'dex_GEM_hunter.html' },
-                    { title: 'Footprint Monitor', description: 'Live order flow and footprint chart for scalping.', link: 'footprint.html' },
-                    { title: 'Orderflow Full Chart', description: 'A full-screen, detailed canvas-based order flow footprint chart.', link: 'footprint_full.html' },
-                    { title: 'Arbitrage Scanner', description: 'Find real-time profit opportunities using price differences between multiple exchanges.', link: '/alphasignal/main_arbitrage.html' }
+                    { title: 'Binance Bubbles', description: 'Visualize the entire crypto market\'s performance in an interactive bubble chart.', link: '/altcointools/binance_bubble.html', badge: 'Market Bubble' },
+                    { title: 'Pro Dashboard', description: 'Combines a signal with a real-time trend meter for a complete market view.', link: '/altcointools/trendonator.html', badge: 'Trend Analyzer' },
+                    { title: 'BTC Investor Page', description: 'A long-term signal for BTC investors to find \'buy the dip\' opportunities.', link: '/altcointools/btc_invest.html', badge: 'Macro Signal' },
+                    { title: 'KuCoin Intelligence', description: 'Real-time detailed market data powered by KuCoin and Supabase.', link: '/alphasignal/main_arbitrage.html?tool=market_intelligence', badge: 'Live Data Sync' },
+                    { title: 'Performance Chart', description: 'See the top 100 performing coins over various periods (1-90 days).', link: '/altcointools/performance.html', badge: 'Top 100 Stats' },
+                    { title: 'Strategy Tester', description: 'Backtest a high-winrate strategy using EMA, MACD, rsi, stoch... to find profitable entries.', link: 'macd.signal.html', status: 'coming_soon', badge: 'Backtest Algo' },
+                    { title: 'Telegram Multiple Signal', description: 'View multiple trading signals from our Telegram bot in real-time on separate charts.', link: 'multi.interval.signal.html', badge: 'Bot Feed Stream' },
+                    { title: 'Prediction Channels', description: 'Generate long-term price prediction channels for any coin investor.', link: 'price.prediction.html', badge: 'Price Model' },
+                    { title: 'P2P Zero-Fee', description: 'Buy USDT with zero fees directly from a trusted merchant on our platform.', link: 'p2p.html', status: 'coming_soon', badge: 'Zero-Fee Escrow' },
+                    { title: 'Trading Tunnel', description: 'Visualize a dynamic trading channel based on candle real-time to find support and resistance.', link: 'tunnel.html', badge: 'Dynamic Channel' },
+                    { title: 'The Rule of 50, 25, 75', description: 'Visualize cheap and expensive zones based on RSI cycles to identify potential entry and exit points.', link: '4x.html', badge: 'RSI Momentum' },
+                    { title: 'Support & Resistance', description: 'Automatically draw support and resistance lines on the chart.', link: 'supres.html', badge: 'Auto S/R Lines' },
+                    { title: 'Liquidity Zone', description: 'Identify liquidity zones and see bull vs bear pressure in real-time.', link: 'liquidity_zone.html', badge: 'Orderbook Map' },
+                    { title: 'Investor Signal', description: 'A long-term signal designed for investors to find \'buy the dip\' opportunities.', link: 'signal/investment.html', badge: 'Holder Tracker' },
+                    { title: 'Backtester', description: 'Test your trading strategies against historical data with customizable parameters.', link: 'Backtest.html', badge: 'History Audit' },
+                    { title: 'Candlestick Patterns', description: 'Automatically identify common candlestick patterns on the chart.', link: 'Candle_patterns.html', badge: 'Pattern Recognition' },
+                    { title: 'DEX Gem Hunter', description: 'Live scanner for new tokens with safety checks like honeypot detection.', link: 'dex_GEM_hunter.html', badge: 'Meme Sniper Scan' },
+                    { title: 'Footprint Monitor', description: 'Live order flow and footprint chart for scalping.', link: 'footprint.html', badge: 'Orderflow Core' },
+                    { title: 'Orderflow Full Chart', description: 'A full-screen, detailed canvas-based order flow footprint chart.', link: 'footprint_full.html', badge: 'Pro Footprint UX' },
+                    { title: 'Arbitrage Scanner', description: 'Find real-time profit opportunities using price differences between multiple exchanges.', link: '/alphasignal/main_arbitrage.html', badge: 'Delta Arbitrage' }
                 ]
             }
         };
 
-        // Initialize window.translations if it doesn't exist yet
         if (typeof window.translations === 'undefined') window.translations = { mn: {}, en: {} };
-        
-        // Merge page translations into the global translations object
         Object.keys(pageTranslations).forEach(lang => {
-            window.translations[lang] = { 
-                ...window.translations[lang], 
-                ...pageTranslations[lang] 
-            };
+            window.translations[lang] = { ...window.translations[lang], ...pageTranslations[lang] };
         });
+
+        // ── БРО-ГИЙН ХЭЛНИЙ АВТОМАТ МАСК СИНХРОНЧЛОЛ ──
+        function syncDynamicToolsText() {
+            setTimeout(() => {
+                document.querySelectorAll('.mgl-spotlight-text').forEach(el => {
+                    const visibleText = el.textContent.trim();
+                    if (visibleText) {
+                        el.setAttribute('data-text', visibleText);
+                    }
+                });
+            }, 60);
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             const renderTools = () => {
@@ -129,34 +137,52 @@
                 
                 if(!container || !window.translations[lang] || !window.translations[lang]['signal-list']) return;
 
-                // Render List
                 container.innerHTML = window.translations[lang]['signal-list']
-                    .filter(item => 
-                        item.link !== 'future.html' && 
-                        item.link !== 'spot.html'
-                    )
+                    .filter(item => item.link !== 'future.html' && item.link !== 'spot.html')
                     .map(item => {
                         const isComingSoon = item.status === 'coming_soon';
                         const openToolText = window.translations[lang]['btn-open-tool'] || 'Open';
                         const comingSoonText = window.translations[lang]['sig-coming-soon'] || 'Coming Soon';
+                        
                         return `
-                    <a href="${isComingSoon ? '#' : item.link}" class="bg-brand-dark-blue border border-brand-border rounded-xl p-8 hover:border-brand-gold transition duration-300 group flex flex-col ${isComingSoon ? 'opacity-60 cursor-not-allowed grayscale' : ''}">
-                        <div class="w-12 h-12 bg-brand-gold/10 rounded-lg flex items-center justify-center mb-6 group-hover:bg-brand-gold/20 transition">
-                            <i class="fas fa-tools text-brand-gold text-2xl"></i>
-                        </div>
-                        <h3 class="text-white text-lg font-bold mb-3 uppercase tracking-wider group-hover:text-brand-gold transition">${item.title}</h3>
-                        <p class="text-gray-500 text-sm leading-relaxed mb-6 flex-grow">${item.description}</p>
-                        ${isComingSoon ? 
-                            `<span class="text-[9px] bg-gray-800 text-gray-400 px-2 py-1 rounded uppercase font-black tracking-tighter w-fit">${comingSoonText}</span>` : 
-                            `<span class="text-brand-gold text-[10px] font-black uppercase tracking-widest flex items-center mt-auto">${openToolText} <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition"></i></span>`
-                        }
-                    </a>
-                `}).join('');
+                        <a href="${isComingSoon ? '#' : item.link}" class="group relative bg-brand-dark-blue border border-brand-border rounded-xl p-5 hover:border-brand-gold/30 transition duration-500 flex flex-col justify-between overflow-hidden ${isComingSoon ? 'opacity-40 cursor-not-allowed grayscale' : ''}">
+                            
+                            <!-- 1. LUXURY ТУУЗ: Зүүн дээд өнцөгт ууссан алтлаг нарийн шугам -->
+                            <div class="absolute top-0 left-0 w-12 h-[1.5px] bg-gradient-to-r from-brand-gold via-brand-gold/40 to-transparent shadow-[0_0_8px_rgba(197,160,89,0.4)]"></div>
+                            
+                            <div>
+                                <!-- 2. ЖИНХЭНЭ ТЕРМИНАЛ ТОХИРГОО: Иконгүй, амьд лугшилт болон нарийн бичвэр -->
+                                <div class="flex items-center space-x-1.5 mb-5">
+                                    <span class="flex h-1 w-1 relative">
+                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-gold opacity-75"></span>
+                                        <span class="relative inline-flex rounded-full h-1 w-1 bg-brand-gold"></span>
+                                    </span>
+                                    <span class="text-[8px] font-bold tracking-[0.15em] text-brand-gold/50 uppercase group-hover:text-brand-gold transition duration-300">${item.badge || 'Tracer Active'}</span>
+                                </div>
+                                
+                                <h3 class="text-white text-sm font-bold mb-1.5 uppercase tracking-wide group-hover:text-brand-gold transition">${item.title}</h3>
+                                <!-- 3. АЛТ-МӨНГӨН ГЭРЭЛТЭХ ТЕКСТҮҮД -->
+                                <p class="mgl-spotlight-text text-gray-500 text-[11px] leading-relaxed mb-4" data-text="${item.description}">${item.description}</p>
+                            </div>
+                            
+                            <!-- Төгсгөлийн нарийн товчлуур -->
+                            <div class="mt-auto pt-2">
+                                ${isComingSoon ? 
+                                    `<span class="text-[8px] bg-white/5 border border-white/5 text-gray-500 px-2 py-0.5 rounded font-black tracking-wider uppercase">${comingSoonText}</span>` : 
+                                    `<span class="text-brand-gold text-[9px] font-black uppercase tracking-[0.15em] flex items-center">${openToolText} <i class="fas fa-arrow-right ml-1.5 text-[8px] group-hover:translate-x-1 transition duration-300"></i></span>`
+                                }
+                            </div>
+                        </a>
+                        `;
+                    }).join('');
+
+                // Картнууд зурагдаж дууссаны дараа маскийг асаах
+                syncDynamicToolsText();
             };
 
             renderTools();
 
-            // Language change listener
+            // Хэл солигдоход картыг дахин зурах
             const originalChangeLang = window.changeLang;
             window.changeLang = function(language) {
                 if (originalChangeLang) originalChangeLang(language);

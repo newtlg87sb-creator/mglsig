@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Visual Engine - MGL Signal</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 'dark': '#05070a', 'dark-blue': '#0c0e12', 'gold': '#c5a059', 'border': '#161b22' }
+                    },
+                    fontFamily: { 'inter': ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/static/main_style.css">
+
+    <style>
+        canvas { display: block; width: 100%; height: 100%; cursor: crosshair; }
+    </style>
+</head>
+<body class="bg-brand-dark text-white font-inter flex flex-col min-h-screen select-none">
+
+    <script>
+        const pageTranslations = {
+            mn: {
+                "back-to-tools": '<i class="fas fa-arrow-left mr-2"></i> Хэрэгслүүд рүү буцах'
+            },
+            en: {
+                "back-to-tools": '<i class="fas fa-arrow-left mr-2"></i> Back to Tools'
+            }
+        };
+    </script>
+    <script src="/static/js/header.js"></script>
+
+    <main class="flex-grow pt-32 pb-12 px-4 md:px-6">
+        <div class="max-w-7xl mx-auto flex flex-col gap-6">
+            <div class="flex justify-between items-center px-2">
+                <a href="/main_live_tools.html" data-i18n="back-to-tools" class="text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-brand-gold transition">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to Tools
+                </a>
+            </div>
+
+            <div id="mgl-3d-wrapper" class="w-full h-[600px] md:h-[750px] bg-[#040609] border border-brand-border rounded-2xl overflow-hidden shadow-2xl relative">
+                <canvas id="mgl-perfect-canvas"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/footer.js"></script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        function changeLang(lang) {
+            localStorage.setItem('lang', lang);
+            if (typeof window.translations === 'undefined') window.translations = { mn: {}, en: {} };
+            Object.keys(pageTranslations).forEach(l => {
+                window.translations[l] = { ...window.translations[l], ...pageTranslations[l] };
+            });
+            
+            if (!window.translations[lang]) return;
+            const t = window.translations[lang];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.innerHTML = t[key];
+            });
+
+            const btnMn = document.getElementById('btn-mn');
+            const btnEn = document.getElementById('btn-en');
+            if (btnMn && btnEn) {
+                const activeClass = "px-2.5 py-1 rounded-full bg-brand-gold text-black transition";
+                const inactiveClass = "px-2.5 py-1 rounded-full text-gray-500 hover:text-white transition";
+                btnMn.className = lang === 'mn' ? activeClass : inactiveClass;
+                btnEn.className = lang === 'en' ? activeClass : inactiveClass;
+            }
+        }
+        window.changeLang = changeLang;
+        changeLang(localStorage.getItem('lang') || 'mn');
+
+        const canvas = document.getElementById('mgl-perfect-canvas');
+        const wrapper = document.getElementById('mgl-3d-wrapper');
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = false; 
+
+        function resize() {
+            canvas.width = wrapper.clientWidth;
+            canvas.height = wrapper.clientHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        let history1s = [];
+        let history1m = [];
+        const totalSpacing = 60; 
+        const maxHistory = 60;
+        
+        // Масштабыг динамик болгов
+        let dynamicScale = 35; 
+
+        let live1s = { rawOpen: 0, rawClose: 0, rawHigh: 0, rawLow: 0, isBullish: true };
+        let live1m = { rawOpen: 0, rawClose: 0, rawHigh: 0, rawLow: 0, isBullish: true };
+        let scroll1s = totalSpacing, scroll1m = totalSpacing; 
+        let isReady1s = false, isReady1m = false;
+        let isDraggingPrice = false;
+
+        // ── ТҮҮХЭН ЛАА ТАТАХ ──
+        async function loadHistories() {
+            try {
+                // 1s history
+                const res1s = await fetch("https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1s&limit=40");
+                const data1s = await res1s.json();
+                history1s = data1s.map(d => ({
+                    rawOpen: parseFloat(d[1]),
+                    rawHigh: parseFloat(d[2]),
+                    rawLow: parseFloat(d[3]),
+                    rawClose: parseFloat(d[4]),
+                    isBullish: parseFloat(d[4]) >= parseFloat(d[1])
+                })).reverse();
+
+                // 1m history
+                const res1m = await fetch("https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1m&limit=40");
+                const data1m = await res1m.json();
+                history1m = data1m.map(d => ({
+                    rawOpen: parseFloat(d[1]),
+                    rawHigh: parseFloat(d[2]),
+                    rawLow: parseFloat(d[3]),
+                    rawClose: parseFloat(d[4]),
+                    isBullish: parseFloat(d[4]) >= parseFloat(d[1])
+                })).reverse(); // Хамгийн сүүлийнх нь 0 индекс дээр байхаар
+                
+                isReady1s = true;
+                isReady1m = true;
+            } catch (e) {
+                console.error("Failed to load histories:", e);
+                isReady1s = isReady1m = true;
+            }
+        }
+        loadHistories();
+
+        let mouseX = 0, mouseY = 0, rawMouseY = 0;
+        window.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const relX = e.clientX - rect.left;
+            const relY = e.clientY - rect.top;
+
+            // 3D эргэлтийн координатыг чартны төвөөс тооцдог болов
+            mouseX = (relX - canvas.width / 2) / (canvas.width / 2);
+            mouseY = (relY - canvas.height / 2) / (canvas.height / 2);
+            
+            // Үнийн багана дээр масштаблах (Dynamic Scale) логик
+            if (isDraggingPrice) {
+                const deltaY = e.movementY;
+                dynamicScale -= deltaY * 0.1;
+                dynamicScale = Math.max(5, Math.min(dynamicScale, 300)); // Хязгаарлалт
+            }
+            
+            // Mouse чарт дотор байгаа үед л курсорыг солино
+            const rightZone = canvas.width - 80;
+            if (relX >= 0 && relX <= canvas.width && relY >= 0 && relY <= canvas.height) {
+                document.body.style.cursor = relX > rightZone ? 'ns-resize' : 'crosshair';
+            }
+        });
+
+        window.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const relX = e.clientX - rect.left;
+            const relY = e.clientY - rect.top;
+
+            // Зөвхөн чартны баруун талын 80px дотор дарахад dragging идэвхжинэ
+            if (relX > canvas.width - 80 && relX <= canvas.width && relY >= 0 && relY <= canvas.height) {
+                isDraggingPrice = true;
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDraggingPrice = false;
+        });
+
+        const ws1s = new WebSocket("wss://stream.binance.com:9443/ws/btcusdt@kline_1s");
+        ws1s.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            const kline = data.k;
+            isReady1s = true;
+            live1s.rawOpen = parseFloat(kline.o);
+            live1s.rawClose = parseFloat(kline.c);
+            live1s.rawHigh = parseFloat(kline.h);
+            live1s.rawLow = parseFloat(kline.l);
+            live1s.isBullish = live1s.rawClose >= live1s.rawOpen;
+
+            if (kline.x) {
+                history1s.unshift({ ...live1s });
+                scroll1s = 0; 
+                if (history1s.length > maxHistory) history1s.pop();
+            }
+        };
+
+        const ws1m = new WebSocket("wss://stream.binance.com:9443/ws/btcusdt@kline_1m");
+        ws1m.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            const kline = data.k;
+            isReady1m = true;
+            live1m.rawOpen = parseFloat(kline.o);
+            live1m.rawClose = parseFloat(kline.c);
+            live1m.rawHigh = parseFloat(kline.h);
+            live1m.rawLow = parseFloat(kline.l);
+            live1m.isBullish = live1m.rawClose >= live1m.rawOpen;
+
+            if (kline.x) {
+                // Минут дуусахад түүх рүү шилжүүлж, live-г шинээр эхлүүлнэ
+                history1m.unshift({ 
+                    rawOpen: parseFloat(kline.o),
+                    rawHigh: parseFloat(kline.h),
+                    rawLow: parseFloat(kline.l),
+                    rawClose: parseFloat(kline.c),
+                    isBullish: parseFloat(kline.c) >= parseFloat(kline.o)
+                });
+                scroll1m = 0; 
+                if (history1m.length > maxHistory) history1m.pop();
+            }
+        };
+
+        const fov = 600; 
+        function project(x, y, z, angleY, angleX, centerY) {
+            let cosY = Math.cos(angleY), sinY = Math.sin(angleY);
+            let x1 = x * cosY - z * sinY;
+            let z1 = x * sinY + z * cosY;
+            let cosX = Math.cos(angleX), sinX = Math.sin(angleX);
+            let y2 = y * cosX - z1 * sinX;
+            let z2 = y * sinX + z1 * cosX;
+            let cameraZ = z2 + 800; 
+            
+            // Камерын ард орсон эсвэл хэт ойртсон бол 'invalid' гэж тэмдэглээд зурахгүй
+            if (cameraZ < 100) return { x: 0, y: 0, depth: cameraZ, invalid: true };
+            let scale = fov / cameraZ;
+            return { x: canvas.width / 2 + x1 * scale, y: centerY + y2 * scale, depth: cameraZ, invalid: false };
+        }
+
+        function draw3DBoxSolid(x, openY, closeY, highY, lowY, sizeX, sizeZ, angleY, angleX, centerY, fillColor, strokeColor) {
+            const hw = sizeX / 2; const hd = sizeZ / 2;
+            // Лааны биеийг хамгийн багадаа 1px зузаантай байлгах (Flat candle fix)
+            const yTop = Math.min(openY, closeY);
+            const yBottom = Math.max(yTop + 1, Math.max(openY, closeY));
+            
+            const vertices = [
+                {x: x-hw, y: yTop, z: -hd}, {x: x+hw, y: yTop, z: -hd}, {x: x+hw, y: yBottom, z: -hd}, {x: x-hw, y: yBottom, z: -hd},
+                {x: x-hw, y: yTop, z: hd},  {x: x+hw, y: yTop, z: hd},  {x: x+hw, y: yBottom, z: hd},  {x: x-hw, y: yBottom, z: hd}
+            ];
+            const p = vertices.map(v => project(v.x, v.y, v.z, angleY, angleX, centerY));
+            
+            // Хэрэв аль нэг цэг камерын ард орсон бол "тууз" үүсэхээс сэргийлж лааг бүхэлд нь зурахгүй
+            if (p.some(v => v.invalid)) return;
+
+            const faces = [[4,5,6,7], [0,4,7,3], [1,2,6,5], [0,1,5,4], [3,2,6,7], [0,1,2,3]];
+            ctx.lineWidth = 1.0; 
+            ctx.strokeStyle = strokeColor;
+
+            // ── Wick (Лааны сүүдэр) зурах ──
+            const pHigh = project(x, highY, 0, angleY, angleX, centerY);
+            const pLow = project(x, lowY, 0, angleY, angleX, centerY);
+            if (!pHigh.invalid && !pLow.invalid) {
+                ctx.beginPath();
+                ctx.moveTo(pHigh.x, pHigh.y);
+                ctx.lineTo(pLow.x, pLow.y);
+                ctx.stroke();
+            }
+
+            faces.forEach(face => {
+                ctx.fillStyle = fillColor; 
+                ctx.beginPath();
+                ctx.moveTo(p[face[0]].x, p[face[0]].y);
+                for(let i=1; i<4; i++) ctx.lineTo(p[face[i]].x, p[face[i]].y);
+                ctx.closePath();
+                ctx.fill(); 
+                ctx.stroke();
+            });
+        }
+
+        function renderScene(history, live, scroll, centerY, label) {
+            const cameraAngleY = Math.sin(time * 0.1) * 0.1 + (mouseX * 0.6); 
+            const cameraAngleX = -0.2 + (mouseY * 0.4); 
+            const cameraRawY = live.rawClose;
+            // Лаа эхлэх цэг (StartX) - Баруун гар талд 80% дээр
+            const startX = canvas.width / 3.2; 
+
+            let renderList = [];
+            history.forEach((c, index) => {
+                const currentX = -(index + 1) * totalSpacing + scroll + startX; 
+                const relOpen = (cameraRawY - c.rawOpen) * dynamicScale;
+                const relClose = (cameraRawY - c.rawClose) * dynamicScale;
+                const relHigh = (cameraRawY - c.rawHigh) * dynamicScale;
+                const relLow = (cameraRawY - c.rawLow) * dynamicScale;
+                let centerProj = project(currentX, (relOpen + relClose)/2, 0, cameraAngleY, cameraAngleX, centerY);
+                if (centerProj.depth > 0)
+                    renderList.push({ type: 'history', depth: centerProj.depth, x: currentX, openY: relOpen, closeY: relClose, highY: relHigh, lowY: relLow, isBullish: c.isBullish });
+            });
+
+            const liveX = startX - scroll;
+            const liveRelOpen = (cameraRawY - live.rawOpen) * dynamicScale;
+            const liveRelClose = 0; 
+            const liveRelHigh = (cameraRawY - live.rawHigh) * dynamicScale;
+            const liveRelLow = (cameraRawY - live.rawLow) * dynamicScale;
+            let liveProj = project(liveX, 0, 0, cameraAngleY, cameraAngleX, centerY);
+            renderList.push({ type: 'live', depth: liveProj.depth, x: liveX, openY: liveRelOpen, closeY: liveRelClose, highY: liveRelHigh, lowY: liveRelLow, isBullish: live.isBullish });
+
+            renderList.sort((a, b) => b.depth - a.depth);
+            renderList.forEach(item => {
+                const stroke = item.isBullish ? '#10b981' : '#ef4444';
+                const fill = item.isBullish ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)';
+                draw3DBoxSolid(item.x, item.openY, item.closeY, item.highY, item.lowY, (item.type==='live'?32:22), (item.type==='live'?22:16), cameraAngleY, cameraAngleX, centerY, fill, stroke);
+            });
+
+            // ── ҮНИЙН БАГАНА ──
+            const rightX = canvas.width - 80;
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+            ctx.lineWidth = 1;
+            ctx.beginPath(); 
+            ctx.moveTo(rightX, centerY - canvas.height/4); 
+            ctx.lineTo(rightX, centerY + canvas.height/4); 
+            ctx.stroke();
+            
+            ctx.fillStyle = 'rgba(255,255,255,0.4)';
+            ctx.font = '10px "JetBrains Mono", monospace';
+            ctx.textAlign = 'left';
+            for (let i = -2; i <= 2; i++) {
+                if (i === 0) continue;
+                let y = centerY + i * 80;
+                let price = cameraRawY + ( (centerY - y) / dynamicScale );
+                ctx.fillText(price.toFixed(0), rightX + 10, y + 4);
+                ctx.beginPath(); 
+                ctx.moveTo(rightX - 5, y); 
+                ctx.lineTo(rightX, y); 
+                ctx.stroke();
+            }
+
+            // ── LIVE PRICE BADGE ──
+            ctx.fillStyle = '#facc15';
+            ctx.beginPath();
+            ctx.roundRect(rightX, centerY - 12, 75, 24, 4);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.font = 'bold 13px "JetBrains Mono", monospace';
+            ctx.fillText(cameraRawY.toFixed(2), rightX + 8, centerY + 5);
+
+            // ── LABEL (1s / 1m) ──
+            ctx.fillStyle = 'rgba(255,255,255,0.2)';
+            ctx.font = 'bold 40px "Inter", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(label, canvas.width / 2, centerY + 15);
+        }
+
+        let time = 0;
+        function animate() {
+            time += 0.005;
+            if (scroll1s < totalSpacing) scroll1s += (totalSpacing - scroll1s) * 0.16 + 0.5;
+            if (scroll1m < totalSpacing) scroll1m += (totalSpacing - scroll1m) * 0.16 + 0.5;
+
+            ctx.fillStyle = '#040609';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (!isReady1s || !isReady1m) { requestAnimationFrame(animate); return; }
+
+            // Draw horizontal separator
+            ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height / 2);
+            ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.stroke();
+
+            // Top Scene: 1s
+            renderScene(history1s, live1s, scroll1s, canvas.height / 4, "1s");
+            
+            // Bottom Scene: 1m
+            renderScene(history1m, live1m, scroll1m, (canvas.height * 3) / 4, "1m");
+
+            requestAnimationFrame(animate);
+        }
+        animate();
+    });
+    </script>
+</body>
+</html>
