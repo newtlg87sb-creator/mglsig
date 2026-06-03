@@ -9,13 +9,22 @@ export default async function handler(req, res) {
 
     try {
         const baseUrl = market === 'futures' ? 'https://fapi.binance.com' : 'https://api.binance.com';
-        const binanceUrl = `${baseUrl}${market === 'futures' ? '/fapi/v1' : '/api/v3'}/klines?symbol=${symbol.toUpperCase()}&interval=${interval}&limit=150`;
+        // Increase limit to ensure enough data for SMA200
+        const binanceUrl = `${baseUrl}${market === 'futures' ? '/fapi/v1' : '/api/v3'}/klines?symbol=${symbol.toUpperCase()}&interval=${interval}&limit=250`;
         
         const response = await fetch(binanceUrl);
         if (response.status === 451) return res.status(451).json({ error: 'Region Blocked' });
         
         const candles = await response.json();
 
+        // Handle case where Binance returns an error or empty array
+        if (!Array.isArray(candles) || candles.length === 0) {
+            return res.status(404).json({ error: 'No klines data found for this symbol/interval.' });
+        }
+        // Ensure enough candles for basic signal calculation (at least 3 for prev, prevPrev)
+        if (candles.length < 3) {
+            return res.status(400).json({ error: `Not enough recent data for signal calculation for ${symbol} ${interval}.` });
+        }
         const closes = candles.map(c => parseFloat(c[4]));
 
         // Математик тооцооллуудыг сервер талд гүйцэтгэнэ
@@ -23,8 +32,6 @@ export default async function handler(req, res) {
         const emaValues = calculateEMA(closes, parseInt(emaLen));
         const maValues = calculateSMA(closes, parseInt(maLen));
         const pivots = calculatePivots(candles, 10);
-
-        const lastIdx = closes.length - 1;
 
         // Сигналын логик (YES/NO шийдвэрүүд)
         const resData = {
