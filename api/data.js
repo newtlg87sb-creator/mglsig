@@ -49,10 +49,6 @@ export default async function handler(req, res) {
             if (v2 > 70 && v1 < 70) { rsiActiveState = '70 DOWN'; break; }
         }
 
-
-        // lastIdx-ийг энд тодорхойлох ёстой (resData-аас өмнө)
-        const lastIdx = closes.length - 1;
-
         // Сигналын логик (YES/NO шийдвэрүүд)
         const resData = {
             prices: {
