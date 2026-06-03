@@ -125,6 +125,14 @@
             try {
                 const res = await fetch('/api/binance');
                 
+                if (res.status === 451) {
+                    addLog("🚫 Error 451: Binance таны серверийн байршлыг блоклосон байна (Vercel Region).");
+                    document.getElementById('status-timer').textContent = "BLOCKED";
+                    document.getElementById('status-timer').className = "px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-[10px] font-mono font-black text-red-500 uppercase tracking-tighter";
+                    isRunning = false; // Блоклогдсон бол зогсооно
+                    return;
+                }
+                
                 if (res.status === 429) {
                     addLog("⚠️ Rate Limit: Binance ачаалал их байна. 20с амарч байна...");
                     document.getElementById('status-timer').textContent = "COOLING";
