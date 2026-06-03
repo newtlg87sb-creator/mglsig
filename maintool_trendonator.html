@@ -37,9 +37,62 @@
     <link rel="stylesheet" href="/static/main_style.css">
 </head>
 <body class="bg-brand-dark text-white font-inter flex flex-col min-h-screen">
+    <script>
+        const pageTranslations = {
+            mn: {
+                "trend-page-title": 'Trend <span class="text-brand-gold italic">Tracker Pro</span>',
+                "market-intensity": "Зах зээлийн эрч хүч",
+                "signal-metadata": "Сигналын өгөгдөл",
+                "waiting-data": "Өгөгдөл хүлээж байна...",
+                "lbl-market": "Зах зээл:",
+                "lbl-time": "Хугацаа:",
+                "lbl-pair": "Хослол:",
+                "lbl-rsi": "RSI Урт:",
+                "strength-label": "Хүч:",
+                "price-label": "Үнэ:",
+                "range-label": "S/R Хүрээ:",
+                "status-neutral": "⚖️ Саармаг",
+                "status-strong-up": "🔥 Хүчтэй Өсөлт",
+                "status-mod-up": "📈 Дундаж Өсөлт",
+                "status-weak-up": "🔼 Сул Өсөлт",
+                "status-strong-down": "❄️ Хүчтэй Уналт",
+                "status-mod-down": "📉 Дундаж Уналт",
+                "status-weak-down": "🔽 Сул Уналт"
+            },
+            en: {
+                "trend-page-title": 'Trend <span class="text-brand-gold italic">Tracker Pro</span>',
+                "market-intensity": "Market Intensity",
+                "signal-metadata": "Signal Metadata",
+                "waiting-data": "Waiting for data...",
+                "lbl-market": "Market:",
+                "lbl-time": "Time:",
+                "lbl-pair": "Pair:",
+                "lbl-rsi": "RSI Len:",
+                "strength-label": "Strength:",
+                "price-label": "Price:",
+                "range-label": "S/R Range:",
+                "status-neutral": "⚖️ Neutral",
+                "status-strong-up": "🔥 Strong Uptrend",
+                "status-mod-up": "📈 Moderate Uptrend",
+                "status-weak-up": "🔼 Weak Uptrend",
+                "status-strong-down": "❄️ Strong Downtrend",
+                "status-mod-down": "📉 Moderate Downtrend",
+                "status-weak-down": "🔽 Weak Downtrend"
+            }
+        };
+        function changeLang(lang) {
+            localStorage.setItem('lang', lang);
+            if (!window.translations || !window.translations[lang]) return;
+            const t = window.translations[lang];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.innerHTML = t[key];
+            });
+        }
+        window.changeLang = changeLang;
+    </script>
 
     <!-- Global Header -->
-    <script src="/static/js/main_translate.js"></script>
     <script src="/static/js/header.js"></script>
 
     <main class="flex-grow pt-32 pb-12 px-4 md:px-6">
@@ -49,7 +102,7 @@
             <div class="controls-container flex flex-wrap items-center gap-4 p-4 bg-brand-dark-blue border border-brand-border rounded-xl shadow-lg">
             <!-- Market -->
             <div class="control-item flex items-center space-x-2">
-                <label class="text-gray-500 font-bold uppercase text-[10px]">Market:</label>
+                <label for="market" data-i18n="lbl-market" class="text-gray-500 font-bold uppercase text-[10px]">Market:</label>
                 <select id="market" class="bg-brand-dark border border-brand-border text-white rounded px-3 py-1.5 text-xs shadow-inner">
                     <option value="spot">Spot</option>
                     <option value="futures">Futures</option>
@@ -58,7 +111,7 @@
 
             <!-- Timeframe -->
             <div class="control-item flex items-center space-x-2">
-                <label class="text-gray-500 font-bold uppercase text-[10px]">Time:</label>
+                <label for="interval" data-i18n="lbl-time" class="text-gray-500 font-bold uppercase text-[10px]">Time:</label>
                 <select id="interval" class="bg-brand-dark border border-brand-border text-white rounded px-3 py-1.5 text-xs shadow-inner">
                     <option value="1s">1s</option>
                     <option value="1m" selected>1m</option>
@@ -81,14 +134,14 @@
 
             <!-- Ticker -->
             <div id="pair-container" class="control-item flex items-center space-x-2">
-                <label class="text-gray-500 font-bold uppercase text-[10px]">Pair:</label>
+                <label for="coin" data-i18n="lbl-pair" class="text-gray-500 font-bold uppercase text-[10px]">Pair:</label>
                 <input type="text" id="coin" value="BTCUSDT" list="coin-list" placeholder="Search..." class="bg-brand-dark border border-brand-border text-white rounded px-3 py-1.5 w-32 uppercase font-bold text-xs shadow-inner transition-colors" />
                 <datalist id="coin-list"></datalist>
             </div>
 
             <!-- RSI Input -->
             <div id="rsi-control" class="control-item flex items-center space-x-2">
-                <label class="text-gray-500 font-bold uppercase text-[10px]">RSI Len:</label>
+                <label for="rsi-period" data-i18n="lbl-rsi" class="text-gray-500 font-bold uppercase text-[10px]">RSI Len:</label>
                 <input type="number" id="rsi-period" value="14" min="1" max="100" class="bg-brand-dark border border-brand-border text-white rounded px-3 py-1.5 w-16 text-xs shadow-inner transition-colors" />
             </div>
 
@@ -96,7 +149,7 @@
 
             <!-- Header Title -->
             <div class="text-center mb-6">
-                <h1 class="text-3xl md:text-5xl font-black uppercase tracking-tight text-white mb-4">
+                <h1 data-i18n="trend-page-title" class="text-3xl md:text-5xl font-black uppercase tracking-tight text-white mb-4">
                     Trend <span class="text-brand-gold italic">Tracker Pro</span>
                 </h1>
                 <div class="w-20 h-1 bg-brand-gold mx-auto mt-6"></div>
@@ -109,19 +162,19 @@
                     <div class="bg-brand-dark-blue border border-brand-border rounded-2xl p-8 shadow-2xl relative overflow-hidden h-fit">
                         <div class="absolute top-0 right-0 w-32 h-32 bg-brand-gold opacity-5 blur-3xl rounded-full"></div>
                         
-                        <h3 class="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em] mb-6">Market Intensity</h3>
+                        <h3 data-i18n="market-intensity" class="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em] mb-6">Market Intensity</h3>
                         <div id="trendmetr-value" class="text-6xl font-black text-white mb-4 tracking-tighter">--%</div>
                         
                         <div class="w-full bg-brand-dark h-3 rounded-full overflow-hidden border border-brand-border mb-6">
                             <div id="progress-bar-fill" class="h-full bg-brand-gold transition-all duration-1000" style="width: 50%"></div>
                         </div>
 
-                        <div id="trend-status" class="text-sm font-black uppercase tracking-widest text-gray-400">Waiting for data...</div>
+                        <div id="trend-status" data-i18n="waiting-data" class="text-sm font-black uppercase tracking-widest text-gray-400">Waiting for data...</div>
                     </div>
 
                     <!-- Analysis Summary -->
                     <div class="bg-brand-dark-blue border border-brand-border rounded-2xl p-6 shadow-xl">
-                        <h3 class="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em] mb-4">Signal Metadata</h3>
+                        <h3 data-i18n="signal-metadata" class="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em] mb-4">Signal Metadata</h3>
                         <div id="trend-extra" class="space-y-3 text-xs text-gray-400 font-medium">
                             <p class="italic">Analyzing market structure...</p>
                         </div>
@@ -143,6 +196,10 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
+        if (typeof window.translations === 'undefined') window.translations = { mn: {}, en: {} };
+        Object.keys(pageTranslations).forEach(l => Object.assign(window.translations[l], pageTranslations[l]));
+        changeLang(localStorage.getItem('lang') || 'mn');
+
         const marketEl = () => document.getElementById('market');
         const intervalEl = () => document.getElementById('interval');
         const coinEl = () => document.getElementById('coin');
@@ -183,6 +240,9 @@
         const symbol = coinEl()?.value.trim().toUpperCase() || 'BTCUSDT';
         const period = parseInt(rsiPeriodEl()?.value) || 14;
         const interval = intervalEl()?.value || '15m';
+        
+        const lang = localStorage.getItem('lang') || 'mn';
+        const t = window.translations[lang];
 
         try {
             const klines = await fetchKlines(market, symbol, interval, period + 500);
@@ -217,16 +277,16 @@
             fill.className = `h-full transition-all duration-1000 ${trendMetr >= 0 ? 'bg-green-500 shadow-[0_0_15px_rgba(34,197,94,0.5)]' : 'bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.5)]'}`;
 
             const statusEl = document.getElementById('trend-status');
-            let s = "⚖️ Neutral";
-            if (trendMetr >= 80) s = "🔥 Strong Uptrend"; else if (trendMetr >= 50) s = "📈 Moderate Uptrend"; else if (trendMetr > 0) s = "🔼 Weak Uptrend";
-            else if (trendMetr <= -80) s = "❄️ Strong Downtrend"; else if (trendMetr <= -50) s = "📉 Moderate Downtrend"; else if (trendMetr < 0) s = "🔽 Weak Downtrend";
+            let s = t["status-neutral"];
+            if (trendMetr >= 80) s = t["status-strong-up"]; else if (trendMetr >= 50) s = t["status-mod-up"]; else if (trendMetr > 0) s = t["status-weak-up"];
+            else if (trendMetr <= -80) s = t["status-strong-down"]; else if (trendMetr <= -50) s = t["status-mod-down"]; else if (trendMetr < 0) s = t["status-weak-down"];
             statusEl.textContent = s;
             statusEl.style.color = trendMetr >= 0 ? '#4ade80' : '#f87171';
 
             document.getElementById('trend-extra').innerHTML = `
-                <div class="flex justify-between border-b border-brand-border/50 pb-2"><span>Strength:</span><span class="text-white font-bold">${s}</span></div>
-                <div class="flex justify-between border-b border-brand-border/50 pb-2"><span>Price:</span><span class="text-white font-mono">$${latestPrice.toLocaleString()}</span></div>
-                <div class="flex justify-between"><span>S/R Range:</span><span class="text-brand-gold font-mono">${longTriggerLL_30?.toFixed(2)} - ${shortTriggerHH_70?.toFixed(2)}</span></div>
+                <div class="flex justify-between border-b border-brand-border/50 pb-2"><span>${t["strength-label"]}</span><span class="text-white font-bold">${s}</span></div>
+                <div class="flex justify-between border-b border-brand-border/50 pb-2"><span>${t["price-label"]}</span><span class="text-white font-mono">$${latestPrice.toLocaleString()}</span></div>
+                <div class="flex justify-between"><span>${t["range-label"]}</span><span class="text-brand-gold font-mono">${longTriggerLL_30?.toFixed(2)} - ${shortTriggerHH_70?.toFixed(2)}</span></div>
             `;
             updateChart(klines, longTriggerLL_30, shortTriggerHH_70);
         } catch (e) { console.error(e); }

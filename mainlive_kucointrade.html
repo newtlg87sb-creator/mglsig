@@ -22,7 +22,34 @@
 </head>
 <body class="bg-brand-dark text-white font-sans overflow-hidden">
 
-    <script src="/static/js/main_translate.js"></script>
+    <script>
+        const pageTranslations = {
+            mn: {
+                "win-balance": "Идэвхтэй баланс",
+                "win-history": "Арилжааны түүх",
+                "win-logs": "Системийн лог"
+            },
+            en: {
+                "win-balance": "Active Balance",
+                "win-history": "Trade History",
+                "win-logs": "System Logs"
+            }
+        };
+        if (typeof window.translations === 'undefined') window.translations = { mn: {}, en: {} };
+        Object.keys(pageTranslations).forEach(lang => {
+            window.translations[lang] = { ...window.translations[lang], ...pageTranslations[lang] };
+        });
+        function changeLang(lang) {
+            localStorage.setItem('lang', lang);
+            if (!window.translations || !window.translations[lang]) return;
+            const t = window.translations[lang];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.innerHTML = t[key];
+            });
+        }
+        window.changeLang = changeLang;
+    </script>
     <script src="/static/js/header.js"></script>
 
     <main class="pt-24 px-4 h-screen max-w-[1800px] mx-auto">

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futures Signal Pro - MGL Signal</title>
+    <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { 'dark': '#05070a', 'dark-blue': '#0f1217', 'gold': '#c5a059', 'border': '#1f242d' } },
+                    fontFamily: { 'inter': ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/main_style.css">
+</head>
+<body class="bg-brand-dark text-white font-inter flex flex-col min-h-screen">
+    <script src="/static/js/header.js"></script>
+
+    <main class="flex-grow pt-32 pb-12 px-4 md:px-6">
+        <div class="max-w-7xl mx-auto flex flex-col gap-6">
+            
+            <div class="flex justify-between items-end mb-2">
+                <div>
+                    <h1 class="text-3xl font-black text-white uppercase tracking-tighter">Futures <span class="text-brand-gold italic">Signal</span> Pro</h1>
+                    <p class="text-gray-500 text-[10px] mt-1 uppercase font-bold tracking-[0.3em]">Scalping & High-Frequency Intelligence</p>
+                </div>
+            </div>
+
+            <script src="/static/js/control.js"></script>
+
+            <div class="data-grid sm:grid-cols-2 lg:grid-cols-4">
+                <div class="data-card"><div class="label">Long Probability</div><div id="trend-prob" class="value price text-2xl">--%</div></div>
+                <div class="data-card"><div class="label">Futures Price</div><div id="futures-price-display" class="value text-2xl">--</div></div>
+                <div class="data-card"><div class="label">Active Signals</div><div id="active-sig-count" class="value text-green-500">0</div></div>
+                <div class="data-card"><div class="label">Max Floating P/L</div><div id="total-max-pnl" class="value price">$0.00</div></div>
+            </div>
+
+            <script src="/static/js/data.js"></script>
+            <script src="/static/js/candle.js"></script>
+
+            <!-- Recent Signals List -->
+            <div id="signals-list-container" class="mt-4 space-y-3">
+                <h2 class="text-[10px] font-black uppercase text-gray-600 tracking-[0.3em] mb-4 border-b border-brand-border pb-2">Recent Trade Entries</h2>
+                <div id="signals-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Signals Cards injected here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/footer.js"></script>
+    <!-- Энд хуучин getAllSignals болон calculateRSI логик агуулсан файл заавал байх ёстой -->
+    <script type="module">
+        import { getAllSignals } from '/static/json/future.signal.js';
+
+        let latestSignals = [];
+
+        // 1. DATA HOOK: Дата шинэчлэгдэх бүрт магадлал болон сигналыг боловсруулна
+        window.onSignalUpdate = function(allData) {
+            const rsiArr = window.mglIndicators?.rsi || [];
+            const lastRSI = rsiArr[rsiArr.length - 1];
+            const livePrice = allData[allData.length - 1][4];
+            
+            const margin = parseFloat(document.getElementById('initial-balance')?.value || 1000);
+            const leverage = parseInt(document.getElementById('leverage')?.value || 20);
+            const period = parseInt(document.getElementById('rsi-period')?.value || 14);
+
+            // Trend Probability Update
+            if (lastRSI) {
+                let prob = ((lastRSI - 30) / (70 - 30)) * 100;
+                document.getElementById('trend-prob').textContent = Math.max(0, Math.min(100, prob)).toFixed(1) + '%';
+            }
+
+            // Get Active Signals
+            const signals = getAllSignals(rsiArr, allData, period, livePrice, margin, leverage);
+            latestSignals = signals.filter(s => !s.closed);
+            
+            document.getElementById('active-sig-count').textContent = latestSignals.length;
+            
+            const totalPnl = latestSignals.reduce((sum, s) => sum + s.maxProfit, 0);
+            document.getElementById('total-max-pnl').textContent = `$${totalPnl.toFixed(2)}`;
+
+            // Update Signal UI List
+            const list = document.getElementById('signals-list');
+            if (list) {
+                list.innerHTML = latestSignals.map(sig => `
+                    <div class="data-card !flex-row justify-between items-center border-l-4 ${sig.class === 'buy' ? 'border-l-green-500' : 'border-l-white'}">
+                        <div>
+                            <div class="label">${sig.time} | Entry: $${sig.price.toLocaleString()}</div>
+                            <div class="text-[11px] font-black uppercase text-white">${sig.text}</div>
+                            <div class="flex gap-2 mt-2">
+                                ${sig.takeProfits.map(tp => `<span class="text-[8px] font-bold ${tp.hit ? 'text-green-500' : 'text-gray-600'}">${tp.hit ? '✅' : '⏳'} TP${tp.level}</span>`).join('')}
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs font-black ${sig.profit >= 0 ? 'text-green-500' : 'text-red-500'}">+$${sig.profit.toFixed(2)}</div>
+                            <div class="text-[9px] text-gray-600 font-bold">MAX: $${sig.maxProfit.toFixed(2)}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        };
+
+        // 2. CHART HOOK: Чарт дээр сигнал болон ашгийн бүсийг зурах
+        window.onChartDrawOverlay = function(ctx, engine) {
+            const { priceToY, candleWidth, padding, visibleData, visibleStartIndex, allData, chartWidth } = engine;
+            
+            latestSignals.forEach(sig => {
+                // Харагдаж буй хэсэгт байгаа эсэхийг шалгах
+                const sigIdx = allData.findIndex(d => d[0] === sig.timestamp);
+                if (sigIdx < visibleStartIndex || sigIdx > visibleStartIndex + visibleData.length) return;
+
+                const localIdx = sigIdx - visibleStartIndex;
+                const x = padding + localIdx * candleWidth + candleWidth / 2;
+                const yEntry = priceToY(sig.price);
+
+                // Draw Entry Marker (Triangle)
+                ctx.fillStyle = sig.class === 'buy' ? '#10b981' : '#ffffff';
+                ctx.beginPath();
+                if (sig.class === 'buy') {
+                    ctx.moveTo(x, yEntry + 15); ctx.lineTo(x - 6, yEntry + 25); ctx.lineTo(x + 6, yEntry + 25);
+                } else {
+                    ctx.moveTo(x, yEntry - 15); ctx.lineTo(x - 6, yEntry - 25); ctx.lineTo(x + 6, yEntry - 25);
+                }
+                ctx.fill();
+
+                // Draw Max P/L Box (Glow Zone)
+                if (sig.maxProfitPrice && sig.maxProfitPrice !== sig.price) {
+                    const yMax = priceToY(sig.maxProfitPrice);
+                    const xEnd = padding + (allData.length - 1 - visibleStartIndex) * candleWidth + candleWidth;
+                    
+                    ctx.fillStyle = sig.class === 'buy' ? 'rgba(16, 185, 129, 0.05)' : 'rgba(255, 255, 255, 0.05)';
+                    ctx.fillRect(x, Math.min(yEntry, yMax), xEnd - x, Math.abs(yEntry - yMax));
+                    
+                    // Target line
+                    ctx.setLineDash([2, 2]);
+                    ctx.strokeStyle = sig.class === 'buy' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(255, 255, 255, 0.2)';
+                    ctx.beginPath(); ctx.moveTo(x, yMax); ctx.lineTo(xEnd, yMax); ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+            });
+        };
+    </script>
+</body>
+</html>

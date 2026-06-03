@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orderflow Footprint - MGL Signal</title>
+    <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { 'dark': '#05070a', 'dark-blue': '#0f1217', 'gold': '#c5a059', 'border': '#1f242d' } },
+                    fontFamily: { 'inter': ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/main_style.css">
+    <style>
+        #chart-scroll-container::-webkit-scrollbar { height: 6px; }
+        #chart-scroll-container::-webkit-scrollbar-track { background: #05070a; }
+        #chart-scroll-container::-webkit-scrollbar-thumb { background: #1f242d; border-radius: 3px; }
+        #chart-scroll-container::-webkit-scrollbar-thumb:hover { background: #c5a059; }
+    </style>
+</head>
+<body class="bg-brand-dark text-white font-inter flex flex-col min-h-screen">
+    <script src="/static/js/header.js"></script>
+
+    <main class="flex-grow pt-32 pb-12 px-4 md:px-6">
+        <div class="max-w-7xl mx-auto flex flex-col gap-6">
+            <div class="mb-2">
+                <a href="/main_live_tools.html" class="inline-flex items-center text-gray-500 hover:text-brand-gold transition text-[10px] font-black uppercase tracking-widest">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to Live Tools
+                </a>
+            </div>
+
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-2">
+                <div>
+                    <h1 class="text-3xl font-black text-white uppercase tracking-tighter">Orderflow <span class="text-brand-gold italic">Footprint</span></h1>
+                    <p class="text-gray-500 text-[10px] mt-1 uppercase font-bold tracking-[0.3em]">Institutional Volume Aggregator</p>
+                </div>
+            </div>
+
+            <script src="/static/js/control.js" data-hide="rsi, ema, ma"></script>
+
+            <div class="data-grid sm:grid-cols-2 lg:grid-cols-4">
+                <div class="data-card"><div class="label">Session Delta</div><div id="val-total-delta" class="value">--</div></div>
+                <div class="data-card"><div class="label">Current Price</div><div id="futures-price-display" class="value price">--</div></div>
+                <div class="data-card"><div class="label">Buy Pressure</div><div id="val-buy-ratio" class="value up">--%</div></div>
+                <div class="data-card"><div class="label">Sell Pressure</div><div id="val-sell-ratio" class="value down">--%</div></div>
+            </div>
+
+            <div id="chart-scroll-container" class="relative w-full h-[650px] bg-[#05070a] border border-brand-border rounded-2xl overflow-x-auto shadow-2xl">
+                <canvas id="chartCanvas" class="block cursor-crosshair"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        /**
+         * LUXURY FOOTPRINT ENGINE
+         */
+        const canvas = document.getElementById('chartCanvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('chart-scroll-container');
+
+        // Configuration
+        const candleWidth = 85; 
+        const padding = 40;
+        const tickSize = 2.0; 
+        const priceColumnWidth = 60;
+        const volumeColumnWidth = 100;
+        
+        // State
+        let candles = [];
+        let shouldScroll = false;
+        let currentWs = null;
+
+        // 1. Data Processing
+        function processTrade(trade) {
+            const intervalMs = getIntervalMs();
+            const timeBucket = Math.floor(trade.t / intervalMs) * intervalMs;
+            
+            let candle = candles.find(c => c.time === timeBucket);
+            if (!candle) {
+                candle = {
+                    time: timeBucket,
+                    open: trade.p,
+                    high: trade.p,
+                    low: trade.p,
+                    close: trade.p,
+                    profile: {}
+                };
+                candles.push(candle);
+                // Sort candles by time
+                candles.sort((a, b) => a.time - b.time);
+                if (candles.length > 20) candles.shift();
+                shouldScroll = true;
+            }
+
+            // Update OHLC
+            candle.high = Math.max(candle.high, trade.p);
+            candle.low = Math.min(candle.low, trade.p);
+            candle.close = trade.p;
+
+            // Update Volume Profile
+            // Bucket Volume by tickSize
+            const priceBucket = Math.floor(trade.p / tickSize) * tickSize;
+            const priceKey = priceBucket.toFixed(1);
+            
+            if (!candle.profile[priceKey]) {
+                candle.profile[priceKey] = { bid: 0, ask: 0 };
+            }
+
+            if (trade.m) {
+                candle.profile[priceKey].bid += trade.q;
+            } else {
+                candle.profile[priceKey].ask += trade.q;
+            }
+        }
+
+        function getIntervalMs() {
+            const val = document.getElementById('interval')?.value || '1m';
+            const unit = val.slice(-1);
+            const num = parseInt(val);
+            if (unit === 's') return num * 1000;
+            if (unit === 'm') return num * 60000;
+            if (unit === 'h') return num * 3600000;
+            return 60000;
+        }
+
+        // 2. Fetch Initial Data & Connect WebSocket
+        async function startEngine() {
+            if (currentWs) currentWs.close();
+            candles = [];
+            
+            const market = document.getElementById('market')?.value || 'futures';
+            const symbol = document.getElementById('coin')?.value.toUpperCase() || 'BTCUSDT';
+            
+            try {
+                const baseUrl = market === 'futures' ? 'https://fapi.binance.com' : 'https://api.binance.com';
+                let allTrades = [];
+                const res = await fetch(`${baseUrl}/fapi/v1/aggTrades?symbol=${symbol}&limit=1000`);
+                allTrades = await res.json();
+
+                // ── CREATIVE BACKWARD FETCH: Хангалттай түүхэн лаа үүсгэхийн тулд ухрааж татна ──
+                const targetCandles = 12;
+                const intervalMs = getIntervalMs();
+                if (allTrades.length > 0) {
+                    let oldest = allTrades[0];
+                    let newest = allTrades[allTrades.length-1];
+                    let timeCovered = newest.T - oldest.T;
+                    let reqs = 1;
+                    
+                    while (timeCovered < targetCandles * intervalMs && reqs < 8) {
+                        let fromId = oldest.a - 1000;
+                        if (fromId < 0) break;
+                        const prevRes = await fetch(`${baseUrl}/fapi/v1/aggTrades?symbol=${symbol}&limit=1000&fromId=${fromId}`);
+                        const prevData = await prevRes.json();
+                        if (!prevData || prevData.length === 0) break;
+                        const filtered = prevData.filter(t => t.a < oldest.a);
+                        if (filtered.length === 0) break;
+                        allTrades = filtered.concat(allTrades);
+                        oldest = allTrades[0];
+                        timeCovered = newest.T - oldest.T;
+                        reqs++;
+                    }
+                }
+
+                allTrades.forEach(t => processTrade({ p: parseFloat(t.p), q: parseFloat(t.q), t: t.T, m: t.m }));
+                shouldScroll = true;
+                draw();
+            } catch (e) { console.warn("Snapshot fail", e); }
+
+            const wsMarket = market === 'futures' ? 'fstream' : 'stream';
+            currentWs = new WebSocket(`wss://${wsMarket}.binance.com/ws/${symbol.toLowerCase()}@aggTrade`);
+            currentWs.onmessage = (event) => {
+                const msg = JSON.parse(event.data);
+                processTrade({ p: parseFloat(msg.p), q: parseFloat(msg.q), t: msg.T, m: msg.m });
+                requestAnimationFrame(draw);
+            };
+        }
+
+        // Hook with control.js
+        document.addEventListener('DOMContentLoaded', () => {
+            const marketEl = document.getElementById('market');
+            const coinEl = document.getElementById('coin');
+            const intervalEl = document.getElementById('interval');
+
+            [marketEl, coinEl, intervalEl].forEach(el => {
+                if (el) el.addEventListener('change', startEngine);
+            });
+            
+            if (coinEl) {
+                coinEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') startEngine(); });
+            }
+
+            startEngine();
+            container.addEventListener('scroll', () => requestAnimationFrame(draw));
+            window.addEventListener('resize', draw);
+        });
+
+        // ── Shared UI Hook from data.js ──
+        window.onSignalUpdate = function(allData) {
+             const last = allData[allData.length-1];
+             const pDisplay = document.getElementById('futures-price-display');
+             if (pDisplay && last) {
+                 pDisplay.textContent = `$${last[4].toLocaleString()}`;
+             }
+        };
+
+        // 3. Render Logic
+        function draw() {
+            // Dynamic Width: Ensure canvas fits all candles + padding
+            const requiredWidth = Math.max(container.clientWidth, volumeColumnWidth + candles.length * candleWidth + padding * 2 + priceColumnWidth);
+            canvas.width = requiredWidth;
+            canvas.height = container.clientHeight;
+            
+            // Fill Background
+            ctx.fillStyle = '#05070a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (candles.length === 0) {
+                ctx.fillStyle = '#4b5563';
+                ctx.font = 'bold 10px Inter';
+                ctx.textAlign = 'center';
+                ctx.fillText('ESTABLISHING SECURE DATA TUNNEL...', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+
+            // Layout Config
+            const tableHeight = 150; 
+            const chartHeight = canvas.height - tableHeight;
+
+            const minPrice = Math.min(...candles.map(c => c.low));
+            const maxPrice = Math.max(...candles.map(c => c.high));
+            const gridMin = Math.floor(minPrice / tickSize) * tickSize;
+            const gridMax = Math.ceil(maxPrice / tickSize) * tickSize;
+            const viewMin = gridMin - tickSize * 2;
+            const viewMax = gridMax + tickSize * 2;
+            const viewRange = Math.max(viewMax - viewMin, 1.0); // Avoid zero division
+
+            const totalTicks = viewRange / tickSize;
+            const rowHeight = (chartHeight - padding * 2) / totalTicks;
+            const drawText = rowHeight > 13;
+
+            ctx.font = '9px "JetBrains Mono"';
+            ctx.textBaseline = 'middle';
+
+            let cumulativeDelta = 0, sessionBuy = 0, sessionSell = 0;
+            const volProfile = {};
+            let maxVolProfile = 0;
+
+            candles.forEach(c => {
+                Object.entries(c.profile).forEach(([p, v]) => {
+                    if (!volProfile[p]) volProfile[p] = { vol: 0, delta: 0 };
+                    volProfile[p].vol += (v.bid + v.ask);
+                    volProfile[p].delta += (v.ask - v.bid);
+                    if (volProfile[p].vol > maxVolProfile) maxVolProfile = volProfile[p].vol;
+                });
+            });
+
+            candles.forEach((candle, index) => {
+                const x = volumeColumnWidth + index * candleWidth + padding;
+                const isUp = candle.close >= candle.open;
+                
+                const topY = ((viewMax - candle.high) / tickSize) * rowHeight + padding;
+                const bottomY = ((viewMax - candle.low) / tickSize) * rowHeight + padding + rowHeight;
+                const height = Math.max(bottomY - topY, 1);
+
+                // Time Separator
+                ctx.strokeStyle = '#1f242d';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(x + candleWidth, 0);
+                ctx.lineTo(x + candleWidth, chartHeight + 130);
+                ctx.stroke();
+
+                // Draw Candle Border
+                ctx.strokeStyle = isUp ? '#10b981' : '#ffffff';
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(x, topY, candleWidth - 10, height);
+
+                const highStep = Math.floor(candle.high / tickSize);
+                const lowStep = Math.floor(candle.low / tickSize);
+
+                let candleTotalVol = 0;
+                let candleDelta = 0;
+                let totalAsk = 0;
+                let totalBid = 0;
+                let maxVol = 0;
+                let pocPriceKey = null;
+                
+                Object.entries(candle.profile).forEach(([key, data]) => {
+                    const vol = data.ask + data.bid;
+                    const d = data.ask - data.bid;
+                    candleTotalVol += vol;
+                    candleDelta += d;
+                    sessionBuy += data.ask;
+                    sessionSell += data.bid;
+                    totalAsk += data.ask;
+                    totalBid += data.bid;
+                    if (vol > maxVol) {
+                        maxVol = vol;
+                        pocPriceKey = key;
+                    }
+                });
+                
+                // Update Cumulative Delta
+                cumulativeDelta += candleDelta;
+
+                for (let s = highStep; s >= lowStep; s--) {
+                    const price = s * tickSize;
+                    const priceKey = price.toFixed(1);
+                    
+                    if (!candle.profile[priceKey]) continue;
+                    
+                    const y = ((viewMax - price) / tickSize) * rowHeight + padding;
+                    const rowData = candle.profile[priceKey];
+                    
+                    // Background color based on Delta (Ask - Bid)
+                    const delta = rowData.ask - rowData.bid;
+                    const totalVol = rowData.ask + rowData.bid;
+                    const ratio = Math.abs(delta) / (totalVol || 1);
+
+                    let cellColor;
+                    if (delta >= 0) {
+                        if (ratio < 0.3) cellColor = 'rgba(16, 185, 129, 0.15)'; 
+                        else if (ratio < 0.6) cellColor = 'rgba(16, 185, 129, 0.4)';
+                        else cellColor = '#10b981';
+                    } else {
+                        if (ratio < 0.3) cellColor = 'rgba(255, 255, 255, 0.05)';
+                        else if (ratio < 0.6) cellColor = 'rgba(255, 255, 255, 0.15)';
+                        else cellColor = '#4b5563';
+                    }
+
+                    ctx.fillStyle = cellColor;
+                    
+                    const cellH = Math.max(rowHeight - 1.5, 0.5);
+                    const radius = Math.min(4, cellH / 2);
+                    const cellX = x + 2;
+                    ctx.beginPath();
+                    ctx.roundRect(cellX, y + 0.5, candleWidth - 14, cellH, radius);
+                    ctx.fill();
+
+                    // Highlight POC (Point of Control)
+                    if (priceKey === pocPriceKey) {
+                        ctx.strokeStyle = '#c5a059'; 
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.roundRect(cellX, y + 0.5, candleWidth - 14, cellH, radius);
+                        ctx.stroke();
+                    }
+
+                    // Draw Text: Bid x Ask
+                    if (drawText) {
+                        const centerX = x + (candleWidth - 10) / 2;
+                        
+                        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+                        ctx.fillRect(centerX - 0.5, y, 1, rowHeight);
+
+                        ctx.fillStyle = (ratio > 0.7) ? '#ffffff' : '#94a3b8';
+                        ctx.textAlign = 'right';
+                        ctx.fillText(rowData.bid.toFixed(1), centerX - 4, y + rowHeight/2);
+                        
+                        ctx.textAlign = 'left';
+                        ctx.fillText(rowData.ask.toFixed(1), centerX + 4, y + rowHeight/2);
+                    }
+                }
+
+                // Downside Column (Stats Table)
+                const statsY = chartHeight + 10;
+                const lineHeight = 18;
+
+                ctx.fillStyle = '#0f1217';
+                ctx.fillRect(x, statsY - 5, candleWidth - 10, 110);
+                
+                ctx.textAlign = 'center';
+                const stats = [
+                    totalAsk.toFixed(2),
+                    totalBid.toFixed(2),
+                    candleDelta.toFixed(2),
+                    cumulativeDelta.toFixed(2),
+                    candleTotalVol.toFixed(2)
+                ];
+
+                stats.forEach((val, i) => {
+                    if (i === 2 || i === 3) ctx.fillStyle = parseFloat(val) >= 0 ? '#10b981' : '#ef4444';
+                    else ctx.fillStyle = '#ffffff';
+                    ctx.fillText(val, x + candleWidth/2 - 5, statsY + i * lineHeight);
+                });
+
+                ctx.fillStyle = '#4b5563';
+                ctx.font = 'black 8px "JetBrains Mono"';
+                const timeStr = new Date(candle.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false});
+                ctx.fillText(timeStr, x + candleWidth/2 - 5, statsY + 100);
+                ctx.font = '9px "JetBrains Mono"';
+            });
+
+            // Global UI stats update
+            const totalVol = sessionBuy + sessionSell;
+            if (document.getElementById('val-total-delta')) {
+                document.getElementById('val-total-delta').textContent = cumulativeDelta.toFixed(2);
+                document.getElementById('val-total-delta').className = `value ${cumulativeDelta >= 0 ? 'up' : 'down'}`;
+            }
+            if (document.getElementById('val-buy-ratio')) document.getElementById('val-buy-ratio').textContent = ((sessionBuy / totalVol) * 100).toFixed(1) + '%';
+            if (document.getElementById('val-sell-ratio')) document.getElementById('val-sell-ratio').textContent = ((sessionSell / totalVol) * 100).toFixed(1) + '%';
+
+            // Sticky Volume Profile (Left)
+            const vpX = container.scrollLeft;
+            ctx.fillStyle = '#05070a';
+            ctx.fillRect(vpX, 0, volumeColumnWidth, canvas.height);
+            ctx.strokeStyle = '#1f242d';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(vpX + volumeColumnWidth, 0);
+            ctx.lineTo(vpX + volumeColumnWidth, chartHeight + 130);
+            ctx.stroke();
+
+            const totalStepsVP = (viewMax - viewMin) / tickSize;
+            for (let i = 0; i <= totalStepsVP; i++) {
+                const price = viewMax - (i * tickSize);
+                const priceKey = price.toFixed(1);
+                const vpNode = volProfile[priceKey];
+                if (!vpNode || !vpNode.vol) continue;
+
+                const y = (i * rowHeight) + padding;
+                const barWidth = (vpNode.vol / (maxVolProfile || 1)) * (volumeColumnWidth - 10);
+                
+                // ── DELTA COLORING: Профилийг Дельтагаар будна ──
+                if (vpNode.delta > 0) ctx.fillStyle = 'rgba(16, 185, 129, 0.25)';
+                else if (vpNode.delta < 0) ctx.fillStyle = 'rgba(239, 68, 68, 0.25)';
+                else ctx.fillStyle = 'rgba(197, 160, 89, 0.15)';
+                
+                const barH = Math.max(rowHeight - 1, 0.5);
+                ctx.beginPath(); ctx.roundRect(vpX, y + 0.5, barWidth, barH, [0, 4, 4, 0]);
+                ctx.fill();
+            }
+
+            const statsY = chartHeight + 10;
+            const lineHeight = 18;
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#4b5563';
+            ctx.font = 'bold 8px Inter';
+            ["ASK VOL", "BID VOL", "DELTA", "CUMU DELTA", "TOTAL VOL"].forEach((label, i) => {
+                ctx.fillText(label, vpX + 8, statsY + i * lineHeight);
+            });
+
+            // Sticky Price Column (Right)
+            const priceColX = container.scrollLeft + container.clientWidth - priceColumnWidth;
+            ctx.fillStyle = '#05070a';
+            ctx.fillRect(priceColX, 0, priceColumnWidth, canvas.height);
+            ctx.strokeStyle = '#1f242d';
+            ctx.beginPath(); ctx.moveTo(priceColX, 0); ctx.lineTo(priceColX, chartHeight); ctx.stroke();
+
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#4b5563';
+            ctx.font = 'bold 10px "JetBrains Mono"';
+
+            const totalSteps = (viewMax - viewMin) / tickSize;
+            const labelStep = Math.max(1, Math.ceil(20 / rowHeight));
+            const currentPrice = candles.length > 0 ? candles[candles.length - 1].close : 0;
+
+            for (let i = 0; i <= totalSteps; i++) {
+                if (i % labelStep !== 0) continue;
+                
+                const price = viewMax - (i * tickSize);
+                const y = (i * rowHeight) + padding + (rowHeight / 2);
+                if (y > chartHeight) break;
+                ctx.fillText(price.toFixed(1), priceColX + 10, y);
+
+                // ── ADVANCED INSTITUTIONAL INTELLIGENCE ──
+                const priceKey = price.toFixed(1);
+                const nodeDelta = volProfile[priceKey]?.delta || 0;
+                const nodeTotal = volProfile[priceKey]?.vol || 0;
+                const isHighVolNode = nodeTotal > (maxVolProfile * 0.4);
+                
+                let note = ""; let color = "";
+                const proximity = tickSize * 2;
+                const threshold = 1.0; // Төвшний мэдрэмж
+
+                if (Math.abs(price - currentPrice) < tickSize / 2) {
+                    note = "⬅ LIVE"; color = "#ffffff";
+                } else if (isHighVolNode && nodeDelta > threshold && price > currentPrice && Math.abs(price - currentPrice) < proximity) {
+                    note = "⚠️ ABSORPTION"; color = "#c5a059";
+                } else if (nodeDelta > threshold && price > currentPrice) {
+                    note = "🛑 TRAPPED BUYERS"; color = "#ef4444";
+                } else if (nodeDelta < -threshold && price < currentPrice) {
+                    note = "🛑 TRAPPED SELLERS"; color = "#10b981";
+                }
+
+                if (note) {
+                    ctx.save();
+                    ctx.textAlign = 'right'; ctx.fillStyle = color; ctx.font = 'black 7px Inter';
+                    ctx.fillText(note, priceColX - 5, y);
+                    ctx.restore();
+                }
+            }
+
+            if (shouldScroll) {
+                container.scrollLeft = container.scrollWidth;
+                shouldScroll = false;
+            }
+        }
+    </script>
+    <script src="/static/js/footer.js"></script>
+    <script src="/static/lock.js"></script>
+</body>
+</html>

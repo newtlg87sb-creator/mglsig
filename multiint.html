@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Interval Hub - MGL Signal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { 'dark': '#05070a', 'dark-blue': '#0f1217', 'gold': '#c5a059', 'border': '#1f242d' } },
+                    fontFamily: { 'inter': ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/main_style.css">
+</head>
+<body class="bg-brand-dark text-white font-inter flex flex-col min-h-screen">
+    <script src="/static/js/header.js"></script>
+
+    <main class="flex-grow pt-32 pb-12 px-4 md:px-6">
+        <div class="max-w-7xl mx-auto flex flex-col gap-6">
+            
+            <div class="flex justify-between items-end mb-2">
+                <div>
+                    <h1 class="text-3xl font-black text-white uppercase tracking-tighter">Multi-Interval <span class="text-brand-gold italic">Hub</span></h1>
+                    <p class="text-gray-500 text-[10px] mt-1 uppercase font-bold tracking-[0.3em]">Timeframe Convergence Intelligence</p>
+                </div>
+            </div>
+
+            <script src="/static/js/control.js"></script>
+
+            <!-- 5-Interval Status Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-10 gap-2">
+                <div id="card-1m" class="data-card !min-h-[60px] border-l-2 border-l-white"><div class="label">1M</div><div class="value text-[11px] flex justify-between"><span>--</span></div></div>
+                <div id="card-3m" class="data-card !min-h-[60px] border-l-2 border-l-gray-400"><div class="label">3M</div><div class="value text-[11px] flex justify-between"><span>--</span><i class="fas fa-eye-slash text-[8px] cursor-pointer toggle-line" data-int="3m"></i></div></div>
+                <div id="card-5m" class="data-card !min-h-[60px] border-l-2 border-l-yellow-500"><div class="label">5M</div><div class="value text-[11px] flex justify-between"><span>--</span><i class="fas fa-eye-slash text-[8px] cursor-pointer toggle-line" data-int="5m"></i></div></div>
+                <div id="card-15m" class="data-card !min-h-[60px] border-l-2 border-l-cyan-500"><div class="label">15M</div><div class="value text-[11px] flex justify-between"><span>--</span><i class="fas fa-eye-slash text-[8px] cursor-pointer toggle-line" data-int="15m"></i></div></div>
+                <div id="card-30m" class="data-card !min-h-[60px] border-l-2 border-l-blue-500"><div class="label">30M</div><div class="value text-[11px] flex justify-between"><span>--</span><i class="fas fa-eye text-[8px] cursor-pointer toggle-line" data-int="30m"></i></div></div>
+                <div id="card-1h" class="data-card !min-h-[60px] border-l-2 border-l-purple-500"><div class="label">1H</div><div class="value text-[11px] flex justify-between"><span>--</span><i class="fas fa-eye text-[8px] cursor-pointer toggle-line" data-int="1h"></i></div></div>
+                <div id="card-2h" class="data-card !min-h-[60px] border-l-2 border-l-pink-500"><div class="label">2H</div><div class="value text-[11px] flex justify-between"><span>--</span><i class="fas fa-eye text-[8px] cursor-pointer toggle-line" data-int="2h"></i></div></div>
+                <div id="card-4h" class="data-card !min-h-[60px] border-l-2 border-l-orange-500"><div class="label">4H</div><div class="value text-[11px] flex justify-between"><span>--</span><i class="fas fa-eye text-[8px] cursor-pointer toggle-line" data-int="4h"></i></div></div>
+                <div id="card-6h" class="data-card !min-h-[60px] border-l-2 border-l-red-500"><div class="label">6H</div><div class="value text-[11px] flex justify-between"><span>--</span><i class="fas fa-eye text-[8px] cursor-pointer toggle-line" data-int="6h"></i></div></div>
+                <div id="card-8h" class="data-card !min-h-[60px] border-l-2 border-l-emerald-500"><div class="label">8H</div><div class="value text-[11px] flex justify-between"><span>--</span><i class="fas fa-eye text-[8px] cursor-pointer toggle-line" data-int="8h"></i></div></div>
+            </div>
+
+            <script src="/static/js/data.js"></script>
+            <script src="/static/js/candle.js"></script>
+        </div>
+    </main>
+
+    <script src="/static/js/footer.js"></script>
+
+    <script>
+    /**
+     * MULTI-INTERVAL HUB PLUGIN
+     */
+    (function() {
+        const extraIntervals = ['3m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '8h'];
+        const colors = { '3m': '#94a3b8', '5m': '#eab308', '15m': '#06b6d4', '30m': '#3b82f6', '1h': '#a855f7', '2h': '#ec4899', '4h': '#f97316', '6h': '#ef4444', '8h': '#10b981' };
+        let dataCache = {}; 
+        let activeLines = { '3m': false, '5m': false, '15m': false, '30m': true, '1h': true, '2h': true, '4h': true, '6h': true, '8h': true };
+
+        // Интервал асааж унтраах логик
+        document.querySelectorAll('.toggle-line').forEach(btn => {
+            const int = btn.dataset.int;
+            btn.addEventListener('click', () => {
+                activeLines[int] = !activeLines[int];
+                btn.className = activeLines[int] ? 'fas fa-eye text-[9px] cursor-pointer toggle-line' : 'fas fa-eye-slash text-[9px] cursor-pointer toggle-line opacity-20';
+            });
+        });
+
+        async function fetchHistory(symbol, interval, market) {
+            const baseUrl = market === 'futures' ? 'https://fapi.binance.com/fapi/v1/klines' : 'https://api.binance.com/api/v3/klines';
+            const res = await fetch(`${baseUrl}?symbol=${symbol}&interval=${interval}&limit=100`);
+            const json = await res.json();
+            return json.map(d => [Number(d[0]), Number(d[1]), Number(d[2]), Number(d[3]), Number(d[4])]);
+        }
+
+        // Төв хөдөлгүүрийн Hook
+        window.onChartDrawOverlay = async function(ctx, engine) {
+            const { priceToY, candleWidth, padding, visibleData, visibleStartIndex, allData } = engine;
+            const market = document.getElementById('market')?.value || 'spot';
+            const symbol = document.getElementById('coin')?.value.toUpperCase() || 'BTCUSDT';
+            const livePrice = allData[allData.length - 1][4];
+
+            // 1. Дата бэлдэх болон Трэнд тодорхойлох
+            for (const int of extraIntervals) {
+                // Зөвхөн 5 минут тутамд эсвэл Койн солигдоход шинээр татна
+                if (!dataCache[int] || dataCache[int].symbol !== symbol) {
+                    dataCache[int] = { symbol, history: await fetchHistory(symbol, int, market) };
+                }
+
+                const history = dataCache[int].history;
+                if (!history.length) continue;
+
+                // Live Price-аар сүүлийн лааг шинэчлэх
+                history[history.length - 1][4] = livePrice;
+
+                // Трэнд тооцоолох (EMA 20-той харьцуулж)
+                const ema = calculateEMA(history, 20);
+                const lastEma = ema[ema.length - 1];
+                const trend = livePrice > lastEma ? 'BULLISH' : 'BEARISH';
+                
+                const card = document.getElementById(`card-${int}`);
+                if (card) {
+                    card.querySelector('.value span').textContent = trend;
+                    card.querySelector('.value span').className = trend === 'BULLISH' ? 'text-green-500' : 'text-red-500';
+                }
+
+                // 2. Чарт дээр шугам зурах
+                if (activeLines[int]) {
+                    ctx.strokeStyle = colors[int];
+                    ctx.lineWidth = 1.5;
+                    ctx.setLineDash([2, 2]);
+                    ctx.beginPath();
+
+                    let first = true;
+                    for (let i = 0; i < visibleData.length; i++) {
+                        const timestamp = visibleData[i][0];
+                        // Энэ хугацаанд харгалзах High-TF үнийг олох
+                        const higherCandle = history.find(h => timestamp >= h[0] && timestamp < h[0] + getIntervalMs(int));
+                        
+                        if (higherCandle) {
+                            const x = padding + i * candleWidth + candleWidth / 2;
+                            const y = priceToY(higherCandle[4]);
+                            if (first) { ctx.moveTo(x, y); first = false; }
+                            else ctx.lineTo(x, y);
+                        }
+                    }
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+
+                    // Баруун талд үнийн шошго
+                    const lastY = priceToY(history[history.length - 1][4]);
+                    ctx.fillStyle = colors[int];
+                    ctx.font = "bold 9px Inter";
+                    ctx.fillText(int.toUpperCase(), padding + engine.chartWidth + 5, lastY + 3);
+                }
+            }
+
+            // Base Interval (1M) Status
+            const baseTrend = livePrice > calculateEMA(allData, 20).pop() ? 'BULLISH' : 'BEARISH';
+            const baseCard = document.getElementById('card-1m');
+            if (baseCard) {
+                baseCard.querySelector('.value span').textContent = baseTrend;
+                baseCard.querySelector('.value span').className = baseTrend === 'BULLISH' ? 'text-green-500' : 'text-red-500';
+            }
+        };
+
+        function getIntervalMs(int) {
+            const unit = int.slice(-1);
+            const val = parseInt(int);
+            if (unit === 'm') return val * 60 * 1000;
+            if (unit === 'h') return val * 60 * 60 * 1000;
+            if (unit === 'd') return val * 24 * 60 * 60 * 1000;
+            return 60 * 1000;
+        }
+    })();
+    </script>
+</body>
+</html>

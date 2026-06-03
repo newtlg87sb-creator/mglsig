@@ -250,3 +250,32 @@ section.in-view {
   50% { background-position: 50% center; }
   100% { background-position: 150% center; }
 }
+
+/* ═══════════════════════════════════════════════
+   DATA GRID & CARDS STYLING
+   ═══════════════════════════════════════════════ */
+.data-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.data-card {
+    background: #0f1217;
+    border: 1px solid #1f242d;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 100px;
+}
+
+.data-card:hover { border-color: #c5a059; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+.data-card .label { font-size: 9px; font-weight: 800; color: #4b5563; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.5rem; }
+.data-card .value { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 900; color: #ffffff; line-height: 1; }
+.data-card .value.price { color: #fbbf24; text-shadow: 0 0 10px rgba(251, 191, 36, 0.2); }
+.data-card .value.up { color: #10b981; }
+.data-card .value.down { color: #ef4444; }

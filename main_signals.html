@@ -87,7 +87,68 @@
 </head>
 <body class="bg-brand-dark text-white font-inter flex flex-col min-h-screen">
 
-    <script src="/static/js/main_translate.js"></script>
+    <script>
+        const pageTranslations = {
+            mn: {
+                "signals-page-title": 'Арилжааны <span class="text-brand-gold italic">Сигналууд</span>',
+                "signals-page-desc": "Бодит цагийн Крипто болон Форекс зах зээлийн сигналууд.",
+                "sig-coming-soon": "Тун удахгүй",
+                "sig-read-more": "Дэлгэрэнгүй...",
+                "signal-list": [
+                    { title: 'Фьючерс Сигнал', description: 'Тасралтгүй фьючерс арилжааны өндөр давтамжтай дохио. Мөнгө хэзээ ч унтдаггүй.', link: 'future.html' },
+                    { title: 'Спот Сигнал', description: 'Спот арилжаачид болон урт хугацааны хөрөнгө оруулагчдад зориулсан найдвартай дохио. Итгэлтэйгээр барь.', link: 'spot.html' },
+                    { title: 'Binance Heatmap', description: 'Крипто зах зээлийн гүйцэтгэлийг интерактив хитмап графикаар дүрслэн хараарай.', link: '/maintool_binheatmap.html' },
+                    { title: 'Pro Хяналтын самбар', description: 'Зах зээлийн бүрэн дүр зургийг харахын тулд дохиог бодит цагийн тренд хэмжигчтэй хослуулсан.', link: '/altcointools/trendonator.html' },
+                    { title: 'BTC Хөрөнгө оруулагчийн хуудас', description: 'BTC хөрөнгө оруулагчдад "уналтыг худалдаж авах" боломжийг олоход зориулагдсан урт хугацааны дохио.', link: '/altcointools/btc_invest.html' },
+                    { title: 'KuCoin Intelligence', description: 'KuCoin болон Supabase-ээр тэжээгддэг бодит цагийн зах зээлийн нарийвчилсан өгөгдөл.', link: '/alphasignal/main_arbitrage.html?tool=market_intelligence' },
+                    { title: 'Арилжааны туннель', description: 'Дэмжлэг ба эсэргүүцлийг олохын тулд лааны бодит цагт суурилсан динамик арилжааны сувгийг дүрслэн хараарай.', link: 'tunnel.html' },
+                    { title: 'Дэмжлэг ба Эсэргүүцэл', description: 'График дээр дэмжлэг ба эсэргүүцлийн шугамыг автоматаар зураарой.', link: 'supres.html' },
+                    { title: 'Ликвид бүс', description: 'Ликвид бүсүүдийг тодорхойлж, бух болон баавгайн даралтыг бодит цагт хараарай.', link: 'liquidity_zone.html' },
+                    { title: 'Backtester', description: 'Өөрийн арилжааны стратегийг түүхэн өгөгдөл дээр тохируулж болох параметрүүдээр шалгаарай.', link: 'Backtest.html' },
+                    { title: 'DEX Эрдэнэс Ангууч', description: 'Honeypot илрүүлэлт зэрэг аюулгүй байдлын шалгалттай шинэ токенуудыг бодит цагт хайгч.', link: 'dex_GEM_hunter.html' },
+                    { title: 'Arbitrage Scanner', description: 'Бирж хоорондын үнийн зөрүүг ашиглан ашиг олох боломжийг бодит цагт хайгч.', link: 'alphasignal/main_arbitrage.html' }
+                ]
+            },
+            en: {
+                "signals-page-title": 'Trading <span class="text-brand-gold italic">Signals</span>',
+                "signals-page-desc": "Real-time Crypto and Forex market signals.",
+                "sig-coming-soon": "Coming Soon",
+                "sig-read-more": "Read More...",
+                "signal-list": [
+                    { title: 'Futures Signals', description: 'High-frequency signals for perpetual futures trading. Money never sleeps.', link: 'future.html' },
+                    { title: 'Spot Signals', description: 'Reliable signals for spot traders and long-term investors. Hold with confidence.', link: 'spot.html' },
+                    { title: 'Binance Heatmap', description: 'Visualize the entire crypto market\'s performance in an interactive heatmap chart.', link: '/maintool_binheatmap.html' },
+                    { title: 'Pro Dashboard', description: 'Combines a signal with a real-time trend meter for a complete market view.', link: '/altcointools/trendonator.html' },
+                    { title: 'BTC Investor Page', description: 'A long-term signal for BTC investors to find \'buy the dip\' opportunities.', link: '/altcointools/btc_invest.html' },
+                    { title: 'KuCoin Intelligence', description: 'Real-time detailed market data powered by KuCoin and Supabase.', link: '/alphasignal/main_arbitrage.html?tool=market_intelligence' },
+                    { title: 'Trading Tunnel', description: 'Visualize a dynamic trading channel based on candle real-time to find support and resistance.', link: 'tunnel.html' },
+                    { title: 'Support & Resistance', description: 'Automatically draw support and resistance lines on the chart.', link: 'supres.html' },
+                    { title: 'Liquidity Zone', description: 'Identify liquidity zones and see bull vs bear pressure in real-time.', link: 'liquidity_zone.html' },
+                    { title: 'Backtester', description: 'Test your trading strategies against historical data with customizable parameters.', link: 'Backtest.html' },
+                    { title: 'DEX Gem Hunter', description: 'Live scanner for new tokens with safety checks like honeypot detection.', link: 'dex_GEM_hunter.html' },
+                    { title: 'Arbitrage Scanner', description: 'Find real-time profit opportunities using price differences between multiple exchanges.', link: 'alphasignal/main_arbitrage.html' }
+                ]
+            }
+        };
+
+        if (typeof window.translations === 'undefined') window.translations = { mn: {}, en: {} };
+        Object.keys(pageTranslations).forEach(lang => {
+            window.translations[lang] = { ...window.translations[lang], ...pageTranslations[lang] };
+        });
+
+        function changeLang(lang) {
+            localStorage.setItem('lang', lang);
+            if (!window.translations || !window.translations[lang]) return;
+            const t = window.translations[lang];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.innerHTML = t[key];
+            });
+            // Render signals again to reflect language change
+            if (typeof renderSignals === 'function') renderSignals();
+        }
+        window.changeLang = changeLang;
+    </script>
 
     <script src="/static/js/header.js"></script>
 
@@ -131,7 +192,6 @@
                 mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
             }
 
-            // Render signal cards using global translations from main_translate.js
             function renderSignals() {
                 const lang = localStorage.getItem('lang') || 'mn';
                 if (typeof translations === 'undefined' || !translations[lang]) return;
@@ -166,15 +226,7 @@
                 }).join('');
             }
 
-            // Initial render
             renderSignals();
-
-            // Override changeLang to re-render the grid when language is switched
-            const originalChangeLang = window.changeLang;
-            window.changeLang = function(lang) {
-                if (originalChangeLang) originalChangeLang(lang);
-                renderSignals();
-            };
         });
     </script>
 

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pattern Identifier - MGL Signal</title>
+    <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { 'dark': '#05070a', 'dark-blue': '#0f1217', 'gold': '#c5a059', 'border': '#1f242d' } },
+                    fontFamily: { 'inter': ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/main_style.css">
+</head>
+<body class="bg-brand-dark text-white font-inter flex flex-col min-h-screen">
+    <script src="/static/js/header.js"></script>
+
+    <main class="flex-grow pt-32 pb-12 px-4 md:px-6">
+        <div class="max-w-7xl mx-auto flex flex-col gap-6">
+            <div class="mb-4">
+                <a href="/main_live_tools.html" class="inline-flex items-center text-gray-500 hover:text-brand-gold transition text-[10px] font-black uppercase tracking-widest">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to Live Tools
+                </a>
+            </div>
+
+            <script src="/static/js/control.js"></script>
+
+            <!-- Pattern Toggles Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                <div class="data-card !min-h-[60px] flex-row items-center justify-between px-4">
+                    <span class="label !mb-0">Doji</span>
+                    <input type="checkbox" id="toggle-doji" class="w-3 h-3 accent-brand-gold" checked>
+                </div>
+                <div class="data-card !min-h-[60px] flex-row items-center justify-between px-4">
+                    <span class="label !mb-0">Hammer</span>
+                    <input type="checkbox" id="toggle-hammer" class="w-3 h-3 accent-brand-gold" checked>
+                </div>
+                <div class="data-card !min-h-[60px] flex-row items-center justify-between px-4">
+                    <span class="label !mb-0">Engulfing</span>
+                    <input type="checkbox" id="toggle-engulfing" class="w-3 h-3 accent-brand-gold" checked>
+                </div>
+                <div class="data-card !min-h-[60px] flex-row items-center justify-between px-4">
+                    <span class="label !mb-0">3 Soldiers</span>
+                    <input type="checkbox" id="toggle-soldiers" class="w-3 h-3 accent-brand-gold" checked>
+                </div>
+                <div class="data-card !min-h-[60px] flex-row items-center justify-between px-4">
+                    <span class="label !mb-0">Stars</span>
+                    <input type="checkbox" id="toggle-stars" class="w-3 h-3 accent-brand-gold" checked>
+                </div>
+                <div class="data-card !min-h-[60px] flex-row items-center justify-between px-4">
+                    <span class="label !mb-0">Harami</span>
+                    <input type="checkbox" id="toggle-harami" class="w-3 h-3 accent-brand-gold" checked>
+                </div>
+            </div>
+
+            <script src="/static/js/data.js"></script>
+            <script src="/static/js/candle.js"></script>
+        </div>
+    </main>
+
+    <script src="/static/js/footer.js"></script>
+    <script src="/static/lock.js"></script>
+
+    <script>
+    /**
+     * PATTERN IDENTIFIER PLUGIN
+     */
+    (function() {
+        const isLong = (k) => { const body = Math.abs(k.o - k.c); const range = k.h - k.l; return range > 0 && body / range > 0.5; };
+        const isDoji = (k) => { const body = Math.abs(k.o - k.c); const range = k.h - k.l; return range > 0 && body / range < 0.1; };
+        const isHammer = (k) => { const body = Math.abs(k.o - k.c); const r = k.h - k.l; if(r===0) return false; return (Math.min(k.o,k.c)-k.l) >= body*2 && (k.h-Math.max(k.o,k.c))/r < 0.1; };
+        const isShootingStar = (k) => { const body = Math.abs(k.o - k.c); const r = k.h - k.l; if(r===0) return false; return (k.h-Math.max(k.o,k.c)) >= body*2 && (Math.min(k.o,k.c)-k.l)/r < 0.1; };
+        const isBullishEngulfing = (k, p) => p && k.c > k.o && p.c < p.o && k.c > p.o && k.o < p.c;
+        const isBearishEngulfing = (k, p) => p && k.c < k.o && p.c > p.o && k.o > p.c && k.c < p.o;
+        const isBullishHarami = (k, p) => p && p.c < p.o && k.c > k.o && k.o > p.c && k.c < p.o && Math.abs(k.o-k.c) < Math.abs(p.o-p.c);
+        const isBearishHarami = (k, p) => p && p.c > p.o && k.c < k.o && k.o < p.c && k.c > p.o && Math.abs(k.o-k.c) < Math.abs(p.o-p.c);
+
+        const getC = (arr, i) => { if(!arr[i]) return null; return { o: arr[i][1], h: arr[i][2], l: arr[i][3], c: arr[i][4] }; };
+
+        window.onChartDrawOverlay = function(ctx, engine) {
+            const { priceToY, candleWidth, padding, visibleData, visibleStartIndex, allData } = engine;
+            
+            const show = {
+                doji: document.getElementById('toggle-doji').checked,
+                hammer: document.getElementById('toggle-hammer').checked,
+                engulfing: document.getElementById('toggle-engulfing').checked,
+                soldiers: document.getElementById('toggle-soldiers').checked,
+                stars: document.getElementById('toggle-stars').checked,
+                harami: document.getElementById('toggle-harami').checked
+            };
+
+            ctx.font = "bold 8px Inter";
+            ctx.textAlign = "center";
+
+            for (let i = 0; i < visibleData.length; i++) {
+                const idx = visibleStartIndex + i;
+                const k = getC(allData, idx);
+                const p = getC(allData, idx - 1);
+                const pp = getC(allData, idx - 2);
+                if (!k) continue;
+
+                let label = "";
+                let yPos = 0;
+
+                // Engulfing
+                if (show.engulfing) {
+                    if (isBullishEngulfing(k, p)) { label = "BULL ENGULF"; yPos = k.l; }
+                    else if (isBearishEngulfing(k, p)) { label = "BEAR ENGULF"; yPos = k.h; }
+                }
+
+                // Harami
+                if (!label && show.harami) {
+                    if (isBullishHarami(k, p)) { label = "BULL HARAMI"; yPos = k.l; }
+                    else if (isBearishHarami(k, p)) { label = "BEAR HARAMI"; yPos = k.h; }
+                }
+
+                // Morning/Evening Star
+                if (!label && show.stars && pp && p) {
+                    const isFirstGreen = pp.c > pp.o && isLong(pp);
+                    const isFirstRed = pp.c < pp.o && isLong(pp);
+                    const isStar = Math.abs(p.o-p.c)/(p.h-p.l) < 0.3;
+                    
+                    if (isFirstRed && isStar && k.c > k.o && k.c > (pp.o+pp.c)/2) { label = "MORNING STAR"; yPos = k.l; }
+                    else if (isFirstGreen && isStar && k.c < k.o && k.c < (pp.o+pp.c)/2) { label = "EVENING STAR"; yPos = k.h; }
+                }
+
+                // Doji/Hammer
+                if (!label) {
+                    if (show.doji && isDoji(k)) { label = "DOJI"; yPos = k.h; }
+                    else if (show.hammer && isHammer(k)) { label = "HAMMER"; yPos = k.l; }
+                    else if (show.hammer && isShootingStar(k)) { label = "S. STAR"; yPos = k.h; }
+                }
+
+                if (label) {
+                    const x = padding + i * candleWidth + candleWidth / 2;
+                    const y = priceToY(yPos) + (yPos === k.l ? 15 : -10);
+                    
+                    ctx.fillStyle = "rgba(197, 160, 89, 0.2)";
+                    const txtWidth = ctx.measureText(label).width + 8;
+                    ctx.fillRect(x - txtWidth/2, y - 8, txtWidth, 12);
+                    
+                    ctx.fillStyle = "#c5a059";
+                    ctx.fillText(label, x, y + 1);
+                }
+            }
+        };
+
+        // Toggles change redraw
+        document.querySelectorAll('input[type="checkbox"]').forEach(el => {
+            el.addEventListener('change', () => { if(window.draw) window.draw(); });
+        });
+    })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controls Template - MGL Signal</title>
+
+    <meta name="description" content="MGL Signal - Live Trading Charts and Controls">
+    <meta name="robots" content="noindex, nofollow">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 'dark': '#05070a', 'dark-blue': '#0f1217', 'gold': '#c5a059', 'border': '#1f242d' }
+                    },
+                    fontFamily: { 'inter': ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/static/main_style.css">
+
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https:; script-src 'self' https://cdn.tailwindcss.com 'unsafe-inline' https://s3.tradingview.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://api.binance.com https://fapi.binance.com wss://stream.binance.com wss://fstream.binance.com https://bsdkbxyjwjljximdxdst.supabase.co;">
+</head>
+<body class="bg-brand-dark text-white font-inter flex flex-col min-h-screen">
+
+    <script src="/static/js/header.js"></script>
+
+    <main class="flex-grow pt-32 pb-12 px-4 md:px-6">
+        <div class="max-w-7xl mx-auto flex flex-col gap-6">
+            <!-- Back Button -->
+            <div class="mb-4">
+                <a href="/main_live_tools.html" class="inline-flex items-center text-gray-500 hover:text-brand-gold transition text-[10px] font-black uppercase tracking-widest">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to Live Tools
+                </a>
+            </div>
+
+            <script src="/static/js/control.js"></script>
+            <script src="/static/js/data.js"></script>
+
+            <div class="data-grid sm:grid-cols-2 lg:grid-cols-4">
+                <div class="data-card"><div class="label">Spot Price</div><div id="spot-price-display" class="value price">--</div></div>
+                <div class="data-card"><div class="label">Future Price</div><div id="futures-price-display" class="value price">--</div></div>
+                <div class="data-card"><div class="label">Open Sequence</div><div id="val-open" class="w-full">--</div></div>
+                <div class="data-card"><div class="label">High Sequence</div><div id="val-high" class="w-full">--</div></div>
+                <div class="data-card"><div class="label">Low Sequence</div><div id="val-low" class="w-full">--</div></div>
+                <div class="data-card"><div class="label">Close Sequence</div><div id="val-close" class="w-full">--</div></div>
+                <div class="data-card"><div class="label">RSI Sequence</div><div id="rsi-display" class="w-full">--</div></div>
+                <div class="data-card"><div class="label">EMA Sequence</div><div id="ema-display" class="w-full">--</div></div>
+                <div class="data-card"><div class="label">MA Sequence</div><div id="ma-display" class="w-full">--</div></div>
+                <div class="data-card"><div class="label">RSI Status</div><div id="rsi-status" class="value">RSI STATUS</div></div>
+                <div class="data-card"><div class="label">RSI (Prev)</div><div id="val-rsi-prev" class="value">--</div></div>
+                <div class="data-card"><div class="label">RSI (Before Prev)</div><div id="val-rsi-before-prev" class="value">--</div></div>
+                <div class="data-card"><div class="label">HH Sequence (Pivots)</div><div id="val-hh" class="w-full">--</div></div>
+                <div class="data-card"><div class="label">LL Sequence (Pivots)</div><div id="val-ll" class="w-full">--</div></div>
+                <div class="data-card"><div class="label">Support (RSI &lt; 30)</div><div id="val-long-30" class="value price">--</div></div>
+                <div class="data-card"><div class="label">Resistance (RSI &gt; 30)</div><div id="val-short-30" class="value price">--</div></div>
+                <div class="data-card"><div class="label">Support (RSI &lt; 70)</div><div id="val-long-70" class="value price">--</div></div>
+                <div class="data-card"><div class="label">Resistance (RSI &gt; 70)</div><div id="val-short-70" class="value price">--</div></div>
+                <div class="data-card"><div class="label">RSI 30 Up Cross</div><div id="val-rsi-30-up-cross" class="value">--</div></div>
+                <div class="data-card"><div class="label">RSI 30 Down Cross</div><div id="val-rsi-30-down-cross" class="value">--</div></div>
+                <div class="data-card"><div class="label">RSI 70 Up Cross</div><div id="val-rsi-70-up-cross" class="value">--</div></div>
+                <div class="data-card"><div class="label">RSI 70 Down Cross</div><div id="val-rsi-70-down-cross" class="value">--</div></div>
+                <div class="data-card"><div class="label">SMA 20 Cross</div><div id="val-sma20" class="value">--</div></div>
+                <div class="data-card"><div class="label">SMA 50 Cross</div><div id="val-sma50" class="value">--</div></div>
+                <div class="data-card"><div class="label">SMA 200 Cross</div><div id="val-sma200" class="value">--</div></div>
+            </div>
+
+            <script src="/static/js/candle.js"></script>
+            
+        </div>
+    </main>
+
+    <script src="/static/js/footer.js"></script>
+    <script src="/static/lock.js"></script>
+
+</body>
+</html>

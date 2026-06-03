@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<body>
+  <div class="main-container">
+    <div id="main-header-placeholder"></div>
+        <main>
+          <div class="page-container">
+            <div class="controls">
+                <label for="symbol-input">Symbol:</label>
+                <input type="text" id="symbol-input" value="BTCUSDT">
+                <label for="interval-select">Interval:</label>
+                <select id="interval-select">
+                    <option value="60000" selected>1 Minute</option>
+                    <option value="180000">3 Minutes</option>
+                    <option value="300000">5 Minutes</option>
+                </select>
+                <button id="update-chart-btn">Update</button>
+            </div>
+            <div id="chart-container-wrapper">
+                <h2 id="chart-title">Order Flow Footprint Chart</h2>
+                <canvas id="chartCanvas"></canvas>
+            </div>
+          </div>
+        </main>
+    </div>
+    <div id="main-footer-placeholder"></div>
+  </div>
+  <script src="/static/json/main.js"></script>
+  <script src="/static/lock.js"></script>
+  <script>
+    const canvas = document.getElementById('chartCanvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('chart-container-wrapper');
+    const symbolInput = document.getElementById('symbol-input');
+    const intervalSelect = document.getElementById('interval-select');
+    const updateBtn = document.getElementById('update-chart-btn');
+    const chartTitle = document.getElementById('chart-title');
+
+    // Configuration
+    const candleWidth = 70; // Slimmer candles
+    const padding = 50;
+    const tickSize = 5.0; // Aggregated Tick Size (e.g. 1.0, 5.0) for visibility
+    const priceColumnWidth = 60;
+    const VolumeColumnWidth = 100;
+    
+    // State
+    let candles = [];
+    let shouldScroll = false;
+    let ws = null;
+    let currentSymbol = 'BTCUSDT';
+    let currentInterval = 60000;
+
+    // 1. Data Processing
+    function processTrade(trade) {
+        // Bucket by selected interval
+        const timeBucket = Math.floor(trade.t / currentInterval) * currentInterval;
+        
+        let candle = candles.find(c => c.time === timeBucket);
+        if (!candle) {
+            candle = {
+                time: timeBucket,
+                open: trade.p,
+                high: trade.p,
+                low: trade.p,
+                close: trade.p,
+                profile: {}
+            };
+            candles.push(candle);
+            // Sort candles by time
+            candles.sort((a, b) => a.time - b.time);
+            // Keep max 15 candles
+            if (candles.length > 15) candles.shift();
+            shouldScroll = true;
+        }
+
+        // Update OHLC
+        candle.high = Math.max(candle.high, trade.p);
+        candle.low = Math.min(candle.low, trade.p);
+        candle.close = trade.p;
+
+        // Update Volume Profile
+        // Bucket Volume by tickSize
+        const priceBucket = Math.floor(trade.p / tickSize) * tickSize;
+        const priceKey = priceBucket.toFixed(1);
+        
+        if (!candle.profile[priceKey]) {
+            candle.profile[priceKey] = { bid: 0, ask: 0 };
+        }
+
+        if (trade.m) {
+            // Maker is Buyer -> Taker is Seller -> Sell Volume (Bid)
+            candle.profile[priceKey].bid += trade.q;
+        } else {
+            // Maker is Seller -> Taker is Buyer -> Buy Volume (Ask)
+            candle.profile[priceKey].ask += trade.q;
+        }
+    }
+
+    // 2. Fetch Initial Data & Connect WebSocket
+    async function initializeChart() {
+        // Reset state
+        candles = [];
+        shouldScroll = true;
+        if (ws) {
+            ws.onclose = null; // prevent reconnect logic
+            ws.close();
+        }
+
+        chartTitle.textContent = `Order Flow Footprint Chart (${currentSymbol})`;
+
+        // Clear canvas and show loading message
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#787b86';
+        ctx.font = '14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Loading data for ${currentSymbol}...`, canvas.width / 2, canvas.height / 2);
+
+        try {
+            let allTrades = [];
+            // Fetch snapshot (last 1000 trades)
+            const res = await fetch(`https://fapi.binance.com/fapi/v1/aggTrades?symbol=${currentSymbol}&limit=1000`);
+            const data = await res.json();
+            if (data.code) throw new Error(data.msg); // Handle Binance API errors
+            allTrades = data;
+
+            // Backward fetch loop to ensure minimum 10 candles
+            if (allTrades.length > 0) {
+                let oldestTrade = allTrades[0];
+                let newestTrade = allTrades[allTrades.length - 1];
+                let timeCovered = newestTrade.T - oldestTrade.T;
+                const TARGET_TIME = 10 * currentInterval; 
+                let reqCount = 1;
+                const MAX_REQ = 50; 
+
+                while (timeCovered < TARGET_TIME && reqCount < MAX_REQ) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillText(`Loading data for ${currentSymbol}... (${Math.round(timeCovered / 60000)}m / ${Math.round(TARGET_TIME / 60000)}m)`, canvas.width / 2, canvas.height / 2);
+
+                    let fromId = oldestTrade.a - 1000;
+                    if (fromId < 0) fromId = 0;
+
+                    const prevRes = await fetch(`https://fapi.binance.com/fapi/v1/aggTrades?symbol=${currentSymbol}&limit=1000&fromId=${fromId}`);
+                    const prevData = await prevRes.json();
+                    
+                    if (!prevData || prevData.length === 0) break;
+
+                    const nonOverlapping = prevData.filter(t => t.a < oldestTrade.a);
+                    if (nonOverlapping.length === 0) break;
+
+                    allTrades = nonOverlapping.concat(allTrades);
+                    oldestTrade = allTrades[0];
+                    timeCovered = newestTrade.T - oldestTrade.T;
+                    reqCount++;
+                }
+            }
+
+            allTrades.forEach(t => processTrade({
+                p: parseFloat(t.p),
+                q: parseFloat(t.q),
+                t: t.T,
+                m: t.m
+            }));
+            draw();
+        } catch (e) {
+            console.error("Fetch failed:", e);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#ef5350';
+            ctx.fillText(`Error loading data for ${currentSymbol}: ${e.message}`, canvas.width / 2, canvas.height / 2);
+            return; // Stop if initial fetch fails
+        }
+
+        // Connect WebSocket for Live Data
+        ws = new WebSocket(`wss://fstream.binance.com/ws/${currentSymbol.toLowerCase()}@aggTrade`);
+        ws.onmessage = (event) => {
+            const msg = JSON.parse(event.data);
+            processTrade({
+                p: parseFloat(msg.p),
+                q: parseFloat(msg.q),
+                t: msg.T,
+                m: msg.m
+            });
+            requestAnimationFrame(draw);
+        };
+
+        ws.onclose = () => {
+            if (ws) { // only log if not manually closed
+                console.log("WebSocket disconnected.");
+            }
+        };
+    }
+
+    function handleUpdate() {
+        currentSymbol = symbolInput.value.trim().toUpperCase();
+        currentInterval = parseInt(intervalSelect.value, 10);
+        initializeChart();
+    }
+
+        // Add scroll listener for sticky columns
+        container.addEventListener('scroll', () => requestAnimationFrame(draw));
+
+    // 3. Render Logic
+    function draw() {
+        // Dynamic Width: Ensure canvas fits all candles + padding
+        const requiredWidth = Math.max(container.clientWidth, VolumeColumnWidth + candles.length * candleWidth + padding * 2 + priceColumnWidth);
+        canvas.width = requiredWidth;
+        canvas.height = Math.max(container.clientHeight, 600); // Ensure min height for table
+        
+        // Fill Background
+        ctx.fillStyle = '#131722';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        if (candles.length === 0) {
+            ctx.fillStyle = '#787b86';
+            ctx.font = '14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Waiting for Binance Futures data...', canvas.width / 2, canvas.height / 2);
+            return;
+        }
+
+        // Layout Config
+        const tableHeight = 160; // Space for bottom stats table
+        const chartHeight = canvas.height - tableHeight;
+
+        // Calculate Global Range for Scaling
+        const minPrice = Math.min(...candles.map(c => c.low));
+        const maxPrice = Math.max(...candles.map(c => c.high));
+        
+        // Align to grid to ensure keys match
+        const gridMin = Math.floor(minPrice / tickSize) * tickSize;
+        const gridMax = Math.ceil(maxPrice / tickSize) * tickSize;
+
+        // Add padding ticks
+        const viewMin = gridMin - tickSize * 2;
+        const viewMax = gridMax + tickSize * 2;
+        const viewRange = Math.max(viewMax - viewMin, 1.0); // Avoid zero division
+
+        // Calculate row height based on ticks
+        const totalTicks = viewRange / tickSize;
+        const rowHeight = (chartHeight - padding * 2) / totalTicks;
+        
+        // Only draw text if rows are tall enough
+        const drawText = rowHeight > 12;
+
+        ctx.font = '11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+        ctx.textBaseline = 'middle';
+
+        let cumulativeDelta = 0;
+
+        // --- Calculate Volume Profile Data ---
+        const volProfile = {};
+        let maxVolProfile = 0;
+        candles.forEach(c => {
+            Object.entries(c.profile).forEach(([p, v]) => {
+                if (!volProfile[p]) volProfile[p] = { vol: 0, delta: 0 };
+                volProfile[p].vol += (v.bid + v.ask);
+                volProfile[p].delta += (v.ask - v.bid);
+                if (volProfile[p].vol > maxVolProfile) maxVolProfile = volProfile[p].vol;
+            });
+        });
+
+        candles.forEach((candle, index) => {
+            const x = VolumeColumnWidth + index * candleWidth + padding;
+            const isUp = candle.close >= candle.open;
+            
+            // Y calculation: (Max - Value) / TickSize * RowHeight
+            const topY = ((viewMax - candle.high) / tickSize) * rowHeight + padding;
+            const bottomY = ((viewMax - candle.low) / tickSize) * rowHeight + padding + rowHeight;
+            const height = Math.max(bottomY - topY, 1); // Ensure at least 1px
+
+            // Draw Vertical Grid Line (Time Separator)
+            ctx.strokeStyle = '#2a2e39';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x + candleWidth, 0);
+            ctx.lineTo(x + candleWidth, chartHeight);
+            ctx.stroke();
+
+            // Draw Candle Border
+            ctx.strokeStyle = isUp ? '#26a69a' : '#ef5350'; // TradingView Green/Red
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x, topY, candleWidth - 10, height);
+
+            // Draw Footprint Rows (Price Levels)
+            const highStep = Math.floor(candle.high / tickSize);
+            const lowStep = Math.floor(candle.low / tickSize);
+
+            // 1. Analyze Candle (Calculate Delta & POC)
+            let candleTotalVol = 0;
+            let candleDelta = 0;
+            let totalAsk = 0;
+            let totalBid = 0;
+            let maxVol = 0;
+            let pocPriceKey = null;
+
+            Object.entries(candle.profile).forEach(([key, data]) => {
+                const vol = data.ask + data.bid;
+                const d = data.ask - data.bid;
+                candleTotalVol += vol;
+                candleDelta += d;
+                totalAsk += data.ask;
+                totalBid += data.bid;
+                if (vol > maxVol) {
+                    maxVol = vol;
+                    pocPriceKey = key;
+                }
+            });
+            
+            // Update Cumulative Delta
+            cumulativeDelta += candleDelta;
+
+            for (let s = highStep; s >= lowStep; s--) {
+                const price = s * tickSize;
+                const priceKey = price.toFixed(1);
+                
+                if (!candle.profile[priceKey]) continue;
+                
+                const y = ((viewMax - price) / tickSize) * rowHeight + padding;
+                const rowData = candle.profile[priceKey];
+                
+                // Background color based on Delta (Ask - Bid)
+                const delta = rowData.ask - rowData.bid;
+                const totalVol = rowData.ask + rowData.bid;
+                const ratio = Math.abs(delta) / (totalVol || 1);
+
+                let cellColor;
+                if (delta > 0) {
+                    if (ratio < 0.3) cellColor = 'rgba(38, 166, 154, 0.25)';      // Weak Green
+                    else if (ratio < 0.6) cellColor = 'rgba(38, 166, 154, 0.55)'; // Medium Green
+                    else cellColor = '#26a69a';                                   // Strong Green
+                } else {
+                    if (ratio < 0.3) cellColor = 'rgba(239, 83, 80, 0.25)';      // Weak Red
+                    else if (ratio < 0.6) cellColor = 'rgba(239, 83, 80, 0.55)'; // Medium Red
+                    else cellColor = '#ef5350';                                  // Strong Red
+                }
+
+                ctx.fillStyle = cellColor;
+                
+                // Smooth Rounded Rectangles (No more SpongeBob squares)
+                const cellH = Math.max(rowHeight - 1.5, 0.5);
+                const radius = Math.min(4, cellH / 2);
+                ctx.beginPath();
+                ctx.roundRect(x + 2, y + 0.5, candleWidth - 14, cellH, radius);
+                ctx.fill();
+
+                // Highlight POC (Point of Control)
+                if (priceKey === pocPriceKey) {
+                    ctx.strokeStyle = '#fbc02d'; // Professional Yellow
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.roundRect(x + 2, y + 0.5, candleWidth - 14, cellH, radius);
+                    ctx.stroke();
+                }
+
+                // Draw Text: Bid x Ask
+                if (drawText) {
+                    const centerX = x + (candleWidth - 10) / 2;
+                    
+                    // Draw center separator (Candle Spine)
+                    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+                    ctx.fillRect(centerX - 0.5, y, 1, rowHeight);
+
+                    // Contrast text color based on background intensity
+                    ctx.fillStyle = (ratio > 0.6) ? '#ffffff' : '#b2b5be';
+                    ctx.font = '10px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+
+                    // Bid (Left)
+                    ctx.textAlign = 'right';
+                    ctx.fillText(rowData.bid.toFixed(2), centerX - 4, y + rowHeight/2);
+                    
+                    // Ask (Right)
+                    ctx.textAlign = 'left';
+                    ctx.fillText(rowData.ask.toFixed(2), centerX + 4, y + rowHeight/2);
+                }
+            }
+
+            ctx.textAlign = 'center';
+
+            // Draw Total Candle Volume
+            ctx.fillStyle = '#787b86';
+            ctx.font = '10px sans-serif';
+            ctx.fillText(`Vol: ${candleTotalVol.toFixed(2)}`, x + candleWidth/2 - 5, canvas.height - 35);
+            
+            // Draw Delta
+            ctx.fillStyle = candleDelta >= 0 ? '#26a69a' : '#ef5350';
+            ctx.fillText(`Δ: ${candleDelta.toFixed(2)}`, x + candleWidth/2 - 5, canvas.height - 20);
+
+            // Draw Signal
+            let signal = "";
+            let sigColor = "#787b86";
+
+            ctx.fillStyle = sigColor;
+            ctx.font = 'bold 11px sans-serif';
+            ctx.fillText(signal, x + candleWidth/2 - 5, topY - 15);
+            
+            // Reset font
+            ctx.font = '11px sans-serif';
+
+            // --- Draw Downside Column (Stats Table) ---
+            const statsY = chartHeight + 10;
+            const lineHeight = 20;
+
+            // Draw Table Background Card
+            ctx.fillStyle = '#1e222d';
+            ctx.fillRect(x, statsY - 5, candleWidth - 10, 130);
+            
+
+            // Draw Values
+            ctx.textAlign = 'center';
+            const stats = [
+                totalAsk.toFixed(2),
+                totalBid.toFixed(2),
+                candleDelta.toFixed(2),
+                cumulativeDelta.toFixed(2),
+                candleTotalVol.toFixed(2),
+                candleDelta.toFixed(2) // Volume Delta
+            ];
+
+            stats.forEach((val, i) => {
+                // Colorize Delta, Cumu Delta, Vol Delta
+                if (i === 2 || i === 3 || i === 5) {
+                    ctx.fillStyle = parseFloat(val) >= 0 ? '#26a69a' : '#ef5350';
+                } else {
+                    ctx.fillStyle = '#d1d4dc';
+                }
+                ctx.fillText(val, x + candleWidth/2 - 5, statsY + i * lineHeight);
+            });
+
+            // Draw Time Label
+            ctx.fillStyle = '#787b86';
+            const timeStr = new Date(candle.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            ctx.fillText(timeStr, x + candleWidth/2 - 5, canvas.height - 5);
+        });
+
+        // --- Draw Sticky Volume Profile (Left Side) ---
+        const vpX = container.scrollLeft;
+        
+        // Draw VP Background & Border (Sticky)
+        ctx.fillStyle = '#131722';
+        ctx.fillRect(vpX, 0, VolumeColumnWidth, canvas.height);
+        ctx.strokeStyle = '#2a2e39';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(vpX + VolumeColumnWidth, 0);
+        ctx.lineTo(vpX + VolumeColumnWidth, chartHeight);
+        ctx.stroke();
+
+        // Draw VP Bars
+        const totalStepsVP = (viewMax - viewMin) / tickSize;
+        for (let i = 0; i <= totalStepsVP; i++) {
+            const price = viewMax - (i * tickSize);
+            const priceKey = price.toFixed(1);
+            const volData = volProfile[priceKey];
+            if (!volData || !volData.vol) continue;
+
+            const y = (i * rowHeight) + padding;
+            const barWidth = (volData.vol / (maxVolProfile || 1)) * (VolumeColumnWidth - 10);
+
+            // Colorize based on delta
+            if (volData.delta > 0) {
+                ctx.fillStyle = 'rgba(38, 166, 154, 0.4)'; // Green
+            } else if (volData.delta < 0) {
+                ctx.fillStyle = 'rgba(239, 83, 80, 0.4)'; // Red
+            } else {
+                ctx.fillStyle = 'rgba(120, 123, 134, 0.25)'; // Grey for neutral
+            }
+            
+            // Smooth rounded bars
+            const barH = Math.max(rowHeight - 1, 0.5);
+            const barR = Math.min(4, barH / 2);
+            ctx.beginPath();
+            ctx.roundRect(vpX, y + 0.5, barWidth, barH, [0, barR, barR, 0]);
+            ctx.fill();
+        }
+
+        // --- Draw Sticky Stats Labels (Bottom Left) ---
+        const statsY = chartHeight + 10;
+        const lineHeight = 20;
+        
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#787b86';
+        const labels = ["Ask", "Bid", "Delta", "Cumu Delta", "Volume", "Vol Delta"];
+        labels.forEach((label, i) => {
+            ctx.fillText(label, vpX + 10, statsY + i * lineHeight);
+        });
+
+        // --- Draw Sticky Price Column (Right Side) ---
+        // Position at the right edge of the visible container
+        const priceColX = container.scrollLeft + container.clientWidth - priceColumnWidth;
+        
+        // Background
+        ctx.fillStyle = '#131722';
+        ctx.fillRect(priceColX, 0, priceColumnWidth, canvas.height);
+        ctx.strokeStyle = '#2a2e39';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(priceColX, 0);
+        ctx.lineTo(priceColX, chartHeight);
+        ctx.stroke();
+
+        // Labels
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#787b86';
+        ctx.font = '11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+
+        const totalSteps = (viewMax - viewMin) / tickSize;
+        // Draw every Nth label if rows are too small
+        const labelStep = Math.max(1, Math.ceil(20 / rowHeight));
+
+        const currentPrice = candles.length > 0 ? candles[candles.length - 1].close : 0;
+
+        for (let i = 0; i <= totalSteps; i++) {
+            if (i % labelStep !== 0) continue;
+            
+            const price = viewMax - (i * tickSize);
+            const y = (i * rowHeight) + padding + (rowHeight / 2);
+            
+            if (y > chartHeight) break;
+            
+            ctx.fillText(price.toFixed(1), priceColX + 10, y);
+
+            // --- Draw Analysis Notes ---
+            const priceKey = price.toFixed(1);
+            const nodeDelta = volProfile[priceKey] ? volProfile[priceKey].delta : 0;
+            const nodeTotal = volProfile[priceKey] ? volProfile[priceKey].vol : 0;
+            const isHighVolumeNode = nodeTotal > (maxVolProfile * 0.3); // Node has at least 30% of the max profile volume
+            
+            let note = "";
+            let noteColor = "";
+
+            const deltaThreshold = 2.0;
+            const absorptionProximity = tickSize * 3;
+
+            if (Math.abs(price - currentPrice) < tickSize / 2) {
+                note = "⬅ CURRENT"; noteColor = "#ffffff";
+            }
+            // --- Absorption & Potential Traps ---
+            else if (isHighVolumeNode && nodeDelta > deltaThreshold && Math.abs(price - currentPrice) < absorptionProximity && price >= currentPrice) {
+                note = "⚠️ Absorption (Pot. Resist)"; noteColor = "#f59e0b"; // Orange for warning
+            }
+            else if (isHighVolumeNode && nodeDelta < -deltaThreshold && Math.abs(price - currentPrice) < absorptionProximity && price <= currentPrice) {
+                note = "⚠️ Absorption (Pot. Support)"; noteColor = "#f59e0b"; // Orange for warning
+            }
+            // --- Confirmed Traps & S/R ---
+            else if (nodeDelta > deltaThreshold && price > currentPrice) {
+                note = "🛑 Trapped Buyers"; noteColor = "#ef5350";
+            } else if (nodeDelta < -deltaThreshold && price < currentPrice) {
+                note = "🛑 Trapped Sellers"; noteColor = "#26a69a";
+            } else if (nodeDelta > deltaThreshold && price < currentPrice) {
+                note = "🚀 Strong Support"; noteColor = "#26a69a";
+            } else if (nodeDelta < -deltaThreshold && price > currentPrice) {
+                note = "📉 Strong Resistance"; noteColor = "#ef5350";
+            }
+
+            if (note) {
+                ctx.save();
+                ctx.textAlign = 'right';
+                ctx.fillStyle = noteColor;
+                ctx.font = 'bold 11px sans-serif';
+                ctx.fillText(note, priceColX - 5, y);
+                ctx.restore();
+            }
+        }
+
+        // Auto-scroll to latest candle
+        if (shouldScroll) {
+            container.scrollLeft = container.scrollWidth;
+            shouldScroll = false;
+        }
+    }
+
+    // Initialize
+    updateBtn.addEventListener('click', handleUpdate);
+    handleUpdate(); // Initial load
+  </script>
+</body>
+</html>

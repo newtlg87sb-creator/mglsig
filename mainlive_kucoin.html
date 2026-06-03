@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KuCoin Direct Terminal - MGL Signal</title>
+    <title>KuCoin Spot Live - MGL Signal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -12,541 +12,256 @@
                     colors: {
                         brand: { 'dark': '#05070a', 'dark-blue': '#0f1217', 'gold': '#c5a059', 'border': '#1f242d' }
                     },
-                    fontFamily: { 'inter': ['Inter', 'sans-serif'] }
+                    fontFamily: { 'inter': ['Inter', 'sans-serif'], 'mono': ['JetBrains Mono', 'monospace'] }
                 }
             }
         }
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/main_style.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { background-color: #05070a; color: #e2e8f0; }
-        .terminal-table { border-collapse: separate; border-spacing: 0; width: 100%; }
-        .terminal-table th { position: sticky; top: 0; background: #1e293b; z-index: 40; border-bottom: 2px solid #0f172a; }
-        .group-header { background: #1e293b; color: #fbbf24; font-weight: 900; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; }
-        .news-scroll::-webkit-scrollbar { width: 4px; }
-        .news-scroll::-webkit-scrollbar-track { background: #0f172a; }
-        .news-scroll::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
-        tr:nth-child(even) { background-color: rgba(30, 41, 59, 0.3); }
-        .cell-mono { font-family: 'JetBrains Mono', 'Consolas', monospace; font-size: 13px; }
+        .log-box { background-color: #000; color: #00ff00; font-family: 'Consolas', monospace; font-size: 11px; }
+        .terminal-table th { position: sticky; top: 0; background: #0f1217; z-index: 10; border-bottom: 1px solid #1f242d; }
+        .cell-mono { font-family: 'JetBrains Mono', monospace; }
+        .luxury-line { height: 1.5px; background: linear-gradient(90deg, #c5a059 0%, rgba(197, 160, 89, 0.4) 50%, transparent 100%); }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #05070a; }
+        ::-webkit-scrollbar-thumb { background: #1f242d; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #c5a059; }
     </style>
 </head>
-<body class="bg-brand-dark text-white font-inter flex flex-col min-h-screen">
-
+<body class="min-h-screen flex flex-col font-inter">
     <script src="/static/js/header.js"></script>
 
-    <main class="flex-grow pt-32 pb-12 px-4 md:px-6">
-        <div class="max-w-[1400px] mx-auto space-y-4">
+    <main class="flex-grow pt-36 pb-12 px-4 md:px-6 relative">
+        <!-- Background Decoration -->
+        <div class="absolute top-40 left-1/4 w-96 h-96 bg-brand-gold opacity-[0.03] blur-[120px] pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6 h-[700px] relative z-10">
             
-            <div class="flex flex-col gap-4 mb-6">
-                <a href="main_exchanges.html" data-i18n="back-to-home" class="w-fit inline-flex items-center text-brand-gold hover:text-white transition text-xs font-bold uppercase tracking-widest">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                    Back to Terminals
-                </a>
-                <div class="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 flex items-start gap-3 max-w-2xl shadow-sm">
-                    <i class="fas fa-info-circle text-blue-400 mt-0.5 text-xs"></i>
-                    <p class="text-[11px] text-gray-400 font-medium leading-relaxed italic">Production WSS Mode: Connected via secure Vercel API Gateway. Stable streaming tunnel directly via KuCoin infrastructure.</p>
+            <!-- Зүүн тал: Лог -->
+            <div class="w-full lg:w-[30%] flex flex-col gap-4">
+                <div class="flex items-center space-x-2">
+                    <h2 class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
+                        <i class="fas fa-terminal mr-2 text-brand-gold"></i> Live Engine Logs
+                    </h2>
+                </div>
+                <div class="flex-grow flex flex-col bg-black border border-brand-border rounded-2xl overflow-hidden shadow-2xl">
+                    <div id="log-container" class="log-box flex-grow p-5 overflow-y-auto">
+                        <div class="opacity-30 italic">[System] Initializing Data Stream...</div>
+                    </div>
                 </div>
             </div>
 
-            <header class="bg-[#0f172a] border border-[#1e293b] p-4 rounded-xl flex flex-col md:flex-row justify-between items-center gap-4 shadow-2xl">
-                <div class="flex items-center space-x-4">
-                    <h1 class="text-xl font-black text-[#38bdf8] tracking-tighter uppercase flex items-center">
-                        <i class="fas fa-network-wired mr-3 animate-pulse text-[#24ae8f]"></i> KuCoin WSS Direct
-                    </h1>
-                    <div id="sentiment-badge" class="px-3 py-1 rounded bg-[#1e293b] border border-[#334155] text-[10px] font-black uppercase flex items-center gap-1">
-                        <span id="sentiment-text" class="ml-2">📡 Starting Stream Tunnel...</span>
-                    </div>
-                </div>
-
-                <div class="flex flex-wrap items-center gap-3">
-                    <div class="relative">
-                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs pointer-events-none"></i>
-                        <input type="text" id="symbol-search" placeholder="Search Symbols..." class="bg-[#05070a] border border-[#334155] rounded-lg py-2 pl-9 pr-4 text-xs focus:border-[#38bdf8] outline-none transition w-32 md:w-44 text-white">
+            <!-- Баруун тал: Хүснэгт -->
+            <div class="w-full lg:w-[70%] flex flex-col gap-4">
+                <div class="flex items-center justify-between bg-brand-dark-blue border border-brand-border p-4 rounded-2xl shadow-xl relative overflow-hidden">
+                    <div class="luxury-line absolute top-0 left-0 w-32"></div>
+                    
+                    <div class="flex items-center gap-4">
+                        <div class="relative flex items-center">
+                            <i class="fas fa-search absolute left-3 text-gray-400 text-[10px]"></i>
+                            <input type="text" id="symbol-search" oninput="renderUI()" placeholder="Search symbols..." class="bg-black/40 border border-brand-border rounded-xl py-2.5 pl-9 pr-4 text-[10px] text-white focus:border-brand-gold outline-none transition-all w-40 md:w-56 font-bold uppercase tracking-widest">
+                        </div>
                     </div>
 
-                    <div class="flex flex-wrap gap-1 bg-[#05070a] border border-[#334155] rounded-lg p-0.5 mr-2">
-                        <button onclick="toggleHide('blacklist')" id="btn-blacklist" class="px-2 py-1 rounded text-[9px] font-bold uppercase transition bg-[#334155] text-white">Show BL</button>
-                        <button onclick="toggleHide('lowVol')" id="btn-lowVol" class="px-2 py-1 rounded text-[9px] font-bold uppercase transition bg-[#334155] text-white">Show LV</button>
-                        <button onclick="toggleHide('highSpr')" id="btn-highSpr" class="px-2 py-1 rounded text-[9px] font-bold uppercase transition bg-[#334155] text-white">Show HS</button>
-                        <button onclick="toggleHide('minHigh')" id="btn-minHigh" class="px-2 py-1 rounded text-[9px] font-bold uppercase transition bg-[#334155] text-white">Show MH</button>
-                        <button onclick="toggleHide('limitHigh')" id="btn-limitHigh" class="px-2 py-1 rounded text-[9px] font-bold uppercase transition bg-[#334155] text-white">Show LH</button>
-                    </div>
-
-                    <button onclick="resetSessionPrices()" class="px-4 py-2 rounded-lg text-[10px] font-black uppercase bg-[#fbbf24] text-black hover:bg-white transition-all shadow-xl flex items-center gap-2 active:scale-95 border-2 border-white/10">
-                        <i class="fas fa-sync-alt"></i> Reset Real%
-                    </button>
-
-                    <div id="last-sync" class="text-[10px] font-mono text-gray-500">Initializing Tunnel...</div>
-                </div>
-            </header>
-
-            <div class="bg-[#0f172a] border border-[#1e293b] rounded-xl overflow-hidden shadow-2xl overflow-x-auto overflow-y-auto news-scroll" style="max-height: calc(100vh - 280px);">
-                <table class="terminal-table text-left">
-                    <thead>
-                        <tr class="text-[10px] text-gray-400 uppercase font-black tracking-widest">
-                            <th class="p-4 w-12 text-center">#</th>
-                            <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('symbol')">Symbols <i class="fas fa-sort ml-1"></i></th>
-                            <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('bid')">Bid Price <i class="fas fa-sort ml-1"></i></th>
-                            <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('ask')">Ask Price <i class="fas fa-sort ml-1"></i></th>
-                            <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('spread')">Spread <i class="fas fa-sort ml-1"></i></th>
-                            <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('min_usdt')">Min $ <i class="fas fa-sort ml-1"></i></th>
-                            <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('client_real_change')">Real% <i class="fas fa-sort ml-1"></i></th>
-                            <th class="p-4 opacity-30">1H%</th> <!-- mainlive-тай ижилсүүлж зай авав -->
-                            <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('change_24h')">24H% <i class="fas fa-sort ml-1"></i></th>
-                            <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('volume')">Volume <i class="fas fa-sort ml-1"></i></th>
-                            <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('min_order_cost')">Limit $ <i class="fas fa-sort ml-1"></i></th>
-                        </tr>
-                    </thead>
-                    <tbody id="market-body" class="cell-mono">
-                        </tbody>
-                </table>
-            </div>
-
-            <div class="mt-20 border-t border-brand-border pt-12">
-                <div class="bg-brand-dark-blue/50 border border-brand-border rounded-2xl p-8 md:p-10 shadow-2xl relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-64 h-64 bg-brand-gold/5 blur-[100px] -mr-32 -mt-32"></div>
-                    <div class="relative z-10">
-                        <h2 data-i18n="guide-title" class="text-2xl font-black text-white uppercase tracking-tighter mb-6 flex items-center">
-                            <i class="fas fa-book-open text-brand-gold mr-3"></i> Биржүүдийн Терминал ашиглах заавар
-                        </h2>
-                        <div class="space-y-6 text-gray-400 text-sm leading-relaxed">
-                            <div class="bg-brand-gold/10 border-l-4 border-brand-gold p-6 rounded-r-xl">
-                                <p data-i18n="guide-intro" class="text-white font-medium italic"></p>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8 mt-10">
-                                <div class="space-y-4">
-                                    <h3 data-i18n="guide-item-1-title" class="text-brand-gold font-bold uppercase text-xs tracking-widest"></h3>
-                                    <p data-i18n="guide-item-1-desc" class="text-xs"></p>
-                                </div>
-                                <div class="space-y-4">
-                                    <h3 data-i18n="guide-item-2-title" class="text-brand-gold font-bold uppercase text-xs tracking-widest"></h3>
-                                    <p data-i18n="guide-item-2-desc" class="text-xs"></p>
-                                </div>
-                                <div class="space-y-4">
-                                    <h3 data-i18n="guide-item-3-title" class="text-brand-gold font-bold uppercase text-xs tracking-widest"></h3>
-                                    <p data-i18n="guide-item-3-desc" class="text-xs"></p>
-                                </div>
-                                <div class="space-y-4">
-                                    <h3 data-i18n="guide-item-4-title" class="text-brand-gold font-bold uppercase text-xs tracking-widest"></h3>
-                                    <p data-i18n="guide-item-4-desc" class="text-xs"></p>
-                                </div>
-                                <div class="space-y-4">
-                                    <h3 data-i18n="guide-item-5-title" class="text-brand-gold font-bold uppercase text-xs tracking-widest"></h3>
-                                    <p data-i18n="guide-item-5-desc" class="text-xs"></p>
-                                </div>
-                                <div class="space-y-4">
-                                    <h3 data-i18n="guide-item-6-title" class="text-brand-gold font-bold uppercase text-xs tracking-widest"></h3>
-                                    <p data-i18n="guide-item-6-desc" class="text-xs"></p>
-                                </div>
-                            </div>
+                    <div class="flex items-center gap-4">
+                        <div id="status-timer" class="px-4 py-2 rounded-lg bg-green-500/10 border border-green-500/20 text-[10px] font-mono font-black text-green-500 uppercase tracking-tighter">
+                            LIVE
                         </div>
                     </div>
                 </div>
+
+                <div class="flex-grow bg-brand-dark-blue border border-brand-border rounded-2xl overflow-hidden shadow-2xl relative flex flex-col">
+                    <div class="overflow-y-auto flex-grow">
+                        <table class="w-full text-left border-collapse terminal-table">
+                            <thead class="text-[10px] text-gray-500 uppercase font-black tracking-widest border-b border-brand-border">
+                                <tr>
+                                    <th class="p-5 cursor-pointer hover:text-white transition-colors" onclick="updateSort('symbol')">Symbol <i class="fas fa-sort ml-1 opacity-30"></i></th>
+                                    <th class="p-5 cursor-pointer hover:text-white transition-colors" onclick="updateSort('last')">Last Price <i class="fas fa-sort ml-1 opacity-30"></i></th>
+                                    <th class="p-5 cursor-pointer hover:text-white transition-colors" onclick="updateSort('bid')">Bid (Sell) <i class="fas fa-sort ml-1 opacity-30"></i></th>
+                                    <th class="p-5 cursor-pointer hover:text-white transition-colors" onclick="updateSort('ask')">Ask (Buy) <i class="fas fa-sort ml-1 opacity-30"></i></th>
+                                    <th class="p-5 cursor-pointer hover:text-white transition-colors" onclick="updateSort('spread')">Spread <i class="fas fa-sort ml-1 opacity-30"></i></th>
+                                    <th class="p-5 cursor-pointer hover:text-white transition-colors" onclick="updateSort('change24h')">24h% <i class="fas fa-sort ml-1 opacity-30"></i></th>
+                                    <th class="p-5 cursor-pointer hover:text-white transition-colors" onclick="updateSort('volume')">Vol <i class="fas fa-sort ml-1 opacity-30"></i></th>
+                                </tr>
+                            </thead>
+                            <tbody id="market-body" class="cell-mono text-[12px] divide-y divide-brand-border/20">
+                                <tr>
+                                    <td colspan="7" class="p-20 text-center text-gray-600 uppercase text-[10px] font-bold tracking-[0.3em]">
+                                        Connecting to Gateway...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
+
         </div>
     </main>
 
     <script src="/static/js/footer.js"></script>
+    <script src="/static/lock.js"></script>
 
     <script>
-        const pageTranslations = {
-            mn: {
-                "back-to-home": '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>Терминалууд руу буцах',
-                "guide-title": '<i class="fas fa-book-open text-brand-gold mr-3"></i> Биржүүдийн Терминал ашиглах заавар',
-                "guide-intro": "Энэхүү биржүүдийн дата нь маш онцгой зүйлсийг агуулдаг бөгөөд үүнийг ойлгож мэдсэнээр аль ч бирж дээр арилжаа хийж байсан авах ёсгүй койнуудыг авахгүй байх чадвартай болох юм...",
-                "guide-item-1-title": "1. BLACKLISTED / ST RISK (SHOW BL)",
-                "guide-item-1-desc": "ST (Special Treatment) буюу биржийн гэрээний зөрчилтэй, арилжаанаас хасагдах өндөр эрсдэлтэй койнууд. Систем эдгээрийг автоматаар улаанаар тэмдэглэж анхааруулна.",
-                "guide-item-2-title": "2. SPREAD MONITOR (HIDE HS)",
-                "guide-item-2-desc": "Худалдах, худалдан авах үнийн зөрүү ихтэй койнууд. Халимнуудын өгөөш болох магадлал өндөр, занга ихтэй байдаг тул арилжаанд орох нь эрсдэлтэй.",
-                "guide-item-3-title": "3. LOW VOL COINS (HIDE LV)",
-                "guide-item-3-desc": "Сүүлийн нэг өдрийн зах зээлийн эргэлт багатай койнууд. Хөрвөх чадвар муу тул арилжааны явцад үнийн гэнэтийн савлагаа үүсэх аюултай.",
-                "guide-item-4-title": "4. HIDE MIN (SHOW MH)",
-                "guide-item-4-desc": "Өндөр өртөгөөр арилжаа хийгддэг койнуудыг нууж, хамгийн бага дүнгээр (жишээ нь 0.1$) арилжаанд орох боломжийг харуулах болно.",
-                "guide-item-5-title": "5. LIMIT (SHOW LH)",
-                "guide-item-5-desc": "Лимит нь тийм ч чухал холбогдолгүй ч та хамгийн бага USDT-ээр оролцох боломжийг харуулах болно.",
-                "guide-item-6-title": "6. RESET REAL% (RESET REAL%)",
-                "guide-item-6-desc": "Бүх цаг үеийн арилжааны хамгийн чухал хэрэгсэл. Үүнийг дарснаар үнийг одоо цагаас хойш reset хийж, хэрхэн өсөж унаж байгааг бодитоор харна."
-            },
-            en: {
-                "back-to-home": '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>Back to Terminals',
-                "guide-title": '<i class="fas fa-book-open text-brand-gold mr-3"></i> Exchange Terminal Usage Guide',
-                "guide-intro": "This exchange data contains very unique insights. By understanding this, you will be able to avoid high-risk assets on any exchange...",
-                "guide-item-1-title": "1. BLACKLISTED / ST RISK (SHOW BL)",
-                "guide-item-1-desc": "ST (Special Treatment) coins with high risk of delisting. The system automatically highlights these in red.",
-                "guide-item-2-title": "2. SPREAD MONITOR (HIDE HS)",
-                "guide-item-2-desc": "Assets with wide bid-ask spreads. Highly risky as they are often whale traps.",
-                "guide-item-3-title": "3. LOW VOL COINS (HIDE LV)",
-                "guide-item-3-desc": "Coins with low market turnover in the last 24 hours. Poor liquidity often leads to extreme volatility.",
-                "guide-item-4-title": "4. HIDE MIN (SHOW MH)",
-                "guide-item-4-desc": "Hides coins with high entry requirements to highlight low-cost opportunities (e.g., $0.1 entry).",
-                "guide-item-5-title": "5. LIMIT (SHOW LH)",
-                "guide-item-5-desc": "Shows coins where you can participate with the minimum USDT limit.",
-                "guide-item-6-title": "6. RESET REAL% (RESET REAL%)",
-                "guide-item-6-desc": "Resets price tracking to current moment to monitor live gains or losses from this point forward."
-            }
-        };
-        function changeLang(lang) {
-            localStorage.setItem('lang', lang);
-            if (!window.translations || !window.translations[lang]) return;
-            const t = window.translations[lang];
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (t[key]) el.innerHTML = t[key];
-            });
-            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-                const key = el.getAttribute('data-i18n-placeholder');
-                if (t[key]) el.placeholder = t[key];
-            });
-
-            const btnMn = document.getElementById('btn-mn');
-            const btnEn = document.getElementById('btn-en');
-            if (btnMn && btnEn) {
-                const activeClass = "px-2.5 py-1 rounded-full bg-brand-gold text-black transition";
-                const inactiveClass = "px-2.5 py-1 rounded-full text-gray-500 hover:text-white transition";
-                btnMn.className = lang === 'mn' ? activeClass : inactiveClass;
-                btnEn.className = lang === 'en' ? activeClass : inactiveClass;
-            }
-        }
-        window.changeLang = changeLang;
-
-        let allDataMap = new Map(); 
+        let isRunning = true;
         let allData = [];
-        let symbolMetadata = {};
-        let sessionInitialPrices = {}; 
-        let currentSort = { col: 'client_real_change', desc: true };
-        let hideSettings = { 
-            blacklist: true,
-            lowVol: false,
-            highSpr: false,
-            minHigh: false,
-            limitHigh: false
-        };
-        let wsSocket = null;
+        let currentSort = { col: 'symbol', desc: false };
+        let updateInterval = null;
+        let countdownInterval = null;
+        let isFirstFetch = true;
+        let currentCooldown = 10000; // API Cache-тэй уялдуулж 10 секунд болгов
 
-        function getButtonText(type, isHidden) {
-            const texts = { blacklist: 'BL', lowVol: 'LV', highSpr: 'HS', minHigh: 'MH', limitHigh: 'LH' };
-            return `${isHidden ? 'Show' : 'Hide'} ${texts[type]}`;
+        function addLog(msg) {
+            const container = document.getElementById('log-container');
+            if (container.children.length > 25) container.removeChild(container.firstChild);
+            const time = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = "mb-1";
+            logEntry.textContent = `[${time}] ${msg}`;
+            container.appendChild(logEntry);
+            container.scrollTop = container.scrollHeight;
         }
 
-        function updateButtonState(id, isHidden) {
-            const btn = document.getElementById(id);
-            if (btn) {
-                const type = id.replace('btn-', '');
-                btn.textContent = getButtonText(type, isHidden);
-                btn.className = `px-2 py-1 rounded text-[9px] font-bold uppercase transition ${isHidden ? 'bg-[#05070a] text-gray-500 border border-[#334155] hover:bg-[#334155]/50' : 'bg-[#334155] text-white'}`;
-            }
+        function initScanner() {
+            addLog("KuCoin API-тай холбогдож байна...");
+            runLoop();
         }
 
-        function toggleHide(type) {
-            hideSettings[type] = !hideSettings[type];
-            updateButtonState(`btn-${type}`, hideSettings[type]);
-            renderUI();
+        async function runLoop() {
+            if (!isRunning) return;
+            
+            await fetchData();
+            
+            // Дараагийн дуудлагыг currentCooldown-оор тохируулна
+            setTimeout(runLoop, currentCooldown);
         }
 
-        function updateSort(col) {
-            if(currentSort.col === col) currentSort.desc = !currentSort.desc;
-            else { currentSort.col = col; currentSort.desc = true; }
-            renderUI();
-        }
-
-        function resetSessionPrices() {
-            sessionInitialPrices = {};
-            allData.forEach(d => {
-                sessionInitialPrices[d.symbol] = d.ask;
-            });
-            renderUI();
-        }
-
-        // ✅ ТӨГС ШИЙДЭЛ: Локал (5500) болон Production (Vercel) дээр аль алин дээр нь алдаагүй ажиллах логик
-        async function fetchVercelConfig() {
+        async function fetchData() {
             try {
-                document.getElementById('last-sync').innerText = "Fetching Market Snapshot...";
-
-                // 1. Мета дата татах (Proxy ашиглан CORS алдаанаас тойрно)
-                const symbolsRes = await fetch('https://corsproxy.io/?https://api.kucoin.com/api/v1/symbols');
-                const symbolsData = await symbolsRes.json();
+                // corsproxy-г устгаж, өөрийн Vercel API-г ашиглана
+                const res = await fetch('/api/kucoin');
                 
-                if (symbolsData.data) {
-                    symbolsData.data.forEach(s => {
-                        symbolMetadata[s.symbol] = {
-                            is_st: s.isST === true || s.isST === "true" || s.enableTrading === false,
-                            enableTrading: s.enableTrading, 
-                            minFunds: parseFloat(s.minFunds || 0),
-                            baseMinSize: parseFloat(s.baseMinSize || 0)
-                        };
-                    });
+                if (res.status === 429) {
+                    currentCooldown = 20000; 
+                    addLog("⚠️ Rate Limit: Vercel Gateway хязгаарлалтад орлоо. 20с амарч байна...");
+                    document.getElementById('status-timer').textContent = "COOLING";
+                    document.getElementById('status-timer').className = "px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-[10px] font-mono font-black text-red-500 uppercase tracking-tighter";
+                    return;
                 }
 
-                // 2. Initial Snapshot (Хүснэгтийг шууд дүүргэх)
-                const tickerRes = await fetch('https://corsproxy.io/?https://api.kucoin.com/api/v1/market/allTickers');
-                const tickerData = await tickerRes.json();
-                if (tickerData.data && tickerData.data.ticker) {
-                    tickerData.data.ticker.forEach(t => {
-                        if (!t.symbol.endsWith('-USDT')) return;
-                        const meta = symbolMetadata[t.symbol] || { isST: false, minFunds: 0, baseMinSize: 0 };
-                        const ask = parseFloat(t.sell || 0);
-                        allDataMap.set(t.symbol, {
+                if (!res.ok) throw new Error(`Gateway Error: ${res.status}`);
+                
+                const json = await res.json();
+                
+                if (json && (json.code === "200000" || json.code === 200000) && json.data && json.data.ticker) {
+                    currentCooldown = 10000; 
+                    const tickers = json.data.ticker;
+                    allData = tickers
+                        .filter(t => t.symbol.endsWith('-USDT'))
+                        .map(t => ({
                             symbol: t.symbol,
-                            bid: parseFloat(t.buy || 0),
-                            ask: ask,
-                            spread: ask > 0 ? ((ask - parseFloat(t.buy || 0)) / ask * 100) : 0,
-                            min_usdt: meta.baseMinSize * ask,
-                            change_24h: parseFloat(t.changeRate || 0) * 100,
-                            volume: parseFloat(t.volValue || 0),
-                            min_order_cost: meta.minFunds,
-                            is_st: meta.is_st || false
-                        });
-                        if (!sessionInitialPrices[t.symbol]) sessionInitialPrices[t.symbol] = ask;
-                    });
-                    allData = Array.from(allDataMap.values());
-                    renderUI();
-                }
-                
-                // 3. WSS Token татах
-                const tokenRes = await fetch('https://corsproxy.io/?https://api.kucoin.com/api/v1/bullet-public', { method: 'POST' });
-                const tokenData = await tokenRes.json();
-                
-                if (tokenData.data) {
-                    const token = tokenData.data.token;
-                    const endpoint = tokenData.data.instanceServers[0].endpoint;
-                    const finalWsUrl = `${endpoint}?token=${token}&acceptUserMessage=false`;
+                            last: parseFloat(t.last) || 0,
+                            bid: parseFloat(t.buy) || 0,
+                            ask: parseFloat(t.sell) || 0,
+                            spread: (parseFloat(t.sell) > 0) ? ((parseFloat(t.sell) - parseFloat(t.buy)) / parseFloat(t.sell) * 100) : 0,
+                            change24h: (parseFloat(t.changeRate) || 0) * 100,
+                            volume: parseFloat(t.volValue) || 0
+                        }));
                     
-                    startWssStream(finalWsUrl);
+                    if (allData.length > 0 && isRunning) {
+                        if (isFirstFetch) {
+                            addLog(`Холболт амжилттай: Нийт ${allData.length} зоос олдлоо.`);
+                            isFirstFetch = false;
+                        }
+                        startTimer();
+                        renderUI();
+                    }
                 } else {
-                    throw new Error("WSS Payload Empty");
+                    addLog("⚠️ API Error: " + (json ? json.msg || json.code : "Empty response"));
                 }
             } catch (err) {
-                console.error("Direct Connection Error:", err);
-                document.getElementById('last-sync').innerText = "Connection Fault. Retrying...";
-                setTimeout(fetchVercelConfig, 5000);
+                addLog(`⚠️ Алдаа: ${err.message}`);
+                console.error("Fetch failure:", err);
             }
-        }
-
-        function startWssStream(wsUrl) {
-            wsSocket = new WebSocket(wsUrl);
-            let needsRender = false;
-
-            wsSocket.onopen = () => {
-                document.getElementById('last-sync').innerText = "WSS Tunnel Active. Subscribing...";
-                
-                const subMsg = {
-                    id: Date.now(),
-                    type: 'subscribe',
-                    topic: '/market/ticker:all',
-                    privateChannel: false,
-                    response: true
-                };
-                wsSocket.send(JSON.stringify(subMsg));
-
-                // Rendering Loop (Throttle) - 1 секунд тутамд л хүснэгтийг шинэчилнэ
-                setInterval(() => {
-                    if (needsRender) {
-                        allData = Array.from(allDataMap.values());
-                        renderUI();
-                        needsRender = false;
-                    }
-                }, 1000);
-
-                setInterval(() => {
-                    if (wsSocket.readyState === WebSocket.OPEN) {
-                        wsSocket.send(JSON.stringify({ id: Date.now(), type: 'ping' }));
-                    }
-                }, 18000);
-            };
-
-            wsSocket.onmessage = (event) => {
-                const msg = JSON.parse(event.data);
-                
-                if (msg.type === 'message' && msg.topic === '/market/ticker:all' && msg.data) {
-                    const t = msg.data;
-                    const symbol = msg.subject; 
-                    
-                    if (!symbol || !symbol.endsWith('-USDT')) return;
-                    
-                    const existing = allDataMap.get(symbol);
-                    if (!existing) return; // Snapshot-д байхгүй бол алгасах
-
-                    const bid = parseFloat(t.bestBid || 0);
-                    const ask = parseFloat(t.bestAsk || 0);
-                    const spread = ask > 0 ? ((ask - bid) / ask * 100) : 0;
-
-                    // ✅ ЗАСВАР: Хуучин датаг (Volume, 24h%, Meta, is_st) хадгалж, зөвхөн үнийг шинэчилнэ
-                    existing.bid = bid;
-                    existing.ask = ask;
-                    existing.spread = spread;
-                    existing.min_usdt = (symbolMetadata[symbol]?.baseMinSize || 0) * ask;
-                    
-                    // Хэрэв мета дата шинэчлэгдсэн бол is_st-г дахин тодорхойлно
-                    const meta = symbolMetadata[symbol];
-                    if (meta) existing.is_st = meta.is_st || false;
-                    
-                    allDataMap.set(symbol, existing);
-
-                    needsRender = true;
-                    document.getElementById('last-sync').innerText = "WSS Live Stream Active";
-                }
-            };
-
-            wsSocket.onclose = () => {
-                document.getElementById('last-sync').innerText = "WSS Disconnected. Re-routing...";
-                setTimeout(fetchVercelConfig, 4000);
-            };
-
-            wsSocket.onerror = (err) => {
-                console.error("WSS Fault:", err);
-            };
         }
 
         function renderUI() {
-            allData.forEach(d => {
-                const initialPrice = sessionInitialPrices[d.symbol] || d.ask;
-                d.client_real_change = initialPrice > 0 ? ((d.ask - initialPrice) / initialPrice * 100) : 0;
-            });
-
             const tbody = document.getElementById('market-body');
             if (!tbody) return;
+            
             const search = document.getElementById('symbol-search').value.toUpperCase();
             
-            let searchedData = allData.filter(d => d.symbol.includes(search));
+            if (allData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="p-20 text-center text-gray-500 font-bold uppercase text-[10px]">Систем ачааллаж байна...</td></tr>';
+                return;
+            }
 
-            let visibleCoins = searchedData.filter(d => {
-                if (hideSettings.blacklist && d.is_st) return false; // Энэ нь ST-г нууж байгаа хэрэг
-                if (hideSettings.highSpr && d.spread > 1.0) return false;
-                if (hideSettings.lowVol && d.volume < 30000) return false;
-                if (hideSettings.limitHigh && d.min_order_cost > 0.1) return false;
-                if (hideSettings.minHigh && d.min_usdt > 0.11) return false;
-                return true;
-            });
+            const filtered = allData.filter(d => d.symbol.includes(search));
             
-            let totals = { real: 0, count: visibleCoins.length, ups: 0, dns: 0 };
-            visibleCoins.forEach(d => { 
-                totals.real += d.client_real_change || 0;
-                if(d.client_real_change > 0.5) totals.ups++;
-                if(d.client_real_change < -0.5) totals.dns++;
-            });
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="p-20 text-center text-gray-500 font-bold uppercase text-[10px]">Илэрц олдсонгүй</td></tr>';
+                return;
+            }
 
-            visibleCoins.sort((a, b) => {
-                const valA = a[currentSort.col] ?? (currentSort.desc ? -Infinity : Infinity);
-                const valB = b[currentSort.col] ?? (currentSort.desc ? -Infinity : Infinity);
+            const sorted = filtered.sort((a, b) => {
+                const valA = a[currentSort.col];
+                const valB = b[currentSort.col];
+                if (typeof valA === 'string') {
+                    return currentSort.desc ? valB.localeCompare(valA) : valA.localeCompare(valB);
+                }
                 return currentSort.desc ? (valB - valA) : (valA - valB);
             });
 
-            const groups = {
-                ST: { title: "🚫 BLACKLISTED / ST RISK", list: [], color: "bg-[#7f1d1d]" },
-                HIGH_SPR: { title: "⚠️ HIGH SPREAD (>1.0%)", list: [], color: "bg-[#92400e]" },
-                LOW_VOL: { title: "📉 VOLUME LOW (<30K)", list: [], color: "bg-[#4c1d95]" },
-                LIMIT_HIGH: { title: "🚧 LIMIT HIGH (>0.1)", list: [], color: "bg-[#4b5563]" },
-                MIN_HIGH: { title: "⚖️ MINIMUM HIGH (>0.11)", list: [], color: "bg-[#334155]" },
-                MARKET: { title: "📊 MARKET LIST", list: [], color: "bg-[#334155]" }
-            };
+            // Хурдны оновчлол: 1000+ мөрийг хамгийн хурдан шинэчлэх арга бол String building юм.
+            // Энэ нь хөтчийн санах ойг бага зарцуулж, гацалтгүй ажиллана.
+            // Энэ мөрийг өөрчилж эхний 100-г л харуулдаг болго
+            const htmlRows = sorted.slice(0, 100).map(d => `
+                <tr class="hover:bg-white/[0.02] transition-colors group">
+                    <td class="p-4 text-white font-bold tracking-tight border-l-2 border-transparent group-hover:border-brand-gold group-hover:text-brand-gold transition-all">${d.symbol}</td>
+                    <td class="p-4 text-gray-400 font-medium">${formatPrice(d.last)}</td>
+                    <td class="p-4 text-red-500/80 font-bold">${formatPrice(d.bid)}</td>
+                    <td class="p-4 text-green-500/80 font-bold">${formatPrice(d.ask)}</td>
+                    <td class="p-4 text-brand-gold font-bold">${d.spread.toFixed(2)}%</td>
+                    <td class="p-4 font-black ${d.change24h >= 0 ? 'text-green-500' : 'text-red-500'}">${d.change24h >= 0 ? '+' : ''}${d.change24h.toFixed(2)}%</td>
+                    <td class="p-4 text-gray-500 font-medium">${formatVol(d.volume)}</td>
+                </tr>
+            `).join('');
 
-            visibleCoins.forEach(d => {
-                if (d.is_st) groups.ST.list.push(d);
-                else if (d.spread > 1.0) groups.HIGH_SPR.list.push(d);
-                else if (d.volume < 30000) groups.LOW_VOL.list.push(d);
-                else if (d.min_order_cost > 0.1) groups.LIMIT_HIGH.list.push(d);
-                else if (d.min_usdt > 0.11) groups.MIN_HIGH.list.push(d);
-                else groups.MARKET.list.push(d);
-            });
-
-            tbody.innerHTML = '';
-            let idx = 1;
-
-            Object.values(groups).forEach(g => {
-                if (g.list.length === 0) return;
-
-                const hRow = document.createElement('tr');
-                hRow.innerHTML = `<td colspan="11" class="group-header p-2 px-4 ${g.color} text-white font-black">${g.title} (${g.list.length})</td>`;
-                tbody.appendChild(hRow);
-
-                g.list.forEach(d => {
-                    const rRow = document.createElement('tr');
-                    rRow.className = "hover:bg-[#1e293b] transition duration-150";
-                    
-                    const realColor = (d.client_real_change || 0) >= 0 ? 'text-[#fbbf24]' : 'text-[#ef4444]';
-                    const chColor = (d.change_24h || 0) >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]';
-                    const minUsdtColor = (d.min_usdt || 0) <= 0.11 ? 'text-[#10b981]' : 'text-white'; 
-                    const limitColor = (d.min_order_cost || 0) <= 0.1 ? 'text-[#22c55e]' : 'text-gray-400';
-                    const symName = d.is_st ? `${d.symbol} [ST]` : d.symbol;
-                    
-                    rRow.innerHTML = `
-                        <td class="p-3 text-center text-gray-600 text-[10px] border-b border-[#1e293b]">${idx++}</td>
-                        <td class="p-3 font-bold ${d.is_st ? 'text-[#f87171]' : 'text-white'} border-b border-[#1e293b]">${symName}</td>
-                        <td class="p-3 text-gray-400 border-b border-[#1e293b]">${(d.bid || 0).toFixed(8)}</td>
-                        <td class="p-3 text-white border-b border-[#1e293b]">${(d.ask || 0).toFixed(8)}</td>
-                        <td class="p-3 ${(d.spread || 0) > 1.0 ? 'text-[#fbbf24]' : 'text-gray-400'} border-b border-[#1e293b]">${(d.spread || 0).toFixed(2)}%</td>
-                        <td class="p-3 ${minUsdtColor} border-b border-[#1e293b]">${(d.min_usdt || 0).toFixed(4)}</td> 
-                        <td class="p-3 font-bold ${realColor} border-b border-[#1e293b]">${(d.client_real_change || 0) > 0 ? '+' : ''}${(d.client_real_change || 0).toFixed(2)}%</td>
-                        <td class="p-3 text-gray-700 border-b border-[#1e293b] text-[10px]">---</td> <!-- 1H% Placeholder -->
-                        <td class="p-3 font-bold ${chColor} border-b border-[#1e293b]">${(d.change_24h || 0) > 0 ? '+' : ''}${(d.change_24h || 0).toFixed(2)}%</td>
-                        <td class="p-3 text-gray-500 border-b border-[#1e293b]">${formatVol(d.volume || 0)}</td>
-                        <td class="p-3 ${limitColor} border-b border-[#1e293b]">${(d.min_order_cost || 0).toFixed(4)}</td>
-                    `;
-                    tbody.appendChild(rRow);
-                });
-            });
-
-            if (allData.length > 0) {
-                const tRow = document.createElement('tr');
-                tRow.className = "bg-[#0f172a] font-black sticky bottom-0 z-20 border-t-2 border-brand-gold/50 shadow-[0_-4px_10px_rgba(0,0,0,0.5)]";
-                const totalRealColor = totals.real >= 0 ? 'text-[#fbbf24]' : 'text-[#ef4444]';
-
-                tRow.innerHTML = `
-                    <td class="p-3 text-center text-brand-gold text-[10px]">Σ</td>
-                    <td class="p-3 text-white uppercase tracking-widest text-[10px]">TOTALS (${totals.count})</td>
-                    <td colspan="4"></td> <!-- Bid, Ask, Spread, Min $ -->
-                    <td class="p-3 font-black text-lg ${totalRealColor}">${totals.real >= 0 ? '+' : ''}${totals.real.toFixed(2)}%</td>
-                    <td class="p-3 text-gray-700 text-[10px]">---</td> <!-- 1H% Column Alignment -->
-                    <td colspan="3"></td> <!-- 24H%, Volume, Limit $ -->
-                `;
-                tbody.appendChild(tRow);
-            }
-
-            updateSentiment(totals);
+            tbody.innerHTML = htmlRows;
         }
 
-        function updateSentiment(t) {
-            const badge = document.getElementById('sentiment-text');
-            if (!badge) return;
-            let text, color, icon;
-            
-            if (t.ups > t.dns * 3 && t.ups > 5) { text = "STRONG BULL ↑↑"; color = "text-[#22c55e]"; icon = "🚀"; }
-            else if (t.ups > t.dns * 1.5) { text = "BULL ↑"; color = "text-[#4ade80]"; icon = "📈"; }
-            else if (t.dns > t.ups * 3 && t.dns > 5) { text = "STRONG BEAR ↓↓"; color = "text-[#ef4444]"; icon = "🩸"; }
-            else if (t.dns > t.ups * 1.5) { text = "BEAR ↓"; color = "text-[#f87171]"; icon = "📉"; }
-            else { text = "FLAT ↔"; color = "text-gray-400"; icon = "⚖️"; }
+        function startTimer() {
+            clearInterval(countdownInterval);
+            let rem = 5.0;
+            const timerEl = document.getElementById('status-timer');
+            countdownInterval = setInterval(() => {
+                rem -= 0.1;
+                if (rem <= 0) clearInterval(countdownInterval);
+                else timerEl.textContent = `LIVE: ${rem.toFixed(1)}S`;
+            }, 100);
+        }
 
-            badge.className = `ml-2 transition-all duration-500 ${color}`;
-            badge.innerText = `${icon} ${text} | Up: ${t.ups} | Down: ${t.dns}`;
+        function updateSort(col) {
+            if (currentSort.col === col) currentSort.desc = !currentSort.desc;
+            else { currentSort.col = col; currentSort.desc = false; }
+            document.getElementById('market-body').innerHTML = ''; // Sort хийх үед шинээр зурна
+            renderUI();
         }
 
         function formatVol(vol) {
-            if (vol >= 1000000) return (vol / 1000000).toFixed(1) + 'M';
+            if (vol >= 1000000) return (vol / 1000000).toFixed(2) + 'M';
             if (vol >= 1000) return (vol / 1000).toFixed(1) + 'K';
             return vol.toFixed(0);
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const lang = localStorage.getItem('lang') || 'mn';
-            if (typeof window.translations === 'undefined') window.translations = { mn: {}, en: {} };
-            Object.keys(pageTranslations).forEach(l => Object.assign(window.translations[l], pageTranslations[l]));
-            
-            changeLang(lang);
+        function formatPrice(p) {
+            return p === 0 ? "0.00" : (p < 1 ? p.toFixed(8) : p.toFixed(4));
+        }
 
-            Object.keys(hideSettings).forEach(type => {
-                const id = `btn-${type}`;
-                if(document.getElementById(id)) updateButtonState(id, hideSettings[type]);
-            }); 
-            
-            const searchInput = document.getElementById('symbol-search');
-            if (searchInput) searchInput.addEventListener('input', renderUI);
-            
-            // Gateway ачаалах
-            fetchVercelConfig();
-        });
+        initScanner();
     </script>
-    <script src="/static/lock.js"></script>
 </body>
 </html>

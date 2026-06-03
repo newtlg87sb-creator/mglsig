@@ -7,6 +7,42 @@
     <title>XAU vs PAXG - MGL Arbitrage Terminal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        const pageTranslations = {
+            mn: {
+                "gold-spot-label": "GOLD / USD (Спот)",
+                "paxg-crypto-label": "PAXG / USDT (Крипто)",
+                "arb-terminal-title": "MGL Арбитраж Терминал",
+                "status-syncing": "Олон-урсгалт хөдөлгүүрийг синхрончилж байна...",
+                "interval-1s": "1с Feed", "interval-1m": "1м Лаа", "interval-5m": "5м Лаа",
+                "interval-15m": "15м Лаа", "interval-30m": "30м Лаа", "interval-1h": "1ц Лаа",
+                "tz-local": "LOCAL (GMT+8)", "tz-utc": "UTC TIME", "tz-ny": "NEW YORK", "tz-london": "LONDON",
+                "core-stream-msg": "Bypass Tunnel: Port :9443 Core Stream Connected",
+                "sync-feed-msg": "Бодит цагийн нэгдсэн өгөгдлийг синк хийж байна..."
+            },
+            en: {
+                "gold-spot-label": "GOLD / USD (Spot)",
+                "paxg-crypto-label": "PAXG / USDT (Crypto)",
+                "arb-terminal-title": "MGL Arbitrage Terminal",
+                "status-syncing": "Syncing Multi-Stream Engine...",
+                "interval-1s": "1s Feed", "interval-1m": "1m Candle", "interval-5m": "5m Candle",
+                "interval-15m": "15m Candle", "interval-30m": "30m Candle", "interval-1h": "1h Candle",
+                "tz-local": "LOCAL (GMT+8)", "tz-utc": "UTC TIME", "tz-ny": "NEW YORK", "tz-london": "LONDON",
+                "core-stream-msg": "Bypass Tunnel: Port :9443 Core Stream Connected",
+                "sync-feed-msg": "Syncing real-time aggregate feed..."
+            }
+        };
+
+        function changeLang(lang) {
+            localStorage.setItem('lang', lang);
+            const t = pageTranslations[lang] || pageTranslations.en;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.innerHTML = t[key];
+            });
+        }
+        window.changeLang = changeLang;
+    </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
         body { background-color: #030508; color: #f1f5f9; font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -15,6 +51,7 @@
     </style>
 </head>
 <body class="bg-[#030508] text-slate-100 flex flex-col min-h-screen justify-center items-center p-4 antialiased">
+    <!-- AI_CONTEXT: Always ensure 100% translation coverage for mn/en when modifying this file. -->
 
     <div class="w-full max-w-[1400px] bg-[#090d16] border border-[#1e293b]/60 rounded-2xl p-6 shadow-[0_25px_70px_-15px_rgba(0,0,0,0.9)] space-y-6">
         
@@ -25,43 +62,43 @@
                     <i class="fas fa-cubes text-emerald-400 text-sm"></i>
                 </div>
                 <div>
-                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">GOLD / USD (Spot)</div>
+                    <div data-i18n="gold-spot-label" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">GOLD / USD (Spot)</div>
                     <div id="price-xau" class="text-2xl font-extrabold cell-mono text-white tracking-tight">0.00</div>
                 </div>
             </div>
 
             <div class="text-center flex-1 flex flex-col items-center justify-center">
                 <div class="flex flex-wrap items-center justify-center gap-3">
-                    <span class="flex items-center gap-2 bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent text-xl md:text-2xl font-black uppercase tracking-tight">
+                    <span data-i18n="arb-terminal-title" class="flex items-center gap-2 bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent text-xl md:text-2xl font-black uppercase tracking-tight">
                         <i class="fas fa-bolt text-amber-400 animate-pulse"></i> MGL Arbitrage Terminal
                     </span>
                     
                     <div class="flex items-center bg-[#04060a] border border-[#1e293b]/50 p-0.5 rounded-lg ml-2">
                         <select id="interval" class="bg-transparent text-amber-400 font-bold text-xs rounded px-3 py-1.5 outline-none cursor-pointer hover:bg-[#090d16] transition-colors appearance-none">
-                            <option value="1s" class="bg-[#090d16] text-white">1s Feed</option>
-                            <option value="1m" selected class="bg-[#090d16] text-white">1m Candl</option>
-                            <option value="5m" class="bg-[#090d16] text-white">5m Candl</option>
-                            <option value="15m" class="bg-[#090d16] text-white">15m Candl</option>
-                            <option value="30m" class="bg-[#090d16] text-white">30m Candl</option>
-                            <option value="1h" class="bg-[#090d16] text-white">1h Candl</option>
+                            <option data-i18n="interval-1s" value="1s" class="bg-[#090d16] text-white">1s Feed</option>
+                            <option data-i18n="interval-1m" value="1m" selected class="bg-[#090d16] text-white">1m Candl</option>
+                            <option data-i18n="interval-5m" value="5m" class="bg-[#090d16] text-white">5m Candl</option>
+                            <option data-i18n="interval-15m" value="15m" class="bg-[#090d16] text-white">15m Candl</option>
+                            <option data-i18n="interval-30m" value="30m" class="bg-[#090d16] text-white">30m Candl</option>
+                            <option data-i18n="interval-1h" value="1h" class="bg-[#090d16] text-white">1h Candl</option>
                         </select>
                         <div class="h-4 w-[1px] bg-[#1e293b] my-auto"></div>
                         <select id="timezone" class="bg-transparent text-blue-400 font-bold text-[10px] rounded px-3 py-1.5 outline-none cursor-pointer hover:bg-[#090d16] transition-colors appearance-none">
-                            <option value="local" selected class="bg-[#090d16] text-white">LOCAL (GMT+8)</option>
-                            <option value="UTC" class="bg-[#090d16] text-white">UTC TIME</option>
-                            <option value="America/New_York" class="bg-[#090d16] text-white">NEW YORK</option>
-                            <option value="Europe/London" class="bg-[#090d16] text-white">LONDON</option>
+                            <option data-i18n="tz-local" value="local" selected class="bg-[#090d16] text-white">LOCAL (GMT+8)</option>
+                            <option data-i18n="tz-utc" value="UTC" class="bg-[#090d16] text-white">UTC TIME</option>
+                            <option data-i18n="tz-ny" value="America/New_York" class="bg-[#090d16] text-white">NEW YORK</option>
+                            <option data-i18n="tz-london" value="Europe/London" class="bg-[#090d16] text-white">LONDON</option>
                         </select>
                     </div>
                 </div>
-                <p id="status" class="text-[11px] text-emerald-400 font-mono font-medium mt-2 flex items-center gap-1.5 bg-emerald-500/5 px-3 py-1 rounded-full border border-emerald-500/10">
+                <p id="status" data-i18n="status-syncing" class="text-[11px] text-emerald-400 font-mono font-medium mt-2 flex items-center gap-1.5 bg-emerald-500/5 px-3 py-1 rounded-full border border-emerald-500/10">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> Syncing Multi-Stream Engine...
                 </p>
             </div>
 
             <div class="flex items-center gap-4 bg-[#04060a] border border-[#1e293b]/50 px-5 py-3 rounded-xl shadow-inner min-w-[220px] justify-end text-right">
                 <div>
-                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">PAXG / USDT (Crypto)</div>
+                    <div data-i18n="paxg-crypto-label" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">PAXG / USDT (Crypto)</div>
                     <div id="price-paxg" class="text-2xl font-extrabold cell-mono text-white tracking-tight">0.00</div>
                 </div>
                 <div class="p-2 bg-amber-500/10 rounded-lg border border-amber-500/20 order-first lg:order-last">
@@ -75,8 +112,8 @@
         </div>
 
         <div class="flex flex-col sm:flex-row justify-between items-center text-[11px] text-slate-500 font-mono pt-1 gap-2">
-            <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500/40"></span> Bypass Tunnel: Port :9443 Core Stream Connected</div>
-            <div id="last-update" class="bg-[#04060a] px-3 py-1 rounded-md border border-[#1e293b]/30 text-slate-400">Syncing real-time aggregate feed...</div>
+            <div data-i18n="core-stream-msg" class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500/40"></span> Bypass Tunnel: Port :9443 Core Stream Connected</div>
+            <div id="last-update" data-i18n="sync-feed-msg" class="bg-[#04060a] px-3 py-1 rounded-md border border-[#1e293b]/30 text-slate-400">Syncing real-time aggregate feed...</div>
         </div>
     </div>
 
@@ -182,6 +219,9 @@
                 if (targetArray.length > 70) targetArray.shift();
             }
         }
+
+        // Init language
+        changeLang(localStorage.getItem('lang') || 'mn');
 
         intervalEl.addEventListener('change', () => loadAllHistory());
         timezoneEl.addEventListener('change', () => drawDualChart());

@@ -36,9 +36,40 @@
     <link rel="stylesheet" href="/static/main_style.css">
 </head>
 <body class="bg-brand-dark text-white font-inter flex flex-col min-h-screen">
+    <script>
+        const pageTranslations = {
+            mn: {
+                "perf-title": 'Топ 100 Крипто <span class="text-brand-gold italic">Гүйцэтгэл</span>',
+                "perf-desc": "Сонгосон хугацаан дахь гүйцэтгэл (Алткойн улирлын индекс)",
+                "perf-loading": "Өгөгдөл татаж байна... (Түр хүлээнэ үү)",
+                "perf-gainers": '<i class="fas fa-arrow-trend-up mr-2"></i> Шилдэг 25 Өсөлттэй',
+                "perf-losers": '<i class="fas fa-arrow-trend-down mr-2"></i> Шилдэг 25 Уналттай',
+                "lbl-market": "Зах зээл:",
+                "lbl-range": "Хүрээ:"
+            },
+            en: {
+                "perf-title": 'Top 100 Crypto <span class="text-brand-gold italic">Performance</span>',
+                "perf-desc": "Performance over the selected period (Altcoin Season Index)",
+                "perf-loading": "Fetching data... (This may take a moment)",
+                "perf-gainers": '<i class="fas fa-arrow-trend-up mr-2"></i> Top 25 Gainers',
+                "perf-losers": '<i class="fas fa-arrow-trend-down mr-2"></i> Top 25 Losers',
+                "lbl-market": "Market:",
+                "lbl-range": "Range:"
+            }
+        };
+        function changeLang(lang) {
+            localStorage.setItem('lang', lang);
+            if (!window.translations || !window.translations[lang]) return;
+            const t = window.translations[lang];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.innerHTML = t[key];
+            });
+        }
+        window.changeLang = changeLang;
+    </script>
 
     <!-- Global Header -->
-    <script src="/static/js/main_translate.js"></script>
     <script src="/static/js/header.js"></script>
 
     <main class="flex-grow pt-32 pb-12 px-4 md:px-6">
@@ -48,7 +79,7 @@
             <div class="controls-container flex flex-wrap items-center gap-4 p-4 bg-brand-dark-blue border border-brand-border rounded-xl shadow-lg">
                 <!-- Market -->
                 <div class="control-item flex items-center space-x-2">
-                    <label class="text-gray-500 font-bold uppercase text-[10px]">Market:</label>
+                    <label for="market" data-i18n="lbl-market" class="text-gray-500 font-bold uppercase text-[10px]">Market:</label>
                     <select id="market" class="bg-brand-dark border border-brand-border text-white rounded px-3 py-1.5 text-xs shadow-inner">
                         <option value="spot">Spot</option>
                         <option value="futures">Futures</option>
@@ -57,7 +88,7 @@
 
                 <!-- Range (Months) -->
                 <div class="control-item flex items-center space-x-2">
-                    <label data-i18n="perf-period" class="text-gray-500 font-bold uppercase text-[10px]">Range:</label>
+                    <label for="range-select" data-i18n="lbl-range" class="text-gray-500 font-bold uppercase text-[10px]">Range:</label>
                     <select id="range-select" class="bg-brand-dark border border-brand-border text-white rounded px-3 py-1.5 text-xs shadow-inner">
                         <option value="1">1 Day</option>
                         <option value="3">3 Days</option>
@@ -117,6 +148,10 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
+        if (typeof window.translations === 'undefined') window.translations = { mn: {}, en: {} };
+        Object.keys(pageTranslations).forEach(l => Object.assign(window.translations[l], pageTranslations[l]));
+        changeLang(localStorage.getItem('lang') || 'mn');
+
         const marketEl = () => document.getElementById('market');
         const rangeEl = () => document.getElementById('range-select');
 
@@ -162,7 +197,7 @@
             // Сонгосон хугацааг өдөр лүү хөрвүүлэх (Months to Days)
             let days = 30;
             if (rangeVal === 'all') days = 365;
-            else days = parseInt(rangeVal) * 30;
+            else days = parseInt(rangeVal); // Options are already days
 
             try {
                 const allSymbols = await fetchAllSymbols(marketType);

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Tunnel - MGL Signal</title>
+    <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { 'dark': '#05070a', 'dark-blue': '#0f1217', 'gold': '#c5a059', 'border': '#1f242d' } },
+                    fontFamily: { 'inter': ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/main_style.css">
+</head>
+<body class="bg-brand-dark text-white font-inter flex flex-col min-h-screen">
+    <script src="/static/js/header.js"></script>
+
+    <main class="flex-grow pt-32 pb-12 px-4 md:px-6">
+        <div class="max-w-7xl mx-auto flex flex-col gap-6">
+            <div class="mb-4">
+                <a href="/main_live_tools.html" class="inline-flex items-center text-gray-500 hover:text-brand-gold transition text-[10px] font-black uppercase tracking-widest">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to Live Tools
+                </a>
+            </div>
+
+            <script src="/static/js/control.js"></script>
+
+            <div class="data-grid sm:grid-cols-2 lg:grid-cols-4">
+                <div class="data-card"><div class="label">Spot Price</div><div id="spot-price-display" class="value price">--</div></div>
+                <div class="data-card"><div class="label">Future Price</div><div id="futures-price-display" class="value price">--</div></div>
+                <div class="data-card"><div class="label">Upper Tunnel</div><div id="val-upper" class="value down">--</div></div>
+                <div class="data-card"><div class="label">Lower Tunnel</div><div id="val-lower" class="value up">--</div></div>
+            </div>
+
+            <!-- Engine Scripts -->
+            <script src="/static/js/data.js"></script>
+            <script src="/static/js/candle.js"></script>
+        </div>
+    </main>
+
+    <script src="/static/js/footer.js"></script>
+    <script src="/static/lock.js"></script>
+
+    <script>
+    /**
+     * TUNNEL PLUGIN - Зөвхөн стратегийн логик
+     */
+    window.onChartDrawOverlay = function(ctx, engine) {
+        const { priceToY, candleWidth, padding, visibleData, visibleStartIndex, allData } = engine;
+        
+        // data.js-ээс урьдчилан тооцоолсон RSI-г шууд авах (Performance Optimization)
+        const rsiValues = window.mglIndicators?.rsi;
+        if (!rsiValues || rsiValues.length === 0) return;
+
+        // 1. Түүхэн хил хязгаарыг тооцоолох (Visible slice-д зориулж)
+        let current_long = null, current_short = null;
+        const upperHistory = [], lowerHistory = [], avgHistory = [];
+
+        for (let i = 2; i < allData.length; i++) {
+            if (rsiValues[i-1] !== null && rsiValues[i] !== null) {
+                if (rsiValues[i-1] < 30 && rsiValues[i] >= 30) current_long = Math.min(allData[i][3], allData[i-1][3], allData[i-2][3]);
+                if (rsiValues[i-1] > 70 && rsiValues[i] <= 70) current_short = Math.max(allData[i][2], allData[i-1][2], allData[i-2][2]);
+            }
+            upperHistory.push(current_short);
+            lowerHistory.push(current_long);
+            avgHistory.push(current_long && current_short ? (current_long + current_short) / 2 : null);
+        }
+
+        // 2. Зөвхөн харагдаж буй хэсгийг зурах
+        const drawTunnelLine = (historyArray, color, isDashed = false) => {
+            ctx.strokeStyle = color; ctx.lineWidth = 2;
+            if (isDashed) ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            let first = true;
+            for (let i = 0; i < visibleData.length; i++) {
+                const val = historyArray[visibleStartIndex + i];
+                if (!val) continue;
+                const x = padding + i * candleWidth + candleWidth / 2;
+                const y = priceToY(val);
+                if (first) { ctx.moveTo(x, y); first = false; } else ctx.lineTo(x, y);
+            }
+            ctx.stroke(); ctx.setLineDash([]);
+        };
+
+        drawTunnelLine(upperHistory, "#ef4444");
+        drawTunnelLine(lowerHistory, "#10b981");
+        drawTunnelLine(avgHistory, "rgba(255,255,255,0.2)", true);
+
+        // UI мэдээлэл шинэчлэх
+        if (document.getElementById('val-upper')) document.getElementById('val-upper').textContent = current_short?.toLocaleString() || '--';
+        if (document.getElementById('val-lower')) document.getElementById('val-lower').textContent = current_long?.toLocaleString() || '--';
+    };
+    </script>
+</body>
+</html>

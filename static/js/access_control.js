@@ -7,7 +7,7 @@
     const currentPage = window.location.pathname;
 
     // Заавал нэвтрэх шаардлагатай хуудсуудын жагсаалт
-    const authRequiredPages = ['mainlive_kucointrade.html', 'main_alpha_signals.html'];
+    const authRequiredPages = ['main_alpha_signals.html'];
     const needsAuth = authRequiredPages.some(p => currentPage.includes(p));
 
     if (needsAuth && (!userStr || userStr === "undefined")) {

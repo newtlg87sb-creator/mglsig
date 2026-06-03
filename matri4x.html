@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cycle Matrix v4 - MGL Signal</title>
+    <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { 'dark': '#05070a', 'dark-blue': '#0f1217', 'gold': '#c5a059', 'border': '#1f242d' } },
+                    fontFamily: { 'inter': ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/main_style.css">
+</head>
+<body class="bg-brand-dark text-white font-inter flex flex-col min-h-screen">
+    <script src="/static/js/header.js"></script>
+
+    <main class="flex-grow pt-32 pb-12 px-4 md:px-6">
+        <div class="max-w-7xl mx-auto flex flex-col gap-6">
+            <div class="mb-4">
+                <a href="/main_live_tools.html" class="inline-flex items-center text-gray-500 hover:text-brand-gold transition text-[10px] font-black uppercase tracking-widest">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to Live Tools
+                </a>
+            </div>
+
+            <!-- Зөвхөн хэрэгцээт удирдлагуудыг үлдээж, бусдыг нь нуув -->
+            <script src="/static/js/control.js" data-hide="ema, leverage, balance, side"></script>
+
+            <div class="data-grid sm:grid-cols-2 lg:grid-cols-4">
+                <div class="data-card"><div class="label">Market Zone</div><div id="zone-status" class="value">--</div></div>
+                <div class="data-card"><div class="label">Intensity</div><div id="zone-text" class="value price">--%</div></div>
+                <div class="data-card"><div class="label">Cycle High</div><div id="val-high" class="value down text-xs">--</div></div>
+                <div class="data-card"><div class="label">Cycle Low</div><div id="val-low" class="value up text-xs">--</div></div>
+            </div>
+
+            <script src="/static/js/data.js"></script>
+            <script src="/static/js/candle.js"></script>
+        </div>
+    </main>
+
+    <script src="/static/js/footer.js"></script>
+    <script src="/static/lock.js"></script>
+
+    <script>
+    /**
+     * CYCLE MATRIX V4 PLUGIN
+     */
+    window.onChartDrawOverlay = function(ctx, engine) {
+        const { priceToY, candleWidth, padding, visibleData, visibleStartIndex, allData, chartWidth } = engine;
+        const rsiValues = window.mglIndicators?.rsi;
+        if (!rsiValues || rsiValues.length < 20) return;
+
+        // 1. Циклийн хязгаар олох (70-Down -> 30-Up)
+        let highAnchor = null, lowAnchor = null, cycleStartTime = null;
+        for (let i = rsiValues.length - 1; i >= 1; i--) {
+            if (rsiValues[i-1] < 30 && rsiValues[i] >= 30) {
+                for (let j = i - 1; j >= 1; j--) {
+                    if (rsiValues[j-1] > 70 && rsiValues[j] <= 70) {
+                        cycleStartTime = allData[j][0];
+                        const cycleSlice = allData.slice(j, i + 1);
+                        highAnchor = Math.max(...cycleSlice.map(k => k[2]));
+                        lowAnchor = Math.min(...cycleSlice.map(k => k[3]));
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+
+        if (!highAnchor || !lowAnchor) return;
+
+        // 2. Бүсүүдийг зурах (0-25-50-75-100)
+        const range = highAnchor - lowAnchor;
+        const levels = [0, 0.25, 0.50, 0.75, 1];
+        const colors = [
+            'rgba(16, 185, 129, 0.15)', // Strong Cheap (Тод ногоон)
+            'rgba(16, 185, 129, 0.06)', // Value
+            'rgba(239, 68, 68, 0.06)',  // Premium
+            'rgba(239, 68, 68, 0.15)'   // Overvalued (Тод улаан)
+        ];
+
+        levels.forEach((lvl, i) => {
+            if (i === levels.length - 1) return;
+            const y1 = priceToY(lowAnchor + range * lvl);
+            const y2 = priceToY(lowAnchor + range * levels[i+1]);
+            
+            ctx.fillStyle = colors[i];
+            ctx.fillRect(padding, Math.min(y1, y2), chartWidth, Math.abs(y1 - y2));
+            
+            // Тасархай зааглагч шугам
+            ctx.setLineDash([5, 5]);
+            ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+            ctx.beginPath(); ctx.moveTo(padding, y1); ctx.lineTo(padding + chartWidth, y1); ctx.stroke();
+        });
+        ctx.setLineDash([]);
+
+        // 3. UI Шинэчлэх
+        const currentPrice = allData[allData.length - 1][4];
+        const percentage = ((currentPrice - lowAnchor) / range) * 100;
+        
+        const statusEl = document.getElementById('zone-status');
+        const textEl = document.getElementById('zone-text');
+        
+        if (statusEl) statusEl.textContent = percentage < 50 ? 'VALUE ZONE' : 'PREMIUM ZONE';
+        if (textEl) {
+            textEl.textContent = percentage.toFixed(2) + '%';
+            textEl.className = `value font-black ${percentage < 50 ? 'text-green-400' : 'text-red-400'}`;
+        }
+        if (document.getElementById('val-high')) document.getElementById('val-high').textContent = highAnchor.toLocaleString();
+        if (document.getElementById('val-low')) document.getElementById('val-low').textContent = lowAnchor.toLocaleString();
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const lang = localStorage.getItem('lang') || 'en';
+
+        if (typeof window.translations !== 'undefined' && window.translations[lang]) {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (window.translations[lang][key]) el.innerHTML = window.translations[lang][key];
+            });
+        }
+    });
+    </script>
+</body>
+</html>

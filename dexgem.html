@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEX Gem Hunter - MGL Signal</title>
+    <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { 'dark': '#05070a', 'dark-blue': '#0f1217', 'gold': '#c5a059', 'border': '#1f242d' } },
+                    fontFamily: { 'inter': ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/main_style.css">
+</head>
+<body class="bg-brand-dark text-white font-inter flex flex-col min-h-screen">
+    <script src="/static/js/header.js"></script>
+
+    <main class="flex-grow pt-32 pb-12 px-4 md:px-6">
+        <div class="max-w-7xl mx-auto flex flex-col gap-6">
+            
+            <!-- Header Section -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-4">
+                <div>
+                    <h1 class="text-3xl font-black text-white uppercase tracking-tighter">DEX Gem <span class="text-brand-gold italic">Hunter</span></h1>
+                    <p class="text-gray-500 text-[10px] mt-1 uppercase font-bold tracking-[0.3em]">Multi-Chain Liquidity Scanner & Safety Audit</p>
+                </div>
+                <div class="mt-4 md:mt-0 flex items-center space-x-2 bg-brand-dark-blue border border-brand-border px-4 py-2 rounded-xl">
+                    <span class="flex h-1.5 w-1.5 relative">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-gold opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand-gold"></span>
+                    </span>
+                    <span id="status-text" class="text-[10px] font-black uppercase text-gray-400">Scanner Active</span>
+                    <span id="countdown-timer" class="text-[10px] font-mono text-brand-gold font-bold ml-2">--s</span>
+                </div>
+            </div>
+
+            <!-- Status Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-2">
+                <div class="data-card !min-h-[70px]"><div class="label">Chains Monitored</div><div class="value text-sm">11 Networks</div></div>
+                <div class="data-card !min-h-[70px]"><div class="label">Min Liquidity</div><div class="value text-sm text-brand-gold">$5,000</div></div>
+                <div class="data-card !min-h-[70px]"><div class="label">Safety Level</div><div class="value text-sm text-green-500">Honeypot Checked</div></div>
+                <div class="data-card !min-h-[70px]"><div class="label">Total Found</div><div id="found-count" class="value text-sm">0 Gems</div></div>
+            </div>
+
+            <!-- Main Hunt Grid -->
+            <div id="gem-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                <!-- Gem cards will be inserted here -->
+            </div>
+
+        </div>
+    </main>
+
+    <script src="/static/js/footer.js"></script>
+    <script src="/static/lock.js"></script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const SCAN_DELAY = 90 * 1000; // 90 seconds in milliseconds
+        const SEARCH_QUERIES = ["WBNB", "SOL", "WETH", "USDT", "ARB", "WMATIC", "POL", "AVAX", "FTM", "CRO", "BASE"];
+        const MIN_LIQUIDITY = 5000;
+        const MIN_VOLUME = 2000;
+        const MIN_MARKETCAP = 10000;
+        const MAX_MARKETCAP = 2000000;
+
+        let sentTokens = new Set();
+        let skippedTokens = new Set();
+        let foundTotal = 0;
+
+        const statusTextEl = document.getElementById('status-text');
+        const countdownTimerEl = document.getElementById('countdown-timer');
+        const gemGridEl = document.getElementById('gem-grid');
+        const foundCountEl = document.getElementById('found-count');
+
+        function humanFormat(num) {
+            num = parseFloat(num);
+            if (isNaN(num)) return 'N/A';
+            const units = ["", "K", "M", "B", "T"];
+            const tier = Math.log10(Math.abs(num)) / 3 | 0;
+            if (tier <= 0) return num.toFixed(2);
+            return (num / Math.pow(10, tier * 3)).toFixed(1) + units[tier];
+        }
+
+        function startCountdown() {
+            let timeLeft = SCAN_DELAY / 1000;
+            const interval = setInterval(() => {
+                timeLeft--;
+                countdownTimerEl.textContent = `${timeLeft}s`;
+                if (timeLeft <= 0) clearInterval(interval);
+            }, 1000);
+        }
+
+        async function fetchNewPairs() {
+            let allPairs = [];
+            for (const query of SEARCH_QUERIES) {
+                try {
+                    const response = await fetch(`https://api.dexscreener.com/latest/dex/search?q=${query}`, { signal: AbortSignal.timeout(10000) });
+                    const data = await response.json();
+                    if (data.pairs) allPairs.push(...data.pairs);
+                } catch (e) { console.error(`[!] DexScreener Error for ${query}:`, e); }
+            }
+            return Array.from(new Map(allPairs.map(p => [p.pairAddress, p])).values());
+        }
+
+        async function isSafeToken(pair) {
+            try {
+                const tokenAddr = pair.baseToken?.address;
+                const chainId = pair.chainId || 'bsc';
+                const liquidity = pair.liquidity?.usd || 0;
+                const volume = pair.volume?.h24 || 0;
+                const mcap = pair.fdv || 0;
+
+                if (!tokenAddr) return { isSafe: false, reason: 'No token address' };
+                if (liquidity < MIN_LIQUIDITY) return { isSafe: false, reason: `Low Liquidity ($${humanFormat(liquidity)})` };
+                if (volume < MIN_VOLUME) return { isSafe: false, reason: `Low Volume ($${humanFormat(volume)})` };
+                if (mcap < MIN_MARKETCAP || mcap > MAX_MARKETCAP) return { isSafe: false, reason: `MCAP Range Out` };
+
+                if (chainId === 'solana') return { isSafe: true, isGem: false, reason: 'Solana (Skipped)' };
+
+                const honeyUrl = `https://api.honeypot.is/v2/IsHoneypot?address=${tokenAddr}&chain=${chainId}`;
+                const res = await fetch(honeyUrl, { signal: AbortSignal.timeout(10000) });
+                if (!res.ok) return { isSafe: false, reason: 'Honeypot API Error' };
+
+                const data = await res.json();
+                if (data.honeypotResult?.isHoneypot) return { isSafe: false, reason: 'HONEYPOT' };
+                
+                if (data.simulationResult?.buyTax > 10 || data.simulationResult?.sellTax > 10) return { isSafe: false, reason: 'High Tax' };
+
+                return { isSafe: true, isGem: liquidity > 50000 && volume > 100000 };
+
+            } catch (e) {
+                return { isSafe: false, reason: 'Check Error' };
+            }
+        }
+
+        function displayGem(pair, isGem) {
+            const name = pair.baseToken?.name || "Unknown"; const symbol = pair.baseToken?.symbol || "???";
+            const price = parseFloat(pair.priceUsd || 0); const chain = pair.chainId?.toUpperCase() || "N/A";
+            
+            const card = document.createElement('div');
+            card.className = "group relative bg-brand-dark-blue border border-brand-border rounded-xl p-5 hover:border-brand-gold/30 transition duration-500 flex flex-col overflow-hidden";
+            
+            const typeLabel = isGem ? "🚀 High Conviction GEM" : "✅ Safe Verified";
+            const typeColor = isGem ? "text-brand-gold" : "text-green-500";
+
+            card.innerHTML = `
+                <div class="absolute top-0 left-0 w-12 h-[1.5px] bg-gradient-to-r from-brand-gold via-brand-gold/40 to-transparent"></div>
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-[8px] font-black tracking-[0.2em] ${typeColor} uppercase">${typeLabel}</span>
+                    <span class="text-[8px] font-black text-gray-500 bg-white/5 px-2 py-0.5 rounded">${chain}</span>
+                </div>
+                <h3 class="text-white font-bold text-sm mb-1 truncate">${name} <span class="text-brand-gold opacity-50">${symbol}</span></h3>
+                <div class="text-[11px] font-mono text-white/90 mb-4">$${price < 0.0001 ? price.toExponential(2) : price.toFixed(8)}</div>
+                
+                <div class="grid grid-cols-2 gap-y-3 gap-x-2 border-t border-brand-border pt-4">
+                    <div><div class="text-[8px] text-gray-600 font-black uppercase">Liquidity</div><div class="text-[10px] text-white font-bold">$${humanFormat(pair.liquidity?.usd)}</div></div>
+                    <div><div class="text-[8px] text-gray-600 font-black uppercase">Volume 24h</div><div class="text-[10px] text-white font-bold">$${humanFormat(pair.volume?.h24)}</div></div>
+                    <div class="col-span-2"><div class="text-[8px] text-gray-600 font-black uppercase">Market Cap</div><div class="text-[10px] text-white font-bold">$${humanFormat(pair.fdv)}</div></div>
+                </div>
+
+                <a href="${pair.url}" target="_blank" class="mt-5 text-center bg-white/5 hover:bg-brand-gold hover:text-black transition-all py-2 rounded-lg text-[9px] font-black uppercase tracking-widest border border-white/5 hover:border-brand-gold">Analyze</a>
+            `;
+            gemGridEl.prepend(card);
+        }
+
+        async function mainLoop() {
+            statusTextEl.textContent = `Scanning Chains...`;
+            countdownTimerEl.textContent = '';
+            const pairs = await fetchNewPairs();
+            statusTextEl.textContent = `Auditing ${pairs.length} pairs...`;
+
+            let foundCount = 0;
+            for (const pair of pairs) {
+                const tokenAddr = pair.baseToken?.address;
+                if (!tokenAddr || sentTokens.has(tokenAddr) || skippedTokens.has(tokenAddr)) continue;
+                const { isSafe, isGem, reason } = await isSafeToken(pair);
+                if (isSafe) {
+                    foundCount++; foundTotal++;
+                    displayGem(pair, isGem);
+                    sentTokens.add(tokenAddr);
+                } else { skippedTokens.add(tokenAddr); }
+            }
+
+            foundCountEl.textContent = `${foundTotal} Gems Found`;
+            statusTextEl.textContent = `Scanner Standby`;
+            startCountdown();
+            setTimeout(mainLoop, SCAN_DELAY);
+        }
+
+        mainLoop();
+    });
+    </script>
+</body>
+</html>

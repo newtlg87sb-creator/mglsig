@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binance Heatmap - MGL Signal</title>
+
+    <meta name="description" content="MGL Signal - Interactive Binance Market Heatmap and Performance Tracker.">
+    <meta name="robots" content="index, follow">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 'dark': '#05070a', 'dark-blue': '#0c0e12', 'gold': '#c5a059', 'border': '#161b22' }
+                    },
+                    fontFamily: { 'inter': ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/static/main_style.css">
+    <style>
+        .table-row { border-bottom: 1px solid #1f242d; }
+        th { cursor: pointer; user-select: none; }
+        th:hover { color: #c5a059; }
+    </style>
+</head>
+<body class="bg-brand-dark text-white font-inter flex flex-col min-h-screen">
+
+    <script>
+        const pageTranslations = {
+            mn: {
+                "heatmap-page-title": 'Binance <span class="text-brand-gold italic">Heatmap</span>',
+                "heatmap-page-desc": "Крипто зах зээлийн гүйцэтгэлийг интерактив хитмап графикаар дүрслэн хараарай.",
+                "market-data-title": "Зах зээлийн өгөгдөл (Эрэмбэлэхийн тулд гарчиг дээр дарна уу)",
+                "table-symbol": "Койн",
+                "table-price": "Үнэ",
+                "table-change": "24ц Өөрчлөлт ↕",
+                "table-volume": "Эргэлт (24ц) ↕"
+            },
+            en: {
+                "heatmap-page-title": 'Binance <span class="text-brand-gold italic">Heatmap</span>',
+                "heatmap-page-desc": "Visualize the entire crypto market's performance in an interactive heatmap chart.",
+                "market-data-title": "Market Data (Click headers to sort)",
+                "table-symbol": "Symbol",
+                "table-price": "Price",
+                "table-change": "24h Change ↕",
+                "table-volume": "Volume (24h) ↕"
+            }
+        };
+
+        if (typeof window.translations === 'undefined') window.translations = { mn: {}, en: {} };
+        Object.keys(pageTranslations).forEach(lang => {
+            window.translations[lang] = { ...window.translations[lang], ...pageTranslations[lang] };
+        });
+
+        function changeLang(lang) {
+            localStorage.setItem('lang', lang);
+            if (!window.translations || !window.translations[lang]) return;
+            const t = window.translations[lang];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.innerHTML = t[key];
+            });
+            updateMarket();
+        }
+        window.changeLang = changeLang;
+    </script>
+
+    <script src="/static/js/header.js"></script>
+
+    <main class="flex-grow pt-36 pb-20 px-6">
+        <div class="max-w-6xl mx-auto">
+            
+            <div class="text-center mb-16">
+                <h1 data-i18n="heatmap-page-title" class="text-3xl md:text-5xl font-black uppercase tracking-tight text-white mb-4">
+                    Binance <span class="text-brand-gold italic">Heatmap</span>
+                </h1>
+                <p data-i18n="heatmap-page-desc" class="mgl-spotlight-text max-w-2xl mx-auto text-sm" data-text="Крипто зах зээлийн гүйцэтгэлийг интерактив хитмап графикаар дүрслэн хараарай.">
+                    Крипто зах зээлийн гүйцэтгэлийг интерактив хитмап графикаар дүрслэн хараарай.
+                </p>
+                <div class="w-12 h-[1px] bg-brand-gold/30 mx-auto mt-6"></div>
+            </div>
+
+            <div id="chart" class="w-full h-[500px] bg-brand-dark-blue border border-brand-border rounded-2xl overflow-hidden shadow-2xl mb-12"></div>
+            
+            <div class="bg-brand-dark-blue border border-brand-border rounded-2xl p-6 md:p-8 shadow-2xl">
+                <h2 data-i18n="market-data-title" class="text-brand-gold font-bold mb-6 uppercase text-sm border-l-2 border-yellow-600 pl-4 tracking-widest">Market Data (Click headers to sort)</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs text-left" id="movers-table">
+                        <thead>
+                            <tr class="text-gray-500 uppercase border-b border-brand-border">
+                                <th class="py-4 px-2" data-i18n="table-symbol">Symbol</th>
+                                <th class="py-4 px-2" data-i18n="table-price">Price</th>
+                                <th class="py-4 px-2" data-i18n="table-change" onclick="sortTable('change')">24h Change ↕</th>
+                                <th class="py-4 px-2 text-right" data-i18n="table-volume" onclick="sortTable('volume')">Volume (24h) ↕</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/footer.js"></script>
+    <script src="/static/lock.js"></script>
+
+    <script>
+        let marketData = [];
+        let sortDirection = 1;
+
+        async function updateMarket() {
+            try {
+                const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
+                marketData = (await res.json())
+                    .filter(d => d.symbol.endsWith('USDT') && !/^(USDT|USDC|BUSD|TUSD|FDUSD|USDP)/.test(d.symbol))
+                    .map(d => ({
+                        symbol: d.symbol.replace('USDT', ''),
+                        change: parseFloat(d.priceChangePercent),
+                        volume: parseFloat(d.quoteVolume),
+                        price: parseFloat(d.lastPrice)
+                    }))
+                    .sort((a, b) => b.volume - a.volume);
+
+                renderEverything(marketData.slice(0, 50));
+            } catch (err) {
+                console.error("Heatmap Fetch Error:", err);
+            }
+        }
+
+        function sortTable(key) {
+            sortDirection *= -1;
+            marketData.sort((a, b) => (a[key] - b[key]) * sortDirection);
+            renderEverything(marketData.slice(0, 50));
+        }
+
+        function renderEverything(data) {
+            renderTreeMap(data);
+            const tbody = document.getElementById("table-body");
+            if (!tbody) return;
+
+            tbody.innerHTML = data.slice(0, 20).map(d => `
+                <tr class="table-row hover:bg-white/5 transition-colors group">
+                    <td class="py-4 px-2 font-bold text-white group-hover:text-brand-gold transition-colors">${d.symbol}</td>
+                    <td class="py-4 px-2 text-gray-400 font-mono tracking-tighter">$${d.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 8})}</td>
+                    <td class="py-4 px-2 font-black ${d.change >= 0 ? 'text-green-500' : 'text-red-500'}">
+                        ${d.change > 0 ? '+' : ''}${d.change.toFixed(2)}%
+                    </td>
+                    <td class="py-4 px-2 text-right font-mono text-gray-500">
+                        ${(d.volume / 1000000).toFixed(2)}M
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderTreeMap(data) {
+            const chartDiv = document.getElementById('chart');
+            if (!chartDiv) return;
+            d3.select("#chart").selectAll("*").remove();
+            
+            const width = chartDiv.clientWidth;
+            const height = chartDiv.clientHeight;
+
+            const root = d3.hierarchy({children: data}).sum(d => d.volume);
+            d3.treemap().size([width, height]).padding(2)(root);
+            
+            const color = d3.scaleDiverging()
+                .domain([-5, 0, 5])
+                .interpolator(d3.interpolateRdYlGn);
+            
+            const svg = d3.select("#chart").append("svg")
+                .attr("width", "100%")
+                .attr("height", height)
+                .style("background", "transparent");
+            
+            const node = svg.selectAll("g").data(root.leaves()).enter().append("g")
+                .attr("transform", d => `translate(${d.x0},${d.y0})`);
+
+            node.append("rect")
+                .attr("width", d => Math.max(0, d.x1 - d.x0))
+                .attr("height", d => Math.max(0, d.y1 - d.y0))
+                .attr("fill", d => color(d.data.change))
+                .attr("stroke", "#05070a")
+                .attr("stroke-width", "1px")
+                .attr("rx", 4);
+
+            node.append("text")
+                .attr("x", 8).attr("y", 18)
+                .style("font-size", "12px")
+                .style("fill", "#ffffff")
+                .style("font-weight", "900")
+                .style("text-shadow", "0 1px 2px rgba(0,0,0,0.8)")
+                .text(d => d.data.symbol);
+
+            node.append("text")
+                .attr("x", 8).attr("y", 32)
+                .style("font-size", "10px")
+                .style("fill", "rgba(255,255,255,0.9)")
+                .style("font-weight", "bold")
+                .text(d => (d.data.change > 0 ? '+' : '') + d.data.change.toFixed(2) + "%");
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedLang = localStorage.getItem('lang') || 'mn';
+            changeLang(savedLang);
+            updateMarket();
+            setInterval(updateMarket, 30000);
+        });
+
+        window.addEventListener('resize', () => renderTreeMap(marketData.slice(0, 50)));
+    </script>
+</body>
+</html>
