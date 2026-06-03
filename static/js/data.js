@@ -90,18 +90,6 @@ function renderToUI(data) {
     if (document.getElementById('val-hh')) document.getElementById('val-hh').innerHTML = renderTriple(data.pivots.highs[0]?.price, data.pivots.highs[1]?.price, data.pivots.highs[2]?.price);
     if (document.getElementById('val-ll')) document.getElementById('val-ll').innerHTML = renderTriple(data.pivots.lows[0]?.price, data.pivots.lows[1]?.price, data.pivots.lows[2]?.price);
 
-    // RSI Stats
-    if (document.getElementById('val-rsi-prev')) document.getElementById('val-rsi-prev').textContent = format(data.rsi[1]);
-    if (document.getElementById('val-rsi-before-prev')) document.getElementById('val-rsi-before-prev').textContent = format(data.rsi[2]);
-    
-    if (document.getElementById('rsi-status')) {
-        let state = "NEUTRAL";
-        if (data.rsi[0] > 70) state = "OVERBOUGHT";
-        else if (data.rsi[0] < 30) state = "OVERSOLD";
-        document.getElementById('rsi-status').textContent = state;
-        document.getElementById('rsi-status').className = `value font-black ${state !== 'NEUTRAL' ? 'text-brand-gold' : 'text-gray-500'}`;
-    }
-
     // SMA Cross Display
     const updateSMA = (id, val) => {
         const el = document.getElementById(id);
@@ -122,8 +110,24 @@ function renderToUI(data) {
         el.textContent = v;
         el.className = `value font-black ${v === "YES" ? (id.includes('up') ? 'text-green-500 animate-pulse' : 'text-red-500 animate-pulse') : 'text-gray-700 opacity-20'}`;
     };
-    updateC('val-rsi-30-up-cross', data.signals.rsi30Up);
-    updateC('val-rsi-70-down-cross', data.signals.rsi70Down);
+    updateC('val-rsi-30-up-cross', data.signals.rsi30UpImm);
+    updateC('val-rsi-30-down-cross', data.signals.rsi30DownImm);
+    updateC('val-rsi-70-up-cross', data.signals.rsi70UpImm);
+    updateC('val-rsi-70-down-cross', data.signals.rsi70DownImm);
+
+    // Persistent RSI State Display
+    const rsiStatusEl = document.getElementById('rsi-status-persistent');
+    if (rsiStatusEl) {
+        const state = data.signals.rsiActiveState;
+        rsiStatusEl.textContent = state;
+        if (state.includes('UP')) {
+            rsiStatusEl.className = "value font-black text-green-500";
+        } else if (state.includes('DOWN')) {
+            rsiStatusEl.className = "value font-black text-red-500";
+        } else {
+            rsiStatusEl.className = "value font-black text-gray-500";
+        }
+    }
 
     if (currentMarket === 'spot') {
         if (spotDisplay) spotDisplay.textContent = `$${formattedPrice}`;

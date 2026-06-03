@@ -36,6 +36,23 @@ export default async function handler(req, res) {
         // lastIdx-ийг энд тодорхойлох ёстой (resData-аас өмнө)
         const lastIdx = closes.length - 1;
 
+        // RSI State Machine Logic (Хамгийн сүүлийн төлөвийг түүхээс хайж олох)
+        let rsiActiveState = "NEUTRAL";
+        for (let i = lastIdx - 1; i >= 1; i--) { // lastIdx-1 is current candle, lastIdx-2 is prev candle
+            const v1 = rsiValues[i];     // Current candle's RSI
+            const v2 = rsiValues[i - 1]; // Previous candle's RSI
+            if (v1 === null || v2 === null) continue;
+
+            if (v2 < 30 && v1 > 30) { rsiActiveState = '30 UP'; break; }
+            if (v2 > 30 && v1 < 30) { rsiActiveState = '30 DOWN'; break; }
+            if (v2 < 70 && v1 > 70) { rsiActiveState = '70 UP'; break; }
+            if (v2 > 70 && v1 < 70) { rsiActiveState = '70 DOWN'; break; }
+        }
+
+
+        // lastIdx-ийг энд тодорхойлох ёстой (resData-аас өмнө)
+        const lastIdx = closes.length - 1;
+
         // Сигналын логик (YES/NO шийдвэрүүд)
         const resData = {
             prices: {
@@ -59,8 +76,11 @@ export default async function handler(req, res) {
                 sma200: calculateSMA(closes, 200).slice(-3).reverse()
             },
             signals: {
-                rsi30Up: (rsiValues[lastIdx-2] < 30 && rsiValues[lastIdx-1] > 30) ? "YES" : "NO",
-                rsi70Down: (rsiValues[lastIdx-2] > 70 && rsiValues[lastIdx-1] < 70) ? "YES" : "NO"
+                rsi30UpImm: (rsiValues[lastIdx-2] < 30 && rsiValues[lastIdx-1] > 30) ? "YES" : "NO",
+                rsi30DownImm: (rsiValues[lastIdx-2] > 30 && rsiValues[lastIdx-1] < 30) ? "YES" : "NO",
+                rsi70UpImm: (rsiValues[lastIdx-2] < 70 && rsiValues[lastIdx-1] > 70) ? "YES" : "NO",
+                rsi70DownImm: (rsiValues[lastIdx-2] > 70 && rsiValues[lastIdx-1] < 70) ? "YES" : "NO",
+                rsiActiveState: rsiActiveState
             }
         };
 
