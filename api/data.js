@@ -1,5 +1,5 @@
 // api/data.js - Proprietary Signal Logic (Server-side)
-import { calculateRSI, calculateEMA, calculateSMA, calculatePivots } from './lib/indicators.js';
+import { calculateRSI, calculateEMA, calculateSMA, calculatePivots } from './indicators.js';
 
 export default async function handler(req, res) {
     const { symbol = 'BTCUSDT', interval = '1m', rsiLen = 14, emaLen = 20, maLen = 20, market = 'spot' } = req.query;
@@ -33,15 +33,18 @@ export default async function handler(req, res) {
         const maValues = calculateSMA(closes, parseInt(maLen));
         const pivots = calculatePivots(candles, 10);
 
+        // lastIdx-ийг энд тодорхойлох ёстой (resData-аас өмнө)
+        const lastIdx = closes.length - 1;
+
         // Сигналын логик (YES/NO шийдвэрүүд)
         const resData = {
             prices: {
                 last: closes[lastIdx],
                 prev: closes[lastIdx - 1],
                 prevPrev: closes[lastIdx - 2],
-                open: [candles[lastIdx][1], candles[lastIdx-1][1], candles[lastIdx-2][1]],
-                high: [candles[lastIdx][2], candles[lastIdx-1][2], candles[lastIdx-2][2]],
-                low: [candles[lastIdx][3], candles[lastIdx-1][3], candles[lastIdx-2][3]],
+                open: [parseFloat(candles[lastIdx][1]), parseFloat(candles[lastIdx-1][1]), parseFloat(candles[lastIdx-2][1])],
+                high: [parseFloat(candles[lastIdx][2]), parseFloat(candles[lastIdx-1][2]), parseFloat(candles[lastIdx-2][2])],
+                low: [parseFloat(candles[lastIdx][3]), parseFloat(candles[lastIdx-1][3]), parseFloat(candles[lastIdx-2][3])],
             },
             rsi: [rsiValues[lastIdx], rsiValues[lastIdx-1], rsiValues[lastIdx-2]],
             ema: [emaValues[lastIdx], emaValues[lastIdx-1], emaValues[lastIdx-2]],
