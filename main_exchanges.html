@@ -119,6 +119,54 @@
 
             <!-- Exchanges List -->
             <div id="exchanges-container" class="space-y-4">
+                <!-- MEXC -->
+                <a href="exchanges/mainlive_mexc.html" class="group block bg-brand-dark-blue border border-brand-border rounded-xl p-5 hover:border-[#00ccff]/50 transition duration-300 shadow-lg relative overflow-hidden">
+                    <div class="flex items-center justify-between relative z-10">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 rounded-lg bg-[#00ccff]/10 flex items-center justify-center border border-[#00ccff]/20 group-hover:bg-[#00ccff]/20 transition">
+                                <i class="fas fa-chart-bar text-[#00ccff] text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-white font-bold text-lg group-hover:text-[#00ccff] transition uppercase tracking-wider">MEXC Terminal</h3>
+                                <p data-i18n="status-live" class="text-green-500 text-[10px] mt-1 uppercase tracking-widest font-black animate-pulse">Live Now</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-600 group-hover:text-[#00ccff] transform group-hover:translate-x-1 transition"></i>
+                    </div>
+                </a>
+
+                <!-- OKX -->
+                <a href="exchanges/mainlive_okx.html" class="group block bg-brand-dark-blue border border-brand-border rounded-xl p-5 hover:border-white/50 transition duration-300 shadow-lg relative overflow-hidden">
+                    <div class="flex items-center justify-between relative z-10">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center border border-white/20 group-hover:bg-white/20 transition">
+                                <i class="fas fa-university text-white text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-white font-bold text-lg group-hover:text-white transition uppercase tracking-wider">OKX Terminal</h3>
+                                <p data-i18n="status-live" class="text-green-500 text-[10px] mt-1 uppercase tracking-widest font-black animate-pulse">Live Now</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-600 group-hover:text-white transform group-hover:translate-x-1 transition"></i>
+                    </div>
+                </a>
+
+                <!-- Bybit -->
+                <a href="mainlive_bybit.html" class="group block bg-brand-dark-blue border border-brand-border rounded-xl p-5 hover:border-[#ffb11a]/50 transition duration-300 shadow-lg relative overflow-hidden">
+                    <div class="flex items-center justify-between relative z-10">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 rounded-lg bg-[#ffb11a]/10 flex items-center justify-center border border-[#ffb11a]/20 group-hover:bg-[#ffb11a]/20 transition">
+                                <i class="fas fa-chart-line text-[#ffb11a] text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-white font-bold text-lg group-hover:text-[#ffb11a] transition uppercase tracking-wider">Bybit Terminal</h3>
+                                <p data-i18n="status-live" class="text-green-500 text-[10px] mt-1 uppercase tracking-widest font-black animate-pulse">Live Now</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-600 group-hover:text-[#ffb11a] transform group-hover:translate-x-1 transition"></i>
+                    </div>
+                </a>
+
                 <!-- Binance -->
                 <a href="mainlive_binance.html" class="group block bg-brand-dark-blue border border-brand-border rounded-xl p-5 hover:border-[#F3BA2F]/50 transition duration-300 shadow-lg relative overflow-hidden">
                     <div class="flex items-center justify-between relative z-10">
@@ -154,9 +202,6 @@
                 <!-- Bybit, OKX, LBank, etc. (Placeholders) -->
                 <script>
                     const otherExchanges = [
-                        { name: 'Bybit Terminal', color: '#ffb11a' },
-                        { name: 'OKX Terminal', color: '#ffffff' },
-                        { name: 'MEXC Terminal', color: '#00ccff' },
                         { name: 'Gate.io Terminal', color: '#f04a5a' },
                         { name: 'Bitget Terminal', color: '#00f0ff' },
                         { name: 'LBank Terminal', color: '#e6b800' },
