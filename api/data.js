@@ -2,12 +2,18 @@
 import { calculateRSI, calculateEMA, calculateSMA, calculatePivots } from './lib/indicators.js';
 
 export default async function handler(req, res) {
-    const { symbol = 'BTCUSDT', interval = '1m', rsiLen = 14, emaLen = 20, maLen = 20 } = req.query;
+    const { symbol = 'BTCUSDT', interval = '1m', rsiLen = 14, emaLen = 20, maLen = 20, market = 'spot' } = req.query;
+
+    // 10 секунд кэшлэх (Rate limit-ээс хамгаална)
+    res.setHeader('Cache-Control', 's-maxage=10, stale-while-revalidate');
 
     try {
-        // Binance-аас түүхий датаг сервер дээрээ татна
-        const binanceUrl = `https://api.binance.com/api/v3/klines?symbol=${symbol.toUpperCase()}&interval=${interval}&limit=100`;
+        const baseUrl = market === 'futures' ? 'https://fapi.binance.com' : 'https://api.binance.com';
+        const binanceUrl = `${baseUrl}${market === 'futures' ? '/fapi/v1' : '/api/v3'}/klines?symbol=${symbol.toUpperCase()}&interval=${interval}&limit=150`;
+        
         const response = await fetch(binanceUrl);
+        if (response.status === 451) return res.status(451).json({ error: 'Region Blocked' });
+        
         const candles = await response.json();
 
         const closes = candles.map(c => parseFloat(c[4]));
@@ -36,6 +42,11 @@ export default async function handler(req, res) {
             pivots: {
                 highs: pivots.highs.slice(-3).reverse(),
                 lows: pivots.lows.slice(-3).reverse()
+            },
+            sma: {
+                sma20: calculateSMA(closes, 20).slice(-3).reverse(),
+                sma50: calculateSMA(closes, 50).slice(-3).reverse(),
+                sma200: calculateSMA(closes, 200).slice(-3).reverse()
             },
             signals: {
                 rsi30Up: (rsiValues[lastIdx-2] < 30 && rsiValues[lastIdx-1] > 30) ? "YES" : "NO",

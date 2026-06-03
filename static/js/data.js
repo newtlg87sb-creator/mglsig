@@ -1,20 +1,35 @@
+let isFetchingSignal = false;
+let lastFetchTime = 0;
+
 window.updateSignalData = async function(allData) {
+    // Throttle: 5 секундээс хурдан дахин хүсэлт явуулахгүй (Ачаалал бууруулна)
+    const now = Date.now();
+    if (isFetchingSignal || (now - lastFetchTime < 5000)) return;
+
     const coin = document.getElementById('coin')?.value || 'BTCUSDT';
     const interval = document.getElementById('interval')?.value || '1m';
+    const market = document.getElementById('market')?.value || 'spot';
     const rsiLen = document.getElementById('rsi-period')?.value || 14;
     const emaLen = document.getElementById('ema-period')?.value || 20;
     const maLen = document.getElementById('ma-period')?.value || 20;
 
     try {
-        const res = await fetch(`/api/data?symbol=${coin}&interval=${interval}&rsiLen=${rsiLen}&emaLen=${emaLen}&maLen=${maLen}`);
+        isFetchingSignal = true;
+        const res = await fetch(`/api/data?symbol=${coin}&interval=${interval}&rsiLen=${rsiLen}&emaLen=${emaLen}&maLen=${maLen}&market=${market}`);
         const data = await res.json();
-        
-        if (data.error) return;
+        lastFetchTime = Date.now();
+
+        if (data.error) {
+            if (data.error === 'Region Blocked') console.error("Vercel Region is blocked by Binance. Check vercel.json");
+            return;
+        }
 
         // UI шинэчлэх
         renderToUI(data);
     } catch (e) {
         console.error("Signal API Fetch Failed");
+    } finally {
+        isFetchingSignal = false;
     }
 };
 
@@ -62,6 +77,31 @@ function renderToUI(data) {
     
     if (document.getElementById('val-hh')) document.getElementById('val-hh').innerHTML = renderTriple(data.pivots.highs[0]?.price, data.pivots.highs[1]?.price, data.pivots.highs[2]?.price);
     if (document.getElementById('val-ll')) document.getElementById('val-ll').innerHTML = renderTriple(data.pivots.lows[0]?.price, data.pivots.lows[1]?.price, data.pivots.lows[2]?.price);
+
+    // RSI Stats
+    if (document.getElementById('val-rsi-prev')) document.getElementById('val-rsi-prev').textContent = format(data.rsi[1]);
+    if (document.getElementById('val-rsi-before-prev')) document.getElementById('val-rsi-before-prev').textContent = format(data.rsi[2]);
+    
+    if (document.getElementById('rsi-status')) {
+        let state = "NEUTRAL";
+        if (data.rsi[0] > 70) state = "OVERBOUGHT";
+        else if (data.rsi[0] < 30) state = "OVERSOLD";
+        document.getElementById('rsi-status').textContent = state;
+        document.getElementById('rsi-status').className = `value font-black ${state !== 'NEUTRAL' ? 'text-brand-gold' : 'text-gray-500'}`;
+    }
+
+    // SMA Cross Display
+    const updateSMA = (id, val) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const price = data.prices.last;
+        const status = price > val[0] ? "ABOVE" : "BELOW";
+        el.textContent = status;
+        el.className = `value font-black ${status === 'ABOVE' ? 'text-green-500' : 'text-red-500'}`;
+    };
+    updateSMA('val-sma20', data.sma.sma20);
+    updateSMA('val-sma50', data.sma.sma50);
+    updateSMA('val-sma200', data.sma.sma200);
 
     // Cross UI Update
     const updateC = (id, v) => {
