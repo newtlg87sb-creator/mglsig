@@ -1,10 +1,21 @@
 let isFetchingSignal = false;
-let lastFetchTime = 0;
+
+function addControlLog(msg) {
+    const container = document.getElementById('control-logs');
+    if (!container) return;
+    if (container.children.length > 50) container.removeChild(container.firstChild);
+    
+    const time = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const div = document.createElement('div');
+    div.className = "mb-0.5 border-l border-green-500/20 pl-2";
+    div.innerHTML = `<span class="text-gray-600 mr-2">[${time}]</span> ${msg}`;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
 
 window.updateSignalData = async function(allData) {
-    // Throttle: 5 секундээс хурдан дахин хүсэлт явуулахгүй (Ачаалал бууруулна)
-    const now = Date.now();
-    if (isFetchingSignal || (now - lastFetchTime < 5000)) return;
+    // Түгжээ: Өмнөх хүсэлт дуусаагүй бол давхар явуулахгүй
+    if (isFetchingSignal) return;
 
     const coin = document.getElementById('coin')?.value || 'BTCUSDT';
     const interval = document.getElementById('interval')?.value || '1m';
@@ -15,19 +26,20 @@ window.updateSignalData = async function(allData) {
 
     try {
         isFetchingSignal = true;
+        addControlLog(`Requesting analysis for ${coin} (${interval})...`);
+
         const res = await fetch(`/api/data?symbol=${coin}&interval=${interval}&rsiLen=${rsiLen}&emaLen=${emaLen}&maLen=${maLen}&market=${market}`);
         const data = await res.json();
-        lastFetchTime = Date.now();
 
         if (data.error) {
-            if (data.error === 'Region Blocked') console.error("Vercel Region is blocked by Binance. Check vercel.json");
+            addControlLog(`⚠️ <span class="text-red-500">Error: ${data.error}</span>`);
             return;
         }
 
-        // UI шинэчлэх
+        addControlLog(`Data received. RSI: ${data.rsi[0].toFixed(2)} | EMA: ${data.ema[0].toFixed(2)}`);
         renderToUI(data);
     } catch (e) {
-        console.error("Signal API Fetch Failed");
+        addControlLog(`❌ <span class="text-red-500">Fetch Failed. Check Network.</span>`);
     } finally {
         isFetchingSignal = false;
     }

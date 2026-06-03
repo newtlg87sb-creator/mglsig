@@ -4,8 +4,8 @@ import { calculateRSI, calculateEMA, calculateSMA, calculatePivots } from './lib
 export default async function handler(req, res) {
     const { symbol = 'BTCUSDT', interval = '1m', rsiLen = 14, emaLen = 20, maLen = 20, market = 'spot' } = req.query;
 
-    // 10 секунд кэшлэх (Rate limit-ээс хамгаална)
-    res.setHeader('Cache-Control', 's-maxage=10, stale-while-revalidate');
+    // 1 секунд кэшлэх - Сигналыг хамгийн хурдан байлгах
+    res.setHeader('Cache-Control', 's-maxage=1, stale-while-revalidate');
 
     try {
         const baseUrl = market === 'futures' ? 'https://fapi.binance.com' : 'https://api.binance.com';
