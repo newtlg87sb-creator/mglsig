@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unified 10-Exchange Terminal - MGL Signal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+        body { background-color: #05070a; font-family: 'Inter', sans-serif; }
+        .cell-mono { font-family: 'JetBrains Mono', monospace; }
+        .risk-tag { font-size: 8px; padding: 1px 4px; border-radius: 3px; font-weight: 900; text-transform: uppercase; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-thumb { background: #1f242d; border-radius: 10px; }
+        .exchange-row-binance { border-left: 3px solid #f3ba2f; }
+        .exchange-row-kucoin { border-left: 3px solid #24ae8f; }
+        .exchange-row-mexc { border-left: 3px solid #00b2ff; }
+        .exchange-row-bybit { border-left: 3px solid #ffb11a; }
+        .exchange-row-okx { border-left: 3px solid #ffffff; }
+    </style>
+</head>
+<body class="text-gray-300 p-4 md:p-8">
+    <div class="max-w-[1600px] mx-auto space-y-6">
+        
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+            <div>
+                <h1 class="text-3xl font-black text-white uppercase tracking-tighter italic">MGL <span class="text-yellow-500">Unified</span> Terminal</h1>
+                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-[0.3em] mt-1">Institutional Multi-Exchange Data Stream</p>
+            </div>
+            <div class="flex gap-3">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 text-xs"></i>
+                    <input type="text" id="global-search" oninput="renderUI()" placeholder="SEARCH ALL MARKETS..." class="bg-black border border-gray-800 rounded-lg py-2 pl-9 pr-4 text-[10px] font-black text-white focus:border-yellow-500 outline-none w-48">
+                </div>
+                <button onclick="updateAll()" class="bg-yellow-500 text-black px-4 py-2 rounded-lg font-black text-[10px] uppercase hover:bg-white transition shadow-lg shadow-yellow-500/10">
+                    <i class="fas fa-sync-alt mr-2"></i> Force Refresh
+                </button>
+            </div>
+        </div>
+        
+        <div id="status-grid" class="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <!-- Бирж бүрийн статус -->
+            <div id="status-binance" class="p-3 bg-gray-900/50 rounded-xl border border-gray-800 text-[9px] font-black uppercase tracking-widest text-gray-600 transition-all">Binance: 📡 WAITING</div>
+            <div id="status-kucoin" class="p-3 bg-gray-900/50 rounded-xl border border-gray-800 text-[9px] font-black uppercase tracking-widest text-gray-600 transition-all">Kucoin: 📡 WAITING</div>
+            <div id="status-mexc" class="p-3 bg-gray-900/50 rounded-xl border border-gray-800 text-[9px] font-black uppercase tracking-widest text-gray-600 transition-all">MEXC: 📡 WAITING</div>
+            <div id="status-bybit" class="p-3 bg-gray-900/50 rounded-xl border border-gray-800 text-[9px] font-black uppercase tracking-widest text-gray-600 transition-all">Bybit: 📡 WAITING</div>
+            <div id="status-okx" class="p-3 bg-gray-900/50 rounded-xl border border-gray-800 text-[9px] font-black uppercase tracking-widest text-gray-600 transition-all">OKX: 📡 WAITING</div>
+        </div>
+
+        <div class="overflow-hidden bg-[#0c0e12] rounded-2xl border border-gray-800 shadow-2xl relative">
+            <div class="overflow-x-auto max-h-[700px] overflow-y-auto">
+            <table class="w-full text-left border-collapse">
+                <thead class="sticky top-0 bg-black/90 backdrop-blur-md z-20">
+                    <tr class="text-gray-500 uppercase text-[9px] font-black tracking-[0.2em] border-b border-gray-800">
+                        <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('exchange')">Exchange <i class="fas fa-sort ml-1 opacity-20"></i></th>
+                        <th class="p-4 cursor-pointer hover:text-white" onclick="updateSort('symbol')">Pair <i class="fas fa-sort ml-1 opacity-20"></i></th>
+                        <th class="p-4 text-right cursor-pointer hover:text-white" onclick="updateSort('price')">Price <i class="fas fa-sort ml-1 opacity-20"></i></th>
+                        <th class="p-4 text-right cursor-pointer hover:text-white" onclick="updateSort('change')">24h Change <i class="fas fa-sort ml-1 opacity-20"></i></th>
+                        <th class="p-4 text-right cursor-pointer hover:text-white" onclick="updateSort('spread')">Spread % <i class="fas fa-sort ml-1 opacity-20"></i></th>
+                        <th class="p-4">Risk Audit</th>
+                    </tr>
+                </thead>
+                <tbody id="master-table" class="divide-y divide-gray-800/30 cell-mono text-[11px]">
+                    <tr>
+                        <td colspan="6" class="p-20 text-center text-gray-700 font-black uppercase text-[10px] tracking-[0.4em] animate-pulse">
+                            Initializing Global Data Pipeline...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const exchanges = ['binance', 'kucoin', 'mexc', 'bybit', 'okx'];
+        let allExchangeData = {};
+        let currentSort = { col: 'change', desc: true };
+
+        // Чиний aaa.py дээрх Risk Keywords логик
+        function scanRisk(symbol, change, spread, rawData) {
+            let tags = [];
+            const rawString = JSON.stringify(rawData).toUpperCase();
+            
+            if (Math.abs(change) > 15) tags.push('HIGH VOLATILITY');
+            if (spread > 1.0) tags.push('HIGH SPREAD');
+            if (rawString.includes('ST') || rawString.includes('SPECIAL')) tags.push('ST-RISK');
+            if (rawString.includes('MONITORING')) tags.push('MONITORING');
+            
+            return tags;
+        }
+
+        async function fetchExchangeData(ex) {
+            const statusEl = document.getElementById(`status-${ex}`);
+            try {
+                const res = await fetch(`/api/universal?exchange=${ex}`);
+                const data = await res.json();
+                
+                statusEl.innerHTML = `${ex.toUpperCase()}: <span class="text-green-400">✅ ACTIVE</span>`;
+                statusEl.classList.replace('text-gray-600', 'text-gray-300');
+                statusEl.classList.add('border-green-500/20', 'bg-green-500/5');
+                
+                processData(ex, data);
+            } catch (e) {
+                statusEl.innerHTML = `${ex.toUpperCase()}: <span class="text-red-500">❌ FAULT</span>`;
+                statusEl.classList.add('border-red-500/20', 'bg-red-500/5');
+            }
+        }
+
+        function processData(ex, rawData) {
+            let processed = [];
+            
+            if (ex === 'binance' || ex === 'mexc') {
+                const list = Array.isArray(rawData) ? rawData : [];
+                processed = list.filter(t => t.symbol.endsWith('USDT')).map(t => ({
+                    exchange: ex,
+                    symbol: t.symbol,
+                    price: parseFloat(t.lastPrice),
+                    change: parseFloat(t.priceChangePercent),
+                    spread: (parseFloat(t.askPrice) - parseFloat(t.bidPrice)) / parseFloat(t.bidPrice) * 100,
+                    raw: t
+                }));
+            } else if (ex === 'kucoin') {
+                const list = rawData.data?.ticker || [];
+                processed = list.filter(t => t.symbol.endsWith('-USDT')).map(t => ({
+                    exchange: ex,
+                    symbol: t.symbol.replace('-', ''),
+                    price: parseFloat(t.last),
+                    change: parseFloat(t.changeRate) * 100,
+                    spread: (parseFloat(t.sell) - parseFloat(t.buy)) / parseFloat(t.buy) * 100,
+                    raw: t
+                }));
+            } else if (ex === 'bybit') {
+                const list = rawData.result?.list || [];
+                processed = list.filter(t => t.symbol.endsWith('USDT')).map(t => ({
+                    exchange: ex,
+                    symbol: t.symbol,
+                    price: parseFloat(t.lastPrice),
+                    change: parseFloat(t.price24hPcnt) * 100,
+                    spread: (parseFloat(t.ask1Price) - parseFloat(t.bid1Price)) / parseFloat(t.bid1Price) * 100,
+                    raw: t
+                }));
+            } else if (ex === 'okx') {
+                const list = rawData.data || [];
+                processed = list.map(t => ({
+                    exchange: ex,
+                    symbol: t.instId.replace('-', ''),
+                    price: parseFloat(t.last),
+                    change: ((parseFloat(t.last) - parseFloat(t.open24h)) / parseFloat(t.open24h)) * 100,
+                    spread: (parseFloat(t.askPx) - parseFloat(t.bidPx)) / parseFloat(t.bidPx) * 100,
+                    raw: t
+                }));
+            }
+
+            allExchangeData[ex] = processed;
+            renderUI();
+        }
+
+        function updateSort(col) {
+            if (currentSort.col === col) currentSort.desc = !currentSort.desc;
+            else { currentSort.col = col; currentSort.desc = true; }
+            renderUI();
+        }
+
+        function renderUI() {
+            const tbody = document.getElementById('master-table');
+            const search = document.getElementById('global-search').value.toUpperCase();
+            tbody.innerHTML = '';
+
+            let combined = Object.values(allExchangeData).flat();
+            
+            if (search) combined = combined.filter(c => c.symbol.includes(search));
+
+            combined.sort((a, b) => {
+                let valA = a[currentSort.col], valB = b[currentSort.col];
+                if (typeof valA === 'string') return currentSort.desc ? valB.localeCompare(valA) : valA.localeCompare(valB);
+                return currentSort.desc ? valB - valA : valA - valB;
+            });
+
+            // Хурдны үүднээс эхний 200-г л харуулна
+            combined.slice(0, 200).forEach(c => {
+                const tags = scanRisk(c.symbol, c.change, c.spread, c.raw);
+                const row = document.createElement('tr');
+                row.className = `hover:bg-white/[0.03] transition-colors exchange-row-${c.exchange}`;
+                
+                row.innerHTML = `
+                    <td class="p-4 font-black uppercase text-[9px] text-gray-500">${c.exchange}</td>
+                    <td class="p-4 text-white font-bold">${c.symbol}</td>
+                    <td class="p-4 text-right text-gray-300 font-bold">$${c.price < 1 ? c.price.toFixed(6) : c.price.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+                    <td class="p-4 text-right font-black ${c.change >= 0 ? 'text-green-400' : 'text-red-500'}">
+                        ${c.change >= 0 ? '▲' : '▼'} ${Math.abs(c.change).toFixed(2)}%
+                    </td>
+                    <td class="p-4 text-right text-yellow-500/80 font-bold">${c.spread.toFixed(3)}%</td>
+                    <td class="p-4">
+                        <div class="flex gap-1">
+                            ${tags.length > 0 
+                                ? tags.map(t => `<span class="risk-tag ${t === 'ST-RISK' ? 'bg-red-500/20 text-red-500' : 'bg-yellow-500/20 text-yellow-500'}">${t}</span>`).join('') 
+                                : '<span class="risk-tag bg-green-500/10 text-green-500/50">SECURE</span>'}
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateAll() {
+            exchanges.forEach(ex => fetchExchangeData(ex));
+        }
+
+        setInterval(updateAll, 20000); // 20 секунд тутамд шинэчилнэ
+        updateAll();
+    </script>
+</body>
+</html>

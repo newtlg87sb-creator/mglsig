@@ -55,25 +55,30 @@
     window.onChartDrawOverlay = function(ctx, engine) {
         const { priceToY, candleWidth, padding, visibleData, visibleStartIndex, allData } = engine;
         
-        // data.js-ээс урьдчилан тооцоолсон RSI-г шууд авах (Performance Optimization)
         const rsiValues = window.mglIndicators?.rsi;
-        if (!rsiValues || rsiValues.length === 0) return;
+        if (!rsiValues || rsiValues.length < 2) return;
 
-        // 1. Түүхэн хил хязгаарыг тооцоолох (Visible slice-д зориулж)
         let current_long = null, current_short = null;
-        const upperHistory = [], lowerHistory = [], avgHistory = [];
+        const upperHistory = new Array(allData.length).fill(null);
+        const lowerHistory = new Array(allData.length).fill(null);
+        const avgHistory = new Array(allData.length).fill(null);
 
         for (let i = 2; i < allData.length; i++) {
-            if (rsiValues[i-1] !== null && rsiValues[i] !== null) {
-                if (rsiValues[i-1] < 30 && rsiValues[i] >= 30) current_long = Math.min(allData[i][3], allData[i-1][3], allData[i-2][3]);
-                if (rsiValues[i-1] > 70 && rsiValues[i] <= 70) current_short = Math.max(allData[i][2], allData[i-1][2], allData[i-2][2]);
+            const r0 = rsiValues[i];
+            const r1 = rsiValues[i-1];
+
+            // RSI-ийн утга null биш эсэхийг баталгаажуулах
+            if (r0 !== null && r1 !== null && typeof r0 === 'number' && typeof r1 === 'number') {
+                // Long Signal (RSI 30-г дээш сэтлэх)
+                if (r1 < 30 && r0 >= 30) current_long = Math.min(allData[i][3], allData[i-1][3], allData[i-2][3]);
+                // Short Signal (RSI 70-г доош сэтлэх)
+                if (r1 > 70 && r0 <= 70) current_short = Math.max(allData[i][2], allData[i-1][2], allData[i-2][2]);
             }
-            upperHistory.push(current_short);
-            lowerHistory.push(current_long);
-            avgHistory.push(current_long && current_short ? (current_long + current_short) / 2 : null);
+            upperHistory[i] = current_short;
+            lowerHistory[i] = current_long;
+            avgHistory[i] = (current_long !== null && current_short !== null) ? (current_long + current_short) / 2 : null;
         }
 
-        // 2. Зөвхөн харагдаж буй хэсгийг зурах
         const drawTunnelLine = (historyArray, color, isDashed = false) => {
             ctx.strokeStyle = color; ctx.lineWidth = 2;
             if (isDashed) ctx.setLineDash([5, 5]);

@@ -7,8 +7,7 @@
     "node": "20.x"
   },
   "scripts": {
-    "build": "echo 'No build step required'",
-    "dev": "echo 'Vercel will bypass this'"
+    "build": "echo 'Building...'"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.103.0",
