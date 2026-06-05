@@ -36,8 +36,8 @@
             <div class="data-grid sm:grid-cols-2 lg:grid-cols-4">
                 <div class="data-card"><div class="label">Market Zone</div><div id="zone-status" class="value">--</div></div>
                 <div class="data-card"><div class="label">Intensity</div><div id="zone-text" class="value price">--%</div></div>
-                <div class="data-card"><div class="label">Cycle High</div><div id="val-high" class="value down text-xs">--</div></div>
-                <div class="data-card"><div class="label">Cycle Low</div><div id="val-low" class="value up text-xs">--</div></div>
+                <div class="data-card"><div class="label">Cycle High</div><div id="cycle-high-val" class="value down text-xs">--</div></div>
+                <div class="data-card"><div class="label">Cycle Low</div><div id="cycle-low-val" class="value up text-xs">--</div></div>
             </div>
 
             <script src="/static/js/data.js"></script>
@@ -54,16 +54,38 @@
      */
     window.onChartDrawOverlay = function(ctx, engine) {
         const { priceToY, candleWidth, padding, visibleData, visibleStartIndex, allData, chartWidth } = engine;
-        const rsiValues = window.mglIndicators?.rsi;
+        
+        // 1. RSI тооцоолох логик (Бие даасан болгов)
+        const calculateRSI = (data, period = 14) => {
+            if (data.length <= period) return new Array(data.length).fill(null);
+            const rsi = new Array(data.length).fill(null);
+            let gains = 0, losses = 0;
+            for (let i = 1; i <= period; i++) {
+                const change = data[i][4] - data[i-1][4];
+                if (change >= 0) gains += change; else losses -= change;
+            }
+            let avgGain = gains / period;
+            let avgLoss = losses / period;
+            rsi[period] = 100 - (100 / (1 + (avgGain / (avgLoss || 0.0001))));
+            for (let i = period + 1; i < data.length; i++) {
+                const change = data[i][4] - data[i-1][4];
+                avgGain = (avgGain * (period - 1) + (change > 0 ? change : 0)) / period;
+                avgLoss = (avgLoss * (period - 1) + (change < 0 ? -change : 0)) / period;
+                rsi[i] = 100 - (100 / (1 + (avgGain / (avgLoss || 0.0001))));
+            }
+            return rsi;
+        };
+
+        const rsiValues = calculateRSI(allData, 14);
         if (!rsiValues || rsiValues.length < 20) return;
 
         // 1. Циклийн хязгаар олох (70-Down -> 30-Up)
-        let highAnchor = null, lowAnchor = null, cycleStartTime = null;
+        let highAnchor = null, lowAnchor = null;
         for (let i = rsiValues.length - 1; i >= 1; i--) {
             if (rsiValues[i-1] < 30 && rsiValues[i] >= 30) {
                 for (let j = i - 1; j >= 1; j--) {
                     if (rsiValues[j-1] > 70 && rsiValues[j] <= 70) {
-                        cycleStartTime = allData[j][0];
+                        let cycleStartTime = allData[j][0];
                         const cycleSlice = allData.slice(j, i + 1);
                         highAnchor = Math.max(...cycleSlice.map(k => k[2]));
                         lowAnchor = Math.min(...cycleSlice.map(k => k[3]));
@@ -113,8 +135,8 @@
             textEl.textContent = percentage.toFixed(2) + '%';
             textEl.className = `value font-black ${percentage < 50 ? 'text-green-400' : 'text-red-400'}`;
         }
-        if (document.getElementById('val-high')) document.getElementById('val-high').textContent = highAnchor.toLocaleString();
-        if (document.getElementById('val-low')) document.getElementById('val-low').textContent = lowAnchor.toLocaleString();
+        if (document.getElementById('cycle-high-val')) document.getElementById('cycle-high-val').textContent = highAnchor.toLocaleString();
+        if (document.getElementById('cycle-low-val')) document.getElementById('cycle-low-val').textContent = lowAnchor.toLocaleString();
     };
 
     document.addEventListener('DOMContentLoaded', () => {

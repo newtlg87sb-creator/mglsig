@@ -84,6 +84,64 @@
             </div>
 
             <script src="/static/js/candle.js"></script>
+
+            <!-- ── Unified Terminal Window (New) ── -->
+            <div class="mt-12 pt-8 border-t border-brand-border">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                    <div>
+                        <h2 class="text-2xl font-black text-white uppercase tracking-tighter">Unified <span class="text-brand-gold italic">Scanner</span></h2>
+                        <p class="text-[9px] text-gray-500 font-bold uppercase tracking-[0.3em] mt-1">Institutional Multi-Exchange Data Stream</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <select id="terminal-market-type" onchange="resetAndFetchTerminal()" class="bg-brand-dark border border-brand-border text-white rounded-lg px-3 py-1.5 text-[10px] font-black outline-none focus:border-brand-gold transition-colors">
+                            <option value="spot">SPOT MARKET</option>
+                            <option value="swap">FUTURE MARKET</option>
+                        </select>
+                        <div id="terminal-timer" class="text-[10px] font-mono bg-black px-3 py-1.5 border border-brand-border text-green-500 rounded-lg min-w-[55px] text-center shadow-inner">OFF</div>
+                    </div>
+                </div>
+
+                <div id="exchange-buttons" class="flex flex-wrap gap-2 mb-6">
+                    <!-- Exchange Selectors Injected Here -->
+                </div>
+
+                <div class="flex flex-col lg:flex-row gap-6">
+                    <!-- 1/5: Logs -->
+                    <div class="w-full lg:w-1/5 flex flex-col gap-2">
+                        <h3 class="text-[9px] font-black uppercase text-gray-600 tracking-widest flex items-center px-1"><i class="fas fa-terminal mr-2"></i>Scanner Logs</h3>
+                        <div id="terminal-log-container" class="h-[500px] bg-black border border-brand-border rounded-xl p-4 font-mono text-[9px] text-green-500/70 overflow-y-auto shadow-2xl">
+                            <div class="opacity-30 italic">[System] Initializing scanner engine...</div>
+                        </div>
+                    </div>
+
+                    <!-- 4/5: Table -->
+                    <div class="w-full lg:w-4/5 flex flex-col gap-2">
+                        <div class="flex justify-between items-center px-1">
+                            <h3 class="text-[9px] font-black uppercase text-gray-600 tracking-widest flex items-center"><i class="fas fa-list mr-2"></i>Global Feed</h3>
+                            <input type="text" id="terminal-global-search" oninput="renderTerminalUI()" placeholder="Filter results..." class="bg-black/40 border border-brand-border rounded-lg py-1.5 px-4 text-[10px] text-white focus:border-brand-gold outline-none w-48 font-bold transition-all">
+                        </div>
+                        <div class="h-[500px] bg-[#05070a] border border-brand-border rounded-xl overflow-hidden relative shadow-2xl">
+                            <div class="overflow-y-auto h-full scroll-luxury">
+                                <table class="w-full text-left border-collapse">
+                                    <thead class="sticky top-0 bg-brand-dark-blue z-20 shadow-lg border-b border-brand-border">
+                                        <tr class="text-[9px] text-gray-500 uppercase font-black tracking-widest">
+                                            <th class="p-4 cursor-pointer hover:text-white" onclick="updateSortTerminal('name')">Name</th>
+                                            <th class="p-4 cursor-pointer hover:text-white" onclick="updateSortTerminal('symbol')">Symbol</th>
+                                            <th class="p-4 text-right cursor-pointer hover:text-white" onclick="updateSortTerminal('price')">Price</th>
+                                            <th class="p-4 text-right cursor-pointer hover:text-white" onclick="updateSortTerminal('spread')">Spread %</th>
+                                            <th class="p-4 text-right cursor-pointer hover:text-white" onclick="updateSortTerminal('change')">24H %</th>
+                                            <th class="p-4">Risk Audit</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="terminal-master-table" class="font-mono text-[10px] divide-y divide-white/5"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script src="/static/js/terminal_10.js"></script>
         </div>
     </main>
 

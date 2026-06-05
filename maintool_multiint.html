@@ -61,8 +61,24 @@
     (function() {
         const extraIntervals = ['3m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '8h'];
         const colors = { '3m': '#94a3b8', '5m': '#eab308', '15m': '#06b6d4', '30m': '#3b82f6', '1h': '#a855f7', '2h': '#ec4899', '4h': '#f97316', '6h': '#ef4444', '8h': '#10b981' };
-        let dataCache = {}; 
+        let dataCache = {};
         let activeLines = { '3m': false, '5m': false, '15m': false, '30m': true, '1h': true, '2h': true, '4h': true, '6h': true, '8h': true };
+
+        // 1. EMA Тооцоолох туслах функц (Бие даасан)
+        const calculateEMA = (data, period) => {
+            if (!data || data.length < period) return new Array(data.length).fill(null);
+            const k = 2 / (period + 1);
+            const ema = new Array(data.length).fill(null);
+            
+            let sum = 0;
+            for (let i = 0; i < period; i++) sum += data[i][4];
+            ema[period - 1] = sum / period;
+
+            for (let i = period; i < data.length; i++) {
+                ema[i] = (data[i][4] - ema[i - 1]) * k + ema[i - 1];
+            }
+            return ema;
+        };
 
         // Интервал асааж унтраах логик
         document.querySelectorAll('.toggle-line').forEach(btn => {
@@ -83,17 +99,22 @@
         // Төв хөдөлгүүрийн Hook
         window.onChartDrawOverlay = async function(ctx, engine) {
             const { priceToY, candleWidth, padding, visibleData, visibleStartIndex, allData } = engine;
+            if (!allData || allData.length < 2) return;
+            
             const market = document.getElementById('market')?.value || 'spot';
             const symbol = document.getElementById('coin')?.value.toUpperCase() || 'BTCUSDT';
             const livePrice = allData[allData.length - 1][4];
 
             // 1. Дата бэлдэх болон Трэнд тодорхойлох
             for (const int of extraIntervals) {
-                // Зөвхөн 5 минут тутамд эсвэл Койн солигдоход шинээр татна
                 if (!dataCache[int] || dataCache[int].symbol !== symbol) {
-                    dataCache[int] = { symbol, history: await fetchHistory(symbol, int, market) };
+                    // Async ачааллыг UI гацаахгүй байхаар шийдэв
+                    fetchHistory(symbol, int, market).then(h => {
+                        dataCache[int] = { symbol, history: h };
+                    });
                 }
 
+                if (!dataCache[int] || !dataCache[int].history) continue;
                 const history = dataCache[int].history;
                 if (!history.length) continue;
 
@@ -143,7 +164,10 @@
             }
 
             // Base Interval (1M) Status
-            const baseTrend = livePrice > calculateEMA(allData, 20).pop() ? 'BULLISH' : 'BEARISH';
+            const baseEmaValues = calculateEMA(allData, 20);
+            const lastBaseEma = baseEmaValues[baseEmaValues.length - 1];
+            const baseTrend = livePrice > lastBaseEma ? 'BULLISH' : 'BEARISH';
+            
             const baseCard = document.getElementById('card-1m');
             if (baseCard) {
                 baseCard.querySelector('.value span').textContent = baseTrend;
