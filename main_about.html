@@ -273,13 +273,14 @@
                 targetBtn.style.opacity = '0.7';
 
                 try {
-                    // 3. Шинэ Donation API-г дуудах
-                    const response = await fetch('/api/donation-invoice', {
+                    // 3. Төлбөрийн API-г дуудах (Pricing-тэй адил нэг суваг ашиглах нь найдвартай)
+                    const response = await fetch('/api/create-invoice', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
-                            userId: user ? user.id : null,
-                            price_amount: amount
+                            userId: user ? user.id : 'guest_donation',
+                            price_amount: amount,
+                            type: 'donation'
                         })
                     });
 
@@ -287,7 +288,7 @@
                     if (data.invoiceUrl) {
                         window.location.href = data.invoiceUrl;
                     } else {
-                        alert('Алдаа гарлаа. Дахин оролдоно уу.');
+                        alert(data.error || data.message || 'Серверээс хариу ирсэнгүй. Дахин оролдоно уу.');
                         resetBtn();
                     }
                 } catch (error) {
