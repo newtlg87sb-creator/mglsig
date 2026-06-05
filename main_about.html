@@ -275,12 +275,13 @@
                 try {
                     // 3. Төлбөрийн API-г дуудах (Pricing-тэй адил нэг суваг ашиглах нь найдвартай)
                     const response = await fetch('/api/create-invoice', {
+                    // ЗӨВХӨН ХАНДИВЫН API-Г ДУУДАХААР ӨӨРЧЛӨВ
+                    const response = await fetch('/api/donation-invoice', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
                             userId: user ? user.id : 'guest_donation',
-                            price_amount: amount,
-                            type: 'donation'
+                            price_amount: amount
                         })
                     });
 
