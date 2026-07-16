@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSI Divergence Scanner - MGL Signal</title>
+
+    <!-- SEO Tags -->
+    <meta name="description" content="A live chart tool that automatically detects and draws RSI Divergence (bullish and bearish) on any crypto pair from Binance. A powerful indicator for predicting market reversals.">
+    <meta name="keywords" content="RSI divergence, divergence scanner, crypto divergence, trading tool, bullish divergence, bearish divergence, MGL Signal, Binance chart">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://mglsignal.com/maintool_divergence.html">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://mglsignal.com/maintool_divergence.html">
+    <meta property="og:title" content="RSI Divergence Scanner - MGL Signal">
+    <meta property="og:description" content="Automatically detect and draw RSI Divergence on any crypto pair. A powerful indicator for predicting market reversals.">
+    <meta property="og:image" content="https://mglsignal.com/static/new/images/logogo1.png">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 'dark': '#05070a', 'dark-blue': '#0f1217', 'gold': '#c5a059', 'border': '#1f242d' }
+                    },
+                    fontFamily: { 'inter': ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/static/main_style.css">
+
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https:; script-src 'self' https://cdn.tailwindcss.com 'unsafe-inline' https://s3.tradingview.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://api.binance.com https://fapi.binance.com wss://stream.binance.com wss://fstream.binance.com https://bsdkbxyjwjljximdxdst.supabase.co;">
+
+    <script>
+        const pageTranslations = {
+            mn: {
+                "div-expl-title": "Улаан/Ногоон шугам гэж юу вэ? (Зөрүү)",
+                "div-bull-title": "Өсөх зөрүү (Ногоон шугам)",
+                "div-bull-desc": "Энэ нь үнэ шинэ доод цэгт хүрсэн ч RSI индикатор эсрэгээрээ дээшилж байх үед гарч ирдэг. Энэ нь уналтын эрч суларч, удахгүй үнэ өсөлт рүү эргэж магадгүйг илтгэнэ. Энэ бол 'авах' боломжит дохио юм.",
+                "div-bear-title": "Унах зөрүү (Улаан шугам)",
+                "div-bear-desc": "Энэ нь үнэ шинэ дээд цэгт хүрсэн ч RSI индикатор эсрэгээрээ доошилж байх үед гарч ирдэг. Энэ нь өсөлтийн эрч суларч, удахгүй үнэ уналт руу эргэж магадгүйг илтгэнэ. Энэ бол 'зарах' боломжит дохио юм.",
+                "back-to-tools": '<i class="fas fa-arrow-left mr-2"></i> Хэрэгслүүд рүү буцах',
+                "lbl-market": "Зах зээл:",
+                "lbl-time": "Хугацаа:",
+                "lbl-pair": "Хослол:",
+                "lbl-search": "Хайх...",
+                "ws-disconnected": "Салсан",
+                "ws-live": "ШУУД",
+                "ws-error": "Алдаа",
+                "ws-offline": "Оффлайн",
+                "rsi-label": "RSI (14)",
+                "error-fetching": "Өгөгдөл татахад алдаа гарлаа:"
+            },
+            en: {
+                "div-expl-title": "What are the Red/Green Lines? (Divergence)",
+                "div-bull-title": "Bullish Divergence (Green Line)",
+                "div-bull-desc": "This appears when the price makes a new low, but the RSI indicator makes a higher low. It suggests that the downward momentum is weakening and the price may soon reverse to the upside. It's a potential 'buy' signal.",
+                "div-bear-title": "Bearish Divergence (Red Line)",
+                "div-bear-desc": "This appears when the price makes a new high, but the RSI indicator makes a lower high. It suggests that the upward momentum is weakening and the price may soon reverse to the downside. It's a potential 'sell' signal.",
+                "back-to-tools": '<i class="fas fa-arrow-left mr-2"></i> Back to Market Tools',
+                "lbl-market": "Market:",
+                "lbl-time": "Time:",
+                "lbl-pair": "Pair:",
+                "lbl-search": "Search...",
+                "ws-disconnected": "Disconnected",
+                "ws-live": "LIVE",
+                "ws-error": "Error",
+                "ws-offline": "Offline",
+                "rsi-label": "RSI (14)",
+                "error-fetching": "Error fetching data:"
+            }
+        };
+        if (typeof window.translations === 'undefined') window.translations = { mn: {}, en: {} };
+        Object.keys(pageTranslations).forEach(lang => {
+            window.translations[lang] = { ...window.translations[lang], ...pageTranslations[lang] };
+        });
+    </script>
+</head>
+<body class="bg-brand-dark text-white font-inter flex flex-col min-h-screen">
+
+    <script src="/static/js/header.js"></script>
+
+    <main class="flex-grow pt-32 pb-12 px-4 md:px-6">
+        <div class="max-w-7xl mx-auto flex flex-col gap-6">
+            <!-- Back Button -->
+            <div class="mb-4">
+                <a href="/main_altcoin_tools.html" data-i18n="back-to-tools" class="inline-flex items-center text-gray-500 hover:text-brand-gold transition text-[10px] font-black uppercase tracking-widest">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to Market Tools
+                </a>
+            </div>
+
+            <script>
+            (function() {
+                const currentScript = document.currentScript;
+                if (!currentScript) return;
+
+                const controlHTML = `
+                <div class="controls-container flex flex-wrap items-center gap-4 p-4 bg-brand-dark-blue border border-brand-border rounded-xl shadow-lg">
+                    <div class="control-item flex items-center space-x-2">
+                        <label for="market" data-i18n="lbl-market" class="text-gray-500 font-bold uppercase text-[10px]">Market:</label>
+                        <select id="market" class="bg-brand-dark border border-brand-border text-white rounded px-3 py-1.5 text-xs shadow-inner">
+                            <option value="futures" selected>Futures</option>
+                            <option value="spot">Spot</option>
+                        </select>
+                    </div>
+
+                    <div class="control-item flex items-center space-x-2">
+                        <label for="interval" data-i18n="lbl-time" class="text-gray-500 font-bold uppercase text-[10px]">Time:</label>
+                        <select id="interval" class="bg-brand-dark border border-brand-border text-white rounded px-3 py-1.5 text-xs shadow-inner">
+                            <option value="1s">1s</option>
+                            <option value="1m" selected>1m</option>
+                            <option value="3m">3m</option>
+                            <option value="5m">5m</option>
+                            <option value="15m">15m</option>
+                            <option value="30m">30m</option>
+                            <option value="1h">1h</option>
+                            <option value="2h">2h</option>
+                            <option value="4h">4h</option>
+                            <option value="6h">6h</option>
+                            <option value="8h">8h</option>
+                            <option value="12h">12h</option>
+                            <option value="1d">1d</option>
+                            <option value="3d">3d</option>
+                            <option value="1w">1w</option>
+                            <option value="1M">1M</option>
+                        </select>
+                    </div>
+
+                    <div id="pair-container" class="control-item flex items-center space-x-2">
+                        <label for="coin" data-i18n="lbl-pair" class="text-gray-500 font-bold uppercase text-[10px]">Pair:</label>
+                        <input type="text" id="coin" value="BTCUSDT" list="coin-list" data-i18n-placeholder="lbl-search" placeholder="Search..." class="bg-brand-dark border border-brand-border text-white rounded px-3 py-1.5 w-32 uppercase font-bold text-xs shadow-inner transition-colors" />
+                        <datalist id="coin-list"></datalist>
+                    </div>
+                </div>
+                `;
+
+                currentScript.insertAdjacentHTML('beforebegin', controlHTML);
+
+                const controls = document.querySelector('.controls-container');
+                controls.insertAdjacentHTML('beforeend', `<div id="ws-status" class="ml-auto flex items-center space-x-2 bg-black/40 px-3 py-1.5 rounded-lg border border-brand-border"><span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" id="ws-dot"></span><span class="text-[9px] font-black uppercase text-gray-500" id="ws-text" data-i18n="ws-disconnected">Disconnected</span></div>`);
+
+                async function fetchAndPopulateSymbols() {
+                    const marketEl = document.getElementById("market");
+                    const coinList = document.getElementById('coin-list');
+                    
+                    if (coinList) coinList.innerHTML = '';
+
+                    const market = marketEl ? marketEl.value : 'spot';
+                    
+                    const url = market === 'futures' 
+                        ? 'https://fapi.binance.com/fapi/v1/exchangeInfo' 
+                        : 'https://api.binance.com/api/v3/exchangeInfo';
+                    
+                    try {
+                        const response = await fetch(url);
+                        const data = await response.json();
+                        if (!document.getElementById('coin-list')) return;
+
+                        const symbols = data.symbols || [];
+                        let usdtSymbols = [];
+
+                        if (market === 'futures') {
+                            usdtSymbols = symbols.filter(s => s.quoteAsset === 'USDT' && s.status === 'TRADING' && s.contractType === 'PERPETUAL').map(s => s.symbol);
+                        } else {
+                            usdtSymbols = symbols.filter(s => s.quoteAsset === 'USDT' && s.status === 'TRADING' && !s.symbol.endsWith('UP') && !s.symbol.endsWith('DOWN') && !s.symbol.endsWith('BEAR') && !s.symbol.endsWith('BULL')).map(s => s.symbol);
+                        }
+
+                        usdtSymbols.sort().forEach(symbol => {
+                            const option = document.createElement('option');
+                            option.value = symbol;
+                            coinList.appendChild(option);
+                        });
+                    } catch (error) {
+                        console.error("Failed to fetch symbol list:", error);
+                    }
+                }
+
+                document.addEventListener('DOMContentLoaded', () => {
+                    const marketEl = document.getElementById("market");
+                    const intervalEl = document.getElementById("interval");
+
+                    window.syncControlsAndFetch = function() {
+                        if (!marketEl || !intervalEl) return;
+                        
+                        const isFutures = marketEl.value === 'futures';
+                        const option1s = intervalEl.querySelector('option[value="1s"]');
+
+                        if (isFutures) {
+                            if (option1s) option1s.style.display = 'none';
+                            if (intervalEl.value === '1s') intervalEl.value = '1m';
+                        } else {
+                            if (option1s) option1s.style.display = 'block';
+                        }
+
+                        fetchAndPopulateSymbols();
+                    }
+
+                    syncControlsAndFetch();
+                });
+            })();
+            </script>
+
+            <script>
+            (function() {
+                const currentScript = document.currentScript;
+                if (!currentScript) return;
+
+                const chartHTML = `
+                <div id="chart-container" class="flex flex-col gap-2">
+                    <div id="chart-wrapper" class="relative w-full h-[500px] bg-[#05070a] border border-brand-border rounded-xl overflow-hidden">
+                        <canvas id="chart" class="block w-full h-full cursor-crosshair"></canvas>
+                    </div>
+                    <div id="rsi-chart-wrapper" class="relative w-full h-[150px] bg-[#05070a] border border-brand-border rounded-xl overflow-hidden">
+                        <div data-i18n="rsi-label" class="absolute top-2 left-4 text-[10px] font-bold text-gray-500 uppercase">RSI (14)</div>
+                        <canvas id="rsi-chart" class="block w-full h-full cursor-crosshair"></canvas>
+                    </div>
+                </div>
+                `;
+                currentScript.insertAdjacentHTML('beforebegin', chartHTML);
+
+                const explanationHTML = `
+                <div class="mt-8 bg-brand-dark-blue border border-brand-border rounded-xl p-6">
+                    <h3 data-i18n="div-expl-title" class="text-lg font-bold text-brand-gold mb-4 flex items-center">
+                        <i class="fas fa-lightbulb mr-3"></i> Улаан/Ногоон шугам гэж юу вэ? (Зөрүү)
+                    </h3>
+                    <div class="space-y-4 text-sm text-gray-400">
+                        <div class="flex items-start gap-4">
+                            <div class="w-1 h-12 bg-green-500 rounded-full mt-1 shrink-0"></div>
+                            <div>
+                                <strong data-i18n="div-bull-title" class="text-green-400">Өсөх зөрүү (Ногоон шугам)</strong>
+                                <p data-i18n="div-bull-desc" class="text-xs mt-1">Энэ нь үнэ шинэ доод цэгт хүрсэн ч RSI индикатор эсрэгээрээ дээшилж байх үед гарч ирдэг. Энэ нь уналтын эрч суларч, удахгүй үнэ өсөлт рүү эргэж магадгүйг илтгэнэ. Энэ бол 'авах' боломжит дохио юм.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-1 h-12 bg-red-500 rounded-full mt-1 shrink-0"></div>
+                            <div>
+                                <strong data-i18n="div-bear-title" class="text-red-400">Унах зөрүү (Улаан шугам)</strong>
+                                <p data-i18n="div-bear-desc" class="text-xs mt-1">Энэ нь үнэ шинэ дээд цэгт хүрсэн ч RSI индикатор эсрэгээрээ доошилж байх үед гарч ирдэг. Энэ нь өсөлтийн эрч суларч, удахгүй үнэ уналт руу эргэж магадгүйг илтгэнэ. Энэ бол 'зарах' боломжит дохио юм.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+                document.getElementById('chart-container').insertAdjacentHTML('afterend', explanationHTML);
+            })();
+
+            window.dispatchChartUpdate = function() { /* Placeholder */ }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                const canvas = document.getElementById("chart");
+                const rsiCanvas = document.getElementById("rsi-chart");
+                if (!canvas) return;
+                
+                const ctx = canvas.getContext("2d");
+                let socket;
+                
+                const marketEl = document.getElementById("market");
+                const intervalEl = document.getElementById("interval");
+                const coinEl = document.getElementById("coin");
+
+                let symbol = coinEl?.value.toUpperCase() || "BTCUSDT";
+                let interval = intervalEl?.value || "1m";
+                let allData = [];
+                let visibleCount = 80;
+                let offset = 0;
+                const minVisible = 20, maxVisible = 200;
+                let mouse = { x:null, y:null }, dragging = false, lastX = 0;
+                let priceScale = 1, priceOffset = 0, draggingPrice = false, lastY = 0, lastPriceRange = 0, lastChartHeight = 0;
+
+                const rsiCtx = rsiCanvas.getContext("2d");
+                let rsiValues = [];
+
+                function resize() {
+                    if (canvas.parentElement) {
+                        canvas.width = canvas.parentElement.clientWidth;
+                        canvas.height = canvas.parentElement.clientHeight;
+                        rsiCanvas.width = rsiCanvas.parentElement.clientWidth;
+                        rsiCanvas.height = rsiCanvas.parentElement.clientHeight;
+                    }
+                    draw();
+                }
+                
+                window.addEventListener("resize", resize);
+                setTimeout(resize, 100);
+
+                function calculateRSI(closes, period = 14) {
+                    const rsi = new Array(closes.length).fill(null);
+                    if (closes.length <= period) return rsi;
+                    let gains = 0, losses = 0;
+                    for (let i = 1; i <= period; i++) {
+                        const change = closes[i] - closes[i - 1];
+                        if (change >= 0) gains += change; else losses -= change;
+                    }
+                    let avgGain = gains / period, avgLoss = losses / period;
+                    rsi[period] = 100 - 100 / (1 + (avgLoss === 0 ? 100 : avgGain / avgLoss));
+                    for (let i = period + 1; i < closes.length; i++) {
+                        const change = closes[i] - closes[i - 1];
+                        avgGain = (avgGain * (period - 1) + (change > 0 ? change : 0)) / period;
+                        avgLoss = (avgLoss * (period - 1) + (change < 0 ? -change : 0)) / period;
+                        rsi[i] = 100 - 100 / (1 + (avgLoss === 0 ? 100 : avgGain / avgLoss));
+                    }
+                    return rsi;
+                }
+
+                function findPivots(data, lookback) {
+                    const highs = [], lows = [];
+                    if (!data || data.length < lookback * 2 + 1) return { highs, lows };
+                    for (let i = lookback; i < data.length - lookback; i++) {
+                        const window = data.slice(i - lookback, i + lookback + 1);
+                        if (window.every(val => val === null || data[i] >= val) && data[i] !== null) highs.push({ index: i, value: data[i] });
+                        if (window.every(val => val === null || data[i] <= val) && data[i] !== null) lows.push({ index: i, value: data[i] });
+                    }
+                    return { highs, lows };
+                }
+
+                function findDivergences(priceData, rsiData, lookback = 5) {
+                    const priceCloses = priceData.map(d => d[4]);
+                    const pricePivots = findPivots(priceCloses, lookback);
+                    const rsiPivots = findPivots(rsiData, lookback);
+                    const divergences = [];
+                    if (pricePivots.lows.length >= 2 && rsiPivots.lows.length >= 2) {
+                        for (let i = pricePivots.lows.length - 1; i > 0; i--) {
+                            const pLow2 = pricePivots.lows[i], pLow1 = pricePivots.lows[i - 1];
+                            const rsiLow2 = rsiPivots.lows.find(rl => Math.abs(rl.index - pLow2.index) <= 2);
+                            const rsiLow1 = rsiPivots.lows.find(rl => Math.abs(rl.index - pLow1.index) <= 2);
+                            if (rsiLow1 && rsiLow2 && pLow2.value < pLow1.value && rsiLow2.value > rsiLow1.value) {
+                                divergences.push({ type: 'bullish', p1: pLow1, p2: pLow2, r1: rsiLow1, r2: rsiLow2 });
+                            }
+                        }
+                    }
+                    if (pricePivots.highs.length >= 2 && rsiPivots.highs.length >= 2) {
+                        for (let i = pricePivots.highs.length - 1; i > 0; i--) {
+                            const pHigh2 = pricePivots.highs[i], pHigh1 = pricePivots.highs[i - 1];
+                            const rsiHigh2 = rsiPivots.highs.find(rh => Math.abs(rh.index - pHigh2.index) <= 2);
+                            const rsiHigh1 = rsiPivots.highs.find(rh => Math.abs(rh.index - pHigh1.index) <= 2);
+                            if (rsiHigh1 && rsiHigh2 && pHigh2.value > pHigh1.value && rsiHigh2.value < rsiHigh1.value) {
+                                divergences.push({ type: 'bearish', p1: pHigh1, p2: pHigh2, r1: rsiHigh1, r2: rsiHigh2 });
+                            }
+                        }
+                    }
+                    return divergences;
+                }
+
+                function formatPrice(price) {
+                    if (price >= 100) return price.toFixed(2);
+                    if (price >= 1) return price.toFixed(4);
+                    if (price >= 0.001) return price.toFixed(6);
+                    return price.toPrecision(4);
+                }
+
+                async function fetchCandles() {
+                    if (!marketEl || !coinEl) return;
+                    if (!symbol) symbol = "BTCUSDT";
+                    let url = marketEl.value === "futures" ? `https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=${interval}&limit=500` : `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=500`;
+                    try {
+                        const res = await fetch(url);
+                        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                        allData = (await res.json()).map(d => [Number(d[0]), Number(d[1]), Number(d[2]), Number(d[3]), Number(d[4]), Number(d[5])]);
+                        rsiValues = calculateRSI(allData.map(d => d[4]));
+                        draw();
+                        dispatchChartUpdate();
+                        startWebSocket();
+                    } catch (e) {
+                        console.error("Error fetching candles:", e);
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.fillStyle = "red"; ctx.font = "16px Arial"; ctx.textAlign = "center";
+                        const lang = localStorage.getItem('lang') || 'en';
+                        const errorText = window.translations[lang]['error-fetching'] || 'Error fetching data:';
+                        ctx.fillText(`${errorText} ${e.message}`, canvas.width / 2, canvas.height / 2);
+                        if (socket) { socket.onclose = null; socket.close(); socket = null; }
+                    }
+                }
+
+                function draw() {
+                    if (!allData || !allData.length) return;
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    rsiCtx.clearRect(0, 0, rsiCanvas.width, rsiCanvas.height);
+                    const padding = 40, priceScaleWidth = 80, timeScaleHeight = 30, chartHeight = canvas.height - padding * 2 - timeScaleHeight;
+                    lastChartHeight = chartHeight;
+                    const chartWidth = canvas.width - padding * 2 - priceScaleWidth;
+                    const end = allData.length - offset, start = Math.max(0, end - visibleCount), data = allData.slice(start, end);
+                    if (!data.length) return;
+                    const prices = data.flatMap(d => [d[2], d[3]]);
+                    let maxPrice = Math.max(...prices), minPrice = Math.min(...prices);
+                    if (maxPrice === minPrice) { maxPrice += maxPrice * 0.001; minPrice -= minPrice * 0.001; }
+                    if (priceScale !== 1) { const mid = (maxPrice + minPrice) / 2, halfRange = (maxPrice - minPrice) / 2; maxPrice = mid + halfRange * priceScale; minPrice = mid - halfRange * priceScale; }
+                    lastPriceRange = maxPrice - minPrice;
+                    maxPrice += priceOffset; minPrice += priceOffset;
+                    const priceToY = p => padding + (maxPrice - p) / (maxPrice - minPrice) * chartHeight;
+                    const yToPrice = y => maxPrice - ((y - padding) / chartHeight) * (maxPrice - minPrice);
+                    const candleWidth = chartWidth / data.length;
+                    ctx.font = "12px Arial"; ctx.strokeStyle = "#1f2630"; ctx.fillStyle = "#aaa";
+                    for (let i = 0; i <= 6; i++) { const price = minPrice + (i / 6) * (maxPrice - minPrice), y = priceToY(price); ctx.beginPath(); ctx.moveTo(padding, y); ctx.lineTo(padding + chartWidth, y); ctx.stroke(); ctx.fillText(formatPrice(price), padding + chartWidth + 5, y + 4); }
+                    const numTicks = Math.max(2, Math.floor(chartWidth / 100)), step = Math.ceil(data.length / numTicks);
+                    ctx.textAlign = "center";
+                    for (let i = 0; i < data.length; i += step) { const x = padding + i * candleWidth + candleWidth / 2, ts = data[i][0], date = new Date(ts); let label = interval.endsWith('d') || interval.endsWith('w') || interval.endsWith('M') ? date.toLocaleDateString(undefined, { year: 'numeric', month: 'numeric', day: 'numeric' }) : date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0'); ctx.strokeStyle = "#1f2630"; ctx.beginPath(); ctx.moveTo(x, padding); ctx.lineTo(x, padding + chartHeight); ctx.stroke(); ctx.fillStyle = "#aaa"; ctx.fillText(label, x, padding + chartHeight + 20); }
+                    ctx.textAlign = "left";
+                    data.forEach((d, i) => { const [o, h, l, c] = [d[1], d[2], d[3], d[4]], x = padding + i * candleWidth, yO = priceToY(o), yC = priceToY(c), yH = priceToY(h), yL = priceToY(l), bull = c >= o; const grd = ctx.createLinearGradient(x, yH, x, yL); if (bull) { grd.addColorStop(0, "#3ee69b"); grd.addColorStop(1, "#0ecb81"); } else { grd.addColorStop(0, "#ffffff"); grd.addColorStop(1, "#ffffff"); } ctx.fillStyle = grd; ctx.strokeStyle = bull ? "#0ecb81" : "#ffffff"; ctx.shadowColor = bull ? "#0ecb81" : "#ffffff"; ctx.shadowBlur = 1; ctx.beginPath(); ctx.moveTo(x + candleWidth / 2, yH); ctx.lineTo(x + candleWidth / 2, yL); ctx.stroke(); ctx.fillRect(x + candleWidth * 0.2, Math.min(yO, yC), candleWidth * 0.6, Math.max(1, Math.abs(yO - yC))); ctx.shadowBlur = 0; });
+                    const lastClose = data[data.length - 1][4], yLast = priceToY(lastClose);
+                    ctx.setLineDash([5, 5]); ctx.strokeStyle = "#f0b90b"; ctx.beginPath(); ctx.moveTo(padding, yLast); ctx.lineTo(padding + chartWidth, yLast); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = "#f0b90b"; ctx.fillText(formatPrice(lastClose), padding + chartWidth + 5, yLast - 4);
+                    if (mouse.x && mouse.y && mouse.x > padding && mouse.x < padding + chartWidth && mouse.y > padding && mouse.y < padding + chartHeight) { const index = Math.floor((mouse.x - padding) / candleWidth), candle = data[index]; if (candle) { const candleX = padding + index * candleWidth + candleWidth / 2; ctx.strokeStyle = "#888"; ctx.beginPath(); ctx.moveTo(candleX, padding); ctx.lineTo(candleX, padding + chartHeight); ctx.stroke(); ctx.beginPath(); ctx.moveTo(padding, mouse.y); ctx.lineTo(padding + chartWidth, mouse.y); ctx.stroke(); const price = yToPrice(mouse.y); ctx.fillStyle = "#111"; ctx.fillRect(padding + chartWidth, mouse.y - 10, priceScaleWidth, 20); ctx.fillStyle = "#fff"; ctx.fillText(formatPrice(price), padding + chartWidth + 5, mouse.y + 4); } }
+                    const divergences = findDivergences(allData, rsiValues, 5);
+                    divergences.forEach(div => { const startIdx = Math.max(0, allData.length - visibleCount - offset), p1VisibleIdx = div.p1.index - startIdx, p2VisibleIdx = div.p2.index - startIdx; if (p1VisibleIdx >= 0 && p2VisibleIdx < visibleCount) { const p1x = padding + p1VisibleIdx * candleWidth + candleWidth / 2, p2x = padding + p2VisibleIdx * candleWidth + candleWidth / 2, p1y = priceToY(div.p1.value), p2y = priceToY(div.p2.value); ctx.beginPath(); ctx.moveTo(p1x, p1y); ctx.lineTo(p2x, p2y); ctx.strokeStyle = div.type === 'bullish' ? 'rgba(16, 185, 129, 0.8)' : 'rgba(239, 68, 68, 0.8)'; ctx.lineWidth = 2; ctx.stroke(); const lookForward = 10, startIndex = div.p2.index + 1, endIndex = Math.min(startIndex + lookForward, allData.length), subsequentCandles = allData.slice(startIndex, endIndex); if (subsequentCandles.length > 0) { let targetIndex, targetPrice; if (div.type === 'bullish') { let highestHigh = -1; subsequentCandles.forEach((candle, i) => { const high = candle[2]; if (high > highestHigh) { highestHigh = high; targetIndex = startIndex + i; targetPrice = highestHigh; } }); } else { let lowestLow = Infinity; subsequentCandles.forEach((candle, i) => { const low = candle[3]; if (low < lowestLow) { lowestLow = low; targetIndex = startIndex + i; targetPrice = lowestLow; } }); } if (targetIndex !== undefined) { const targetVisibleIdx = targetIndex - startIdx, targetX = padding + targetVisibleIdx * candleWidth + candleWidth / 2, targetY = priceToY(targetPrice); drawArrow(ctx, p2x, p2y, targetX, targetY, div.type === 'bullish' ? 'rgba(16, 185, 129, 0.9)' : 'rgba(239, 68, 68, 0.9)'); } } } });
+                    const rsiChartHeight = rsiCanvas.height, rsiChartWidth = rsiCanvas.width - padding * 2 - priceScaleWidth, rsiCandleWidth = rsiChartWidth / data.length;
+                    rsiCtx.strokeStyle = "#1f2630"; rsiCtx.fillStyle = "#aaa"; rsiCtx.font = "10px Arial";
+                    [30, 50, 70].forEach(level => { const y = rsiChartHeight - (level / 100 * rsiChartHeight); rsiCtx.beginPath(); rsiCtx.moveTo(padding, y); rsiCtx.lineTo(padding + rsiChartWidth, y); rsiCtx.stroke(); rsiCtx.fillText(level, padding + rsiChartWidth + 5, y + 4); });
+                    rsiCtx.beginPath(); rsiCtx.strokeStyle = "#c5a059"; rsiCtx.lineWidth = 1.5; let firstPoint = true;
+                    for (let i = 0; i < data.length; i++) { const rsiVal = rsiValues[start + i]; if (rsiVal !== null) { const x = padding + i * rsiCandleWidth + rsiCandleWidth / 2, y = rsiChartHeight - (rsiVal / 100 * rsiChartHeight); if (firstPoint) { rsiCtx.moveTo(x, y); firstPoint = false; } else { rsiCtx.lineTo(x, y); } } }
+                    rsiCtx.stroke();
+                    divergences.forEach(div => { const startIdx = Math.max(0, allData.length - visibleCount - offset); const r1x = padding + (div.r1.index - startIdx) * rsiCandleWidth + rsiCandleWidth / 2, r2x = padding + (div.r2.index - startIdx) * rsiCandleWidth + rsiCandleWidth / 2, r1y = rsiChartHeight - (div.r1.value / 100 * rsiChartHeight), r2y = rsiChartHeight - (div.r2.value / 100 * rsiChartHeight); rsiCtx.beginPath(); rsiCtx.moveTo(r1x, r1y); rsiCtx.lineTo(r2x, r2y); rsiCtx.strokeStyle = div.type === 'bullish' ? 'rgba(16, 185, 129, 0.8)' : 'rgba(239, 68, 68, 0.8)'; rsiCtx.lineWidth = 2; rsiCtx.stroke(); });
+                }
+
+                function drawArrow(ctx, fromx, fromy, tox, toy, color) {
+                    const headlen = 10, dx = tox - fromx, dy = toy - fromy, angle = Math.atan2(dy, dx);
+                    ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(fromx, fromy); ctx.lineTo(tox, toy); ctx.lineTo(tox - headlen * Math.cos(angle - Math.PI / 6), toy - headlen * Math.sin(angle - Math.PI / 6)); ctx.moveTo(tox, toy); ctx.lineTo(tox - headlen * Math.cos(angle + Math.PI / 6), toy - headlen * Math.sin(angle + Math.PI / 6)); ctx.stroke(); ctx.restore();
+                }
+
+                function startWebSocket() {
+                    if (socket) { socket.onclose = null; socket.close(); }
+                    let currentCoin = coinEl.value.toUpperCase().replace(/[^A-Z0-9]/g, '') || "BTCUSDT";
+                    const wsUrl = `wss://stream.binance.com/ws/${currentCoin.toLowerCase()}@kline_1m`;
+                    socket = new WebSocket(wsUrl);
+                    const dot = document.getElementById('ws-dot'), text = document.getElementById('ws-text');
+                    const lang = localStorage.getItem('lang') || 'en';
+                    const t = window.translations[lang];
+                    socket.onopen = () => { if (dot) dot.className = "w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"; if (text) { text.innerText = `${marketEl.value.toUpperCase()} ${t['ws-live']}`; text.className = "text-[9px] font-black uppercase text-green-500"; } };
+                    socket.onerror = () => { if (dot) dot.className = "w-1.5 h-1.5 rounded-full bg-red-500"; if (text) text.innerText = t['ws-error']; };
+                    socket.onclose = () => { if (dot) dot.className = "w-1.5 h-1.5 rounded-full bg-gray-600"; if (text) text.innerText = t['ws-offline']; };
+                    socket.onmessage = e => { const res = JSON.parse(e.data); if (res.k) { const k = res.k, currentCandle = [k.t, Number(k.o), Number(k.h), Number(k.l), Number(k.c), Number(k.v)]; if (allData && allData.length > 0) { const lastCandle = allData[allData.length - 1]; if (lastCandle && lastCandle[0] === currentCandle[0]) { allData[allData.length - 1] = currentCandle; } else { allData.push(currentCandle); if (allData.length > 500) allData.shift(); } rsiValues = calculateRSI(allData.map(d => d[4])); draw(); if (typeof window.dispatchChartUpdate === 'function') window.dispatchChartUpdate(); } } };
+                }
+
+                let updateTimer = null;
+                const triggerAutoUpdate = () => {
+                    if (updateTimer) clearTimeout(updateTimer);
+                    updateTimer = setTimeout(() => {
+                        if (!coinEl || !intervalEl || !marketEl) return;
+                        if (typeof window.syncControlsAndFetch === 'function') window.syncControlsAndFetch();
+                        interval = intervalEl.value;
+                        symbol = coinEl.value.toUpperCase().replace(/[^A-Z0-9]/g, '') || "BTCUSDT";
+                        if (socket) { socket.onclose = null; socket.close(); }
+                        fetchCandles();
+                    }, 300);
+                };
+
+                if (marketEl) marketEl.addEventListener("change", triggerAutoUpdate);
+                if (intervalEl) intervalEl.addEventListener("change", triggerAutoUpdate);
+                if (coinEl) { coinEl.addEventListener("change", triggerAutoUpdate); coinEl.addEventListener("keydown", (e) => { if (e.key === "Enter") triggerAutoUpdate(); }); }
+                canvas.addEventListener("mousemove", e => { const rect = canvas.getBoundingClientRect(); mouse.x = e.clientX - rect.left; mouse.y = e.clientY - rect.top; if (draggingPrice) { const dy = e.clientY - lastY; lastY = e.clientY; priceScale *= (1 + dy * 0.005); priceScale = Math.max(0.1, Math.min(priceScale, 10)); draw(); return; } if (dragging) { const dx = e.clientX - lastX; const move = Math.round(dx / 10); offset = Math.max(0, Math.min(allData.length - visibleCount, offset + move)); lastX = e.clientX; const dy = e.clientY - lastY; if (lastChartHeight > 0) { const pricePerPixel = lastPriceRange / lastChartHeight; priceOffset += dy * pricePerPixel; } lastY = e.clientY; } const padding = 40, priceScaleWidth = 80; if (mouse.x > canvas.width - padding - priceScaleWidth) { canvas.style.cursor = "ns-resize"; } else { canvas.style.cursor = "crosshair"; } draw(); });
+                canvas.addEventListener("mousedown", e => { const padding = 40, priceScaleWidth = 80, scaleStartX = canvas.width - padding - priceScaleWidth; if (mouse.x > scaleStartX) { draggingPrice = true; lastY = e.clientY; canvas.style.cursor = "ns-resize"; } else { dragging = true; lastX = e.clientX; lastY = e.clientY; } });
+                canvas.addEventListener("mouseup", () => { dragging = false; draggingPrice = false; canvas.style.cursor = "crosshair"; });
+                canvas.addEventListener("mouseleave", () => { dragging = false; draggingPrice = false; mouse.x = null; canvas.style.cursor = "default"; draw(); });
+                canvas.addEventListener("dblclick", () => { priceScale = 1; priceOffset = 0; draw(); });
+                canvas.addEventListener("wheel", e => { e.preventDefault(); visibleCount += e.deltaY > 0 ? 10 : -10; visibleCount = Math.max(minVisible, Math.min(maxVisible, visibleCount)); offset = Math.min(offset, allData.length - visibleCount); draw(); }, { passive:false });
+
+                fetchCandles();
+            });
+            </script>
+            
+        </div>
+    </main>
+
+    <script src="/static/js/footer.js"></script>
+    <script src="/static/lock.js"></script>
+
+</body>
+</html>
