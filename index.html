@@ -166,7 +166,9 @@
                 "react-text": "Сэтгэгдэл",
                 "gold-price-msg": "Алтны үнэ:",
                 "gold-price-live": "ШУУД",
-                "latest-news-title": "Сүүлийн мэдээ",
+                "wodl-puzzle-link": "WODL Таавар",
+                "wodl-puzzle-today": "Өнөөдөр",
+                "latest-news-title": "Сүүлийн үеийн мэдээ",
                 "all-news-link": "Бүх мэдээ"
             },
             en: {
@@ -239,6 +241,8 @@
                 "react-text": "Reactions",
                 "nav-home": "Home", "nav-forex": "Forex", "nav-crypto": "Crypto", "nav-news": "News", "nav-more": "MENU",
                 "gold-price-msg": "GOLD Price:",
+                "wodl-puzzle-link": "WODL Puzzle",
+                "wodl-puzzle-today": "Today",
                 "gold-price-live": "LIVE",
                 "drop-alt": "Market Tools", "drop-live": "Live Tools", "sig-title": "Signals", "nav-alpha": "Alpha Signals",
                 "latest-news-title": "Latest News",
@@ -286,6 +290,18 @@
             </span>
             <span data-i18n="trade-status-msg" class="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-white transition-colors text-ellipsis overflow-hidden whitespace-nowrap max-w-[120px] sm:max-w-none">Live Trade:</span>
             <span id="trade-status-badge" data-i18n="trade-status-opened" class="text-[7px] sm:text-[9px] font-black bg-green-500 text-black px-1.5 py-0.5 rounded uppercase tracking-tighter shadow-lg shadow-green-500/20">OPENED</span>
+        </a>
+    </div>
+
+    <!-- WODL Link Indicator -->
+    <div class="fixed top-[160px] left-auto right-4 sm:top-[132px] sm:right-6 z-40">
+        <a href="maintool_binance_wodl.html" class="flex items-center space-x-2 sm:space-x-3 bg-brand-dark-blue/80 backdrop-blur-md border border-brand-border hover:border-brand-gold transition-all px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-xl group shadow-2xl">
+            <span class="flex h-1.5 w-1.5 sm:h-2 sm:w-2 relative">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 bg-yellow-500"></span>
+            </span>
+            <span data-i18n="wodl-puzzle-link" class="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-white transition-colors">WODL Таавар</span>
+            <span data-i18n="wodl-puzzle-today" class="text-[7px] sm:text-[9px] font-black bg-yellow-500 text-black px-1.5 py-0.5 rounded uppercase tracking-tighter shadow-lg shadow-yellow-500/20">Өнөөдөр</span>
         </a>
     </div>
 

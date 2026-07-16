@@ -655,6 +655,8 @@
       // --- New Functions for Dashboard ---
       async function fetchFearAndGreed() {
           try {
+              // Энэ API-д түлхүүр шаардлагагүй тул хэвээр үлдээж болно, 
+              // гэвч нэгдсэн байдлаар Proxy ашиглах нь илүү мэргэжлийн.
               const response = await fetch('https://api.alternative.me/fng/?limit=1');
               const data = await response.json();
               const fng = data.data[0];

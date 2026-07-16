@@ -151,16 +151,15 @@
                     <!-- TradingView Widget BEGIN -->
                     <div class="tradingview-widget-container">
                         <div class="tradingview-widget-container__widget"></div>
-                        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-timeline.js" async>
-                        {
-                        "feedMode": "all_symbols",
-                        "isTransparent": true,
-                        "displayMode": "regular",
-                        "width": "100%",
-                        "height": "600",
-                        "colorTheme": "dark",
-                        "locale": "mn"
-                        }
+                        <script>
+                            (function() {
+                                const config = {"feedMode": "all_symbols","isTransparent": true,"displayMode": "regular","width": "100%","height": "600","colorTheme": "dark","locale": "mn"};
+                                const s = document.createElement('script');
+                                s.src = "https://s3.tradingview.com/external-embedding/embed-widget-timeline.js";
+                                s.async = true;
+                                s.innerHTML = JSON.stringify(config);
+                                document.currentScript.parentElement.appendChild(s);
+                            })();
                         </script>
                     </div>
                     <!-- TradingView Widget END -->
@@ -188,9 +187,8 @@
             const container = document.getElementById('crypto-news-container');
             try {
                 const lang = localStorage.getItem('lang') || 'mn';
-                // CryptoCompare API-руу шууд хандах (Анхааруулга: API Key ил харагдана)
-                const apiKey = "e1a405da7b5c9741bea263ba620e6de9eeea91b8d1cafc81e36dd5d0ebdaa6ea"; 
-                const response = await fetch(`https://min-api.cryptocompare.com/data/v2/news/?lang=EN&api_key=${apiKey}`);
+                // API түлхүүрийг нуухын тулд сервер талын proxy ашиглана
+                const response = await fetch('/api/news');
                 
                 const data = await response.json();
                 

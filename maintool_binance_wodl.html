@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binance WODL Solver - MGL Signal</title>
+
+    <!-- SEO Tags -->
+    <meta name="description" content="Find the latest Binance WODL answers quickly with our smart solver tool. Filter by word length, included letters, and excluded letters to solve the daily crypto word puzzle and earn rewards.">
+    <meta name="keywords" content="Binance WODL, WODL answers, crypto word game, Binance puzzle, WODL solver, WODL today, Binance rewards">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://mglsignal.com/maintool_binance_wodl.html">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://mglsignal.com/maintool_binance_wodl.html">
+    <meta property="og:title" content="Binance WODL Solver - MGL Signal">
+    <meta property="og:description" content="The fastest way to find daily Binance WODL answers. Use our smart filters to solve the crypto word puzzle and win.">
+    <meta property="og:image" content="https://mglsignal.com/static/new/images/logogo1.png">
+
+    <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { 'dark': '#05070a', 'dark-blue': '#0f1217', 'gold': '#c5a059', 'border': '#1f242d' } },
+                    fontFamily: { 'inter': ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/main_style.css">
+</head>
+<body class="bg-brand-dark text-white font-inter flex flex-col min-h-screen">
+    <script>
+        const pageTranslations = {
+            mn: {
+                "wodl-title": 'Binance <span class="text-brand-gold italic">WODL</span> Solver',
+                "wodl-desc": "Binance WODL тоглоомын өдөр тутмын хариултыг олоход туслах ухаалаг хэрэгсэл.",
+                "no-results": "Тохирох үг олдсонгүй.",
+                "last-updated": "Сүүлд шинэчилсэн:",
+                "word-count": "Үсгийн тоо:",
+                "correct-pos": "Зөв байрлал (Ногоон үсэг):",
+                "wrong-pos": "Буруу байрлал (Шар үсэг):",
+                "included-letters-label": "Орсон үсгүүд (Шар/Ногоон):",
+                "excluded-letters-label": "Ороогүй үсгүүд (Саарал):",
+                "letters-placeholder": "ABC...",
+                "result-card-letters": "үсэгтэй",
+                "referral-title": "Binance данс байхгүй юу?",
+                "referral-desc": "Манай урилгын холбоосоор одоо бүртгүүлж, арилжааны шимтгэлийн хөнгөлөлт эдлээрэй. Энэ нь манай нийгэмлэгийг дэмжих болно.",
+                "referral-btn": "Binance-д бүртгүүлэх",
+                "how-to-title": "Binance WODL гэж юу вэ & Яаж хожих вэ?",
+                "how-to-p1": "Binance WODL бол Binance биржээс зохион байгуулдаг, криптотой холбоотой үг таадаг хөгжилтэй тоглоом юм. Зөв таасан тохиолдолд та шагнал болгон крипто ваучер хожих боломжтой.",
+                "how-to-p2": "Тоглогчид өдөр бүр нэг удаа үнэгүй тоглох эрхтэй. Илүү олон тоглох боломж авахын тулд та өөрийн үр дүнг сошиал сувгаар хуваалцах эсвэл найзуудаа урих хэрэгтэй.",
+                "how-to-p3": "Энэхүү хэрэгсэл нь танд боломжит үгсийн жагсаалтыг шүүж өгснөөр таах магадлалыг нэмэгдүүлж, шагнал хожих боломжийг тань ойртуулна."
+            },
+            en: {
+                "wodl-title": 'Binance <span class="text-brand-gold italic">WODL</span> Solver',
+                "wodl-desc": "A smart tool to help you find the daily answers for the Binance WODL game.",
+                "no-results": "No matching words found.",
+                "last-updated": "Last Updated:",
+                "word-count": "Word Length:",
+                "correct-pos": "Correct Position (Green Letters):",
+                "wrong-pos": "Wrong Position (Yellow Letters):",
+                "included-letters-label": "Included Letters (Yellow/Green):",
+                "excluded-letters-label": "Excluded Letters (Gray):",
+                "letters-placeholder": "ABC...",
+                "result-card-letters": "Letters",
+                "referral-title": "Don't have a Binance account?",
+                "referral-desc": "Register now using our referral link to get trading fee discounts and support our community.",
+                "referral-btn": "Register on Binance",
+                "how-to-title": "What is Binance WODL & How to Earn?",
+                "how-to-p1": "Binance WODL is a fun, crypto-themed word guessing game hosted by the Binance exchange. If you guess correctly, you can win crypto vouchers as rewards.",
+                "how-to-p2": "Players get one free play per day. To get more plays, you need to share your results on social media or invite friends.",
+                "how-to-p3": "This tool helps you by filtering the list of possible words, increasing your chances of guessing correctly and bringing you closer to winning rewards."
+            }
+        };
+
+        if (typeof window.translations === 'undefined') window.translations = { mn: {}, en: {} };
+        Object.keys(pageTranslations).forEach(lang => {
+            window.translations[lang] = { ...window.translations[lang], ...pageTranslations[lang] };
+        });
+    </script>
+    <script src="/static/js/header.js"></script>
+
+    <main class="flex-grow pt-32 pb-12 px-4 md:px-6">
+        <div class="max-w-4xl mx-auto flex flex-col gap-8">
+            
+            <div class="text-center">
+                <h1 data-i18n="wodl-title" class="text-3xl md:text-5xl font-black text-white uppercase tracking-tighter">Binance <span class="text-brand-gold italic">WODL</span> Solver</h1>
+                <p data-i18n="wodl-desc" class="text-gray-400 text-sm mt-2">Binance WODL тоглоомын өдөр тутмын хариултыг олоход туслах ухаалаг хэрэгсэл.</p>
+                <div class="w-20 h-1 bg-brand-gold mx-auto mt-6"></div>
+            </div>
+
+            <!-- Referral Section -->
+            <div class="bg-brand-gold/10 border border-brand-gold/20 rounded-xl p-6 flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
+                <i class="fab fa-bitcoin text-4xl text-brand-gold shrink-0"></i>
+                <div>
+                    <h2 data-i18n="referral-title" class="text-white font-bold mb-1">Binance данс байхгүй юу?</h2>
+                    <p data-i18n="referral-desc" class="text-xs text-gray-400 mb-4">Манай урилгын холбоосоор одоо бүртгүүлж, арилжааны шимтгэлийн хөнгөлөлт эдлээрэй. Энэ нь манай нийгэмлэгийг дэмжих болно.</p>
+                </div>
+                <a href="https://www.binance.com/join?ref=I921NTOR" target="_blank" data-i18n="referral-btn" class="bg-brand-gold text-black text-xs font-black uppercase px-6 py-3 rounded-lg hover:bg-white transition whitespace-nowrap shadow-lg shadow-brand-gold/20">
+                    Binance-д бүртгүүлэх
+                </a>
+            </div>
+
+            <!-- Solver Controls -->
+            <div class="bg-brand-dark-blue border border-brand-border rounded-xl p-6 space-y-6">
+                <!-- 1. Үсгийн тоо сонгох -->
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span data-i18n="word-count" class="text-xs font-bold text-gray-500 mr-2">Үсгийн тоо:</span>
+                    <div id="length-selector" class="flex gap-2">
+                        <button data-length="3" class="len-btn">3</button>
+                        <button data-length="4" class="len-btn">4</button>
+                        <button data-length="5" class="len-btn active">5</button>
+                        <button data-length="6" class="len-btn">6</button>
+                        <button data-length="7" class="len-btn">7</button>
+                        <button data-length="8" class="len-btn">8</button>
+                        <button data-length="9" class="len-btn">9</button>
+                        <button data-length="10" class="len-btn">10</button>
+                    </div>
+                </div>
+
+                <!-- 2. Байрлалтай үсэг оруулах -->
+                <div class="space-y-2">
+                    <label data-i18n="correct-pos" class="text-xs font-bold text-gray-500">Зөв байрлал (Ногоон үсэг):</label>
+                    <div id="positional-inputs" class="grid grid-cols-10 gap-2">
+                        <!-- Inputs generated by JS -->
+                    </div>
+                </div>
+
+                <!-- NEW: Буруу байрлалтай үсэг оруулах -->
+                <div class="space-y-2">
+                    <label data-i18n="wrong-pos" class="text-xs font-bold text-gray-500">Буруу байрлал (Шар үсэг):</label>
+                    <div id="misplaced-inputs" class="grid grid-cols-10 gap-2">
+                        <!-- Inputs generated by JS -->
+                    </div>
+                </div>
+
+                <!-- 3. Орсон ба Ороогүй үсгүүд -->
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label for="included-letters" data-i18n="included-letters-label" class="text-xs font-bold text-gray-500">Орсон үсгүүд (Шар/Ногоон):</label>
+                        <div class="relative">
+                            <i class="fas fa-check absolute left-4 top-1/2 -translate-y-1/2 text-green-500"></i>
+                            <input type="text" id="included-letters" data-i18n-placeholder="letters-placeholder" placeholder="ABC..." class="w-full bg-brand-dark border border-green-500/30 rounded-lg py-2.5 pl-10 pr-4 text-sm focus:border-green-500 outline-none transition uppercase tracking-widest font-mono">
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label for="excluded-letters" data-i18n="excluded-letters-label" class="text-xs font-bold text-gray-500">Ороогүй үсгүүд (Саарал):</label>
+                        <div class="relative">
+                            <i class="fas fa-times absolute left-4 top-1/2 -translate-y-1/2 text-red-500"></i>
+                            <input type="text" id="excluded-letters" data-i18n-placeholder="letters-placeholder" placeholder="XYZ..." class="w-full bg-brand-dark border border-red-500/30 rounded-lg py-2.5 pl-10 pr-4 text-sm focus:border-red-500 outline-none transition uppercase tracking-widest font-mono">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-xs text-gray-500 font-mono text-right -mt-4">
+                <span data-i18n="last-updated">Сүүлд шинэчилсэн:</span>
+                <span id="last-updated-date" class="text-brand-gold font-bold"></span>
+            </div>
+
+            <!-- WODL Answers Grid -->
+            <div id="wodl-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                <!-- Words will be inserted here -->
+            </div>
+            <div id="no-results" data-i18n="no-results" class="hidden text-center text-gray-500 py-10">Тохирох үг олдсонгүй.</div>
+
+            <!-- Explanation & FAQ Schema Section -->
+            <div itemscope itemtype="https://schema.org/FAQPage" class="bg-brand-dark-blue border border-brand-border rounded-xl p-8 mt-8">
+                <div itemprop="mainEntity" itemscope itemtype="https://schema.org/Question">
+                    <h2 itemprop="name" data-i18n="how-to-title" class="text-xl font-bold text-white mb-4 flex items-center">
+                        <i class="fas fa-question-circle text-brand-gold mr-3"></i>
+                        Binance WODL гэж юу вэ & Яаж хожих вэ?
+                    </h2>
+                    <div itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer" class="space-y-4 text-sm text-gray-400 leading-relaxed">
+                        <div itemprop="text">
+                            <p data-i18n="how-to-p1">Binance WODL бол Binance биржээс зохион байгуулдаг, криптотой холбоотой үг таадаг хөгжилтэй тоглоом юм. Зөв таасан тохиолдолд та шагнал болгон крипто ваучер хожих боломжтой.</p>
+                            <p data-i18n="how-to-p2">Тоглогчид өдөр бүр нэг удаа үнэгүй тоглох эрхтэй. Илүү олон тоглох боломж авахын тулд та өөрийн үр дүнг сошиал сувгаар хуваалцах эсвэл найзуудаа урих хэрэгтэй.</p>
+                            <p data-i18n="how-to-p3" class="font-semibold text-gray-300">Энэхүү хэрэгсэл нь танд боломжит үгсийн жагсаалтыг шүүж өгснөөр таах магадлалыг нэмэгдүүлж, шагнал хожих боломжийг тань ойртуулна.</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Add more questions here if needed, following the same schema structure -->
+                <!-- 
+                <div itemprop="mainEntity" itemscope itemtype="https://schema.org/Question">
+                    <h3 itemprop="name">Another Question?</h3>
+                    <div itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer">
+                        <div itemprop="text">
+                            <p>Answer to the other question.</p>
+                        </div>
+                    </div>
+                </div>
+                -->
+            </div>
+
+        </div>
+    </main>
+
+    <script src="/static/js/footer.js"></script>
+    <script src="/static/lock.js"></script>
+
+        <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // ==================================================
+        // DOM Elements
+        const grid = document.getElementById('wodl-grid');
+        const noResults = document.getElementById('no-results');
+        const lastUpdatedEl = document.getElementById('last-updated-date');
+        const lengthSelector = document.getElementById('length-selector');
+        const positionalInputsContainer = document.getElementById('positional-inputs');
+        const misplacedInputsContainer = document.getElementById('misplaced-inputs');
+        const includedInput = document.getElementById('included-letters');
+        const excludedInput = document.getElementById('excluded-letters');
+
+        // State
+        let allWords = [];
+        let selectedLength = 5;
+
+        // Generate positional input fields
+        function generateInputFields(container, className, length) {
+            container.innerHTML = '';
+            for (let i = 0; i < 10; i++) { // Max length 10
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.dataset.index = i;
+                input.className = `${className} w-full h-12 bg-brand-dark border border-brand-border rounded-lg text-center text-xl font-mono uppercase focus:border-brand-gold outline-none transition`;
+                if (i >= length) {
+                    input.disabled = true;
+                    input.classList.add('opacity-20', 'cursor-not-allowed');
+                }
+                if (className === 'positional-input') {
+                    input.maxLength = 1;
+                }
+                input.addEventListener('input', handleFilterChange);
+                container.appendChild(input);
+            }
+        }
+        function generateAllInputs(length) {
+            generateInputFields(positionalInputsContainer, 'positional-input', length);
+            generateInputFields(misplacedInputsContainer, 'misplaced-input', length);
+        }
+
+        // Render matching words
+        function renderWords() {
+            grid.innerHTML = '';
+            let found = false;
+
+            // Get filter values
+            const positionalLetters = Array.from(document.querySelectorAll('.positional-input:not(:disabled)')).map(input => input.value.toUpperCase());
+            const misplacedLetters = Array.from(document.querySelectorAll('.misplaced-input:not(:disabled)')).map(input => input.value.toUpperCase());
+            const includedLetters = includedInput.value.toUpperCase().split('');
+            const excludedLetters = excludedInput.value.toUpperCase().split('');
+
+            const wordsToRender = allWords.filter(word => {
+                // 1. Length check
+                if (word.length !== selectedLength) return false;
+
+                // 2. Excluded letters check
+                if (excludedLetters.some(letter => letter && word.includes(letter))) return false;
+
+                // 3. Included letters check
+                if (!includedLetters.every(letter => letter && word.includes(letter))) return false;
+
+                // 4. Positional letters check
+                for (let i = 0; i < positionalLetters.length; i++) {
+                    const requiredLetter = positionalLetters[i];
+                    if (requiredLetter && word[i] !== requiredLetter) {
+                        return false;
+                    }
+                }
+
+                // 5. Misplaced letters check (Yellow letters)
+                for (let i = 0; i < misplacedLetters.length; i++) {
+                    const wrongLettersInPos = misplacedLetters[i].split('');
+                    if (wrongLettersInPos.some(letter => letter && word[i] === letter)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }).slice(0, 50); // Limit results to 50
+
+            if (wordsToRender.length > 0) {
+                found = true;
+                wordsToRender.forEach(word => {
+                    const card = document.createElement('div');
+                    card.className = 'bg-brand-dark-blue border border-brand-border rounded-xl p-4 text-center hover:border-brand-gold hover:-translate-y-1 transition-transform duration-300';
+                    card.innerHTML = `
+                        <div class="font-mono font-black text-lg tracking-widest text-white">${word}</div>
+                        <div class="text-[10px] text-gray-500 font-bold mt-1">${word.length} <span data-i18n="result-card-letters">үсэгтэй</span></div>
+                    `;
+                    grid.appendChild(card);
+                });
+            }
+
+            noResults.classList.toggle('hidden', found || (!positionalLetters.join('') && !misplacedLetters.join('') && !includedInput.value && !excludedInput.value));
+        }
+
+        // Event Handlers
+        function handleFilterChange() {
+            renderWords();
+        }
+
+        lengthSelector.addEventListener('click', (e) => {
+            if (e.target.classList.contains('len-btn')) {
+                document.querySelector('.len-btn.active').classList.remove('active');
+                e.target.classList.add('active');
+                selectedLength = parseInt(e.target.dataset.length);
+                generateAllInputs(selectedLength);
+                handleFilterChange();
+            }
+        });
+
+        includedInput.addEventListener('input', handleFilterChange);
+        excludedInput.addEventListener('input', handleFilterChange);
+
+        // Fetch words from the text file
+        async function loadWords() {
+            try {
+                const response = await fetch('/static/images/files/words.txt');
+                if (!response.ok) throw new Error('Network response was not ok.');
+
+                const text = await response.text();
+                allWords = text.split(/\r?\n/).map(word => word.trim().toUpperCase()).filter(word => word.length > 0);
+
+                // Get file modification date for "Last Updated"
+                const lastModified = response.headers.get('Last-Modified');
+                if (lastModified && lastUpdatedEl) {
+                    lastUpdatedEl.textContent = new Date(lastModified).toLocaleDateString();
+                }
+
+                // Initial setup
+                generateAllInputs(selectedLength);
+                renderWords();
+            } catch (error) {
+                console.error('Failed to fetch WODL words:', error);
+                grid.innerHTML = `<p class="text-red-500 col-span-full text-center">Could not load word list.</p>`;
+            }
+        }
+
+        loadWords();
+
+        // Add styles for the new elements
+        const style = document.createElement('style');
+        style.innerHTML = `
+            .len-btn {
+                padding: 0.5rem 1rem;
+                border-radius: 0.5rem;
+                font-weight: 700;
+                font-size: 0.875rem;
+                background-color: #1f242d;
+                color: #9ca3af;
+                transition: all 0.2s ease;
+            }
+            .len-btn:hover {
+                background-color: #374151;
+                color: #ffffff;
+            }
+            .len-btn.active {
+                background-color: #c5a059;
+                color: #05070a;
+                box-shadow: 0 0 15px rgba(197, 160, 89, 0.3);
+            }
+            .misplaced-input {
+                font-size: 0.75rem; /* 12px */
+                padding: 0.25rem;
+            }
+        `;
+        document.head.appendChild(style);
+    });
+    </script>
+</body>
+</html>
