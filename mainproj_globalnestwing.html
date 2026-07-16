@@ -25,30 +25,8 @@
 
     <script>
         // Хуудасны өөрийн орчуулгын өгөгдөл
-        const translations = {
+        const pageTranslations = {
             mn: {
-                "nav-home": "Нүүр",
-                "nav-forex": "Форекс",
-                "nav-crypto": "Крипто",
-                "nav-news": "Мэдээ",
-                "drop-major": "Гол хослолууд",
-                "drop-minor": "Туслах хослолууд",
-                "drop-btc": "Биткойн хэрэгсэл",
-                "drop-alt": "Алткойн хэрэгсэл",
-                "btn-login": "НЭВТРЭХ",
-                "btn-reg": "БҮРТГҮҮЛЭХ",
-                "foot-links-title": "Хурдан холбоос",
-                "foot-about-title": "Бидний тухай",
-                "foot-social-title": "Сошиал сувгууд",
-                "foot-about": "Танилцуулга",
-                "foot-contact": "Холбоо барих",
-                "foot-tagline": "Дэлхийн зах зээлийн хөдөлгөөнийг дата шинжилгээгээр түрүүлж мэдэр.",
-                "nav-more": "ЦЭС",
-                "nav-alpha": "Alpha Signals",
-                "nav-kucoin-spot": "KuCoin Live Data",
-                "nav-projects": "Шинэ төслүүд",
-                "nav-knowledge": "Мэдлэг",
-                "back-to-home": '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>Нүүр хуудас руу буцах',
                 "gnw-page-title": "21 Billion BEP Төсөл",
                 "gnw-subtitle": "5 USDT-гээр санхүүгийн эрх чөлөөнд хүрэх зам",
                 "gnw-s1-title": '<i class="fas fa-info-circle text-brand-gold mr-3"></i>21 Billion BEP гэж юу вэ?',
@@ -96,28 +74,6 @@
                 "risk-page-title": "Эрсдэлийн анхааруулга"
             },
             en: {
-                "nav-home": "Home",
-                "nav-forex": "Forex",
-                "nav-crypto": "Crypto",
-                "nav-news": "News",
-                "drop-major": "Major Pairs",
-                "drop-minor": "Minor Pairs",
-                "drop-btc": "Bitcoin Tools",
-                "drop-alt": "Altcoin Tools",
-                "btn-login": "LOGIN",
-                "btn-reg": "REGISTER",
-                "foot-links-title": "Fast Links",
-                "foot-about-title": "About",
-                "foot-social-title": "Social Links",
-                "foot-about": "Introduction",
-                "foot-contact": "Contact Us",
-                "foot-tagline": "Experience global market movements ahead with data intelligence.",
-                "nav-more": "MENU",
-                "nav-alpha": "Alpha Signals",
-                "nav-kucoin-spot": "KuCoin Live Data",
-                "nav-projects": "New Projects",
-                "nav-knowledge": "Knowledge Base",
-                "back-to-home": '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>Back to Home',
                 "gnw-page-title": "21 Billion BEP Project",
                 "gnw-subtitle": "Your Path to Financial Freedom with 5 USDT",
                 "gnw-s1-title": '<i class="fas fa-info-circle text-brand-gold mr-3"></i>What is 21 Billion BEP?',
@@ -166,23 +122,16 @@
             }
         };
 
-        // Хэл солих үед UI-г шинэчлэх
-        function changeLang(lang) {
-            localStorage.setItem('lang', lang);
-            if (typeof translations !== 'undefined' && translations[lang]) {
-                document.querySelectorAll('[data-i18n]').forEach(el => {
-                    const key = el.getAttribute('data-i18n');
-                    if (translations[lang][key]) el.innerHTML = translations[lang][key];
-                });
-            }
-            // Header дээрх хэлний товчлуурын загварыг солих
-            const btnMn = document.getElementById('btn-mn');
-            const btnEn = document.getElementById('btn-en');
-            if (btnMn && btnEn) {
-                btnMn.className = lang === 'mn' ? "px-2.5 py-1 rounded-full bg-brand-gold text-black transition" : "px-2.5 py-1 rounded-full text-gray-500 hover:text-white transition";
-                btnEn.className = lang === 'en' ? "px-2.5 py-1 rounded-full bg-brand-gold text-black transition" : "px-2.5 py-1 rounded-full text-gray-500 hover:text-white transition";
-            }
+        // Стандарт аргачлал: pageTranslations-г глобал window.translations-тай нэгтгэх
+        if (typeof window.translations === 'undefined') {
+            window.translations = { mn: {}, en: {} };
         }
+        Object.keys(pageTranslations).forEach(lang => {
+            window.translations[lang] = { 
+                ...pageTranslations[lang], 
+                ...window.translations[lang] 
+            };
+        });
     </script>
     <script src="/static/js/header.js"></script>
 
@@ -327,7 +276,7 @@
 
                  <div class="mt-12 space-y-4">
                     <p data-i18n="gnw-more-info-prompt" class="text-gray-500 text-sm mb-4 uppercase font-bold tracking-widest">Эсвэл илүү их мэдээлэл авах уу?</p>
-                    <a href="21terbum.html" data-i18n="btn-marketing-info" class="inline-block border border-brand-gold text-brand-gold px-10 py-3 rounded-lg font-black text-xs hover:bg-brand-gold hover:text-black transition-all uppercase tracking-widest w-full max-w-xs">
+                    <a href="mainproj_21terbum.html" data-i18n="btn-marketing-info" class="inline-block border border-brand-gold text-brand-gold px-10 py-3 rounded-lg font-black text-xs hover:bg-brand-gold hover:text-black transition-all uppercase tracking-widest w-full max-w-xs">
                         21 terbum bep Marketing
                     </a>
                     <br>
@@ -341,5 +290,12 @@
 
     <script src="/static/js/footer.js"></script>
     <script src="/static/lock.js"></script>
+    <script>
+        // Хуудас ачаалагдахад хэлийг тохируулах
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedLang = localStorage.getItem('lang') || 'mn';
+            if (typeof window.changeLang === 'function') window.changeLang(savedLang);
+        });
+    </script>
 </body>
 </html>
