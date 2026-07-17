@@ -2,87 +2,80 @@
 <urlset 
       xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 
-      http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
 
   <!-- Main Pages -->
   <url>
     <loc>https://mglsignal.com/</loc>
-    <lastmod>2026-05-29T12:00:00+00:00</lastmod>
+    <lastmod>2024-05-29T12:00:00+00:00</lastmod>
     <priority>1.0</priority>
   </url>
 
   <url>
     <loc>https://mglsignal.com/main_signals.html</loc>
-    <lastmod>2026-05-29T12:00:00+00:00</lastmod>
+    <lastmod>2024-05-29T12:00:00+00:00</lastmod>
     <priority>0.9</priority>
   </url>
 
   <url>
     <loc>https://mglsignal.com/main_exchanges.html</loc>
-    <lastmod>2026-05-29T12:00:00+00:00</lastmod>
+    <lastmod>2024-05-29T12:00:00+00:00</lastmod>
     <priority>0.9</priority>
   </url>
 
   <url>
     <loc>https://mglsignal.com/mainlive_binance.html</loc>
-    <lastmod>2026-05-29T12:00:00+00:00</lastmod>
+    <lastmod>2024-05-29T12:00:00+00:00</lastmod>
     <priority>0.8</priority>
   </url>
 
   <url>
     <loc>https://mglsignal.com/mainlive_kucoin.html</loc>
-    <lastmod>2026-05-29T12:00:00+00:00</lastmod>
+    <lastmod>2024-05-29T12:00:00+00:00</lastmod>
     <priority>0.8</priority>
   </url>
 
   <!-- Content & Tools -->
   <url>
     <loc>https://mglsignal.com/main_alpha_signals.html</loc>
-    <lastmod>2026-05-29T12:00:00+00:00</lastmod>
+    <lastmod>2024-05-29T12:00:00+00:00</lastmod>
     <priority>0.8</priority>
   </url>
 
   <url>
     <loc>https://mglsignal.com/main_news.html</loc>
-    <lastmod>2026-05-29T12:00:00+00:00</lastmod>
+    <lastmod>2024-05-29T12:00:00+00:00</lastmod>
     <priority>0.7</priority>
   </url>
 
   <url>
     <loc>https://mglsignal.com/main_altcoin_tools.html</loc>
-    <lastmod>2026-05-29T12:00:00+00:00</lastmod>
-    <priority>0.7</priority>
-  </url>
-
-  <url>
-    <loc>https://mglsignal.com/main_altcoin_tools.html</loc>
-    <lastmod>2026-05-29T12:00:00+00:00</lastmod>
+    <lastmod>2024-05-29T12:00:00+00:00</lastmod>
     <priority>0.7</priority>
   </url>
 
   <!-- Information -->
   <url>
     <loc>https://mglsignal.com/main_knowledge.html</loc>
-    <lastmod>2026-05-29T12:00:00+00:00</lastmod>
+    <lastmod>2024-05-29T12:00:00+00:00</lastmod>
     <priority>0.6</priority>
   </url>
 
   <url>
     <loc>https://mglsignal.com/main_New_projects.html</loc>
-    <lastmod>2026-05-29T12:00:00+00:00</lastmod>
+    <lastmod>2024-05-29T12:00:00+00:00</lastmod>
     <priority>0.6</priority>
   </url>
 
   <url>
     <loc>https://mglsignal.com/main_about.html</loc>
-    <lastmod>2026-05-29T12:00:00+00:00</lastmod>
+    <lastmod>2024-05-29T12:00:00+00:00</lastmod>
     <priority>0.5</priority>
   </url>
 
   <url>
     <loc>https://mglsignal.com/main_contact.html</loc>
-    <lastmod>2026-05-29T12:00:00+00:00</lastmod>
+    <lastmod>2024-05-29T12:00:00+00:00</lastmod>
     <priority>0.5</priority>
   </url>
   
