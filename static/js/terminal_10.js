@@ -58,7 +58,15 @@ function scanTerminalRisk(obj, foundTags = new Set()) {
     } else if (Array.isArray(obj)) {
         obj.forEach(item => scanTerminalRisk(item, foundTags));
     } else if (typeof obj === 'object' && obj !== null) {
-        Object.values(obj).forEach(v => scanTerminalRisk(v, foundTags));
+        Object.entries(obj).forEach(([key, value]) => {
+            if (/^(symbol|instid|inst_id|currency_pair|contract_code|pair)$/i.test(key)) return;
+            if (/^(st|sttag|st_tag|isst|is_st|blacklisted)$/i.test(key) &&
+                (value === true || value === 1 || value === '1')) {
+                foundTags.add('ST');
+                return;
+            }
+            scanTerminalRisk(value, foundTags);
+        });
     }
     return Array.from(foundTags).join('/');
 }
@@ -113,7 +121,11 @@ async function fetchTerminalExchangeInfo(ex) {
             } else if (ex === 'gateio') {
                 minCost = parseFloat(m.min_quote_amount || 0);
             }
-            exchangeMetadataTerminal[marketKey][sym] = { minQty, minCost };
+            exchangeMetadataTerminal[marketKey][sym] = {
+                minQty,
+                minCost,
+                st: scanTerminalRisk(m).includes('ST')
+            };
         });
         addTerminalLog(`✅ ${ex.toUpperCase()} limits loaded.`);
     } catch (e) {
@@ -243,7 +255,7 @@ function processTerminalTickerData(ex, rawData) {
             symbol: symbol.replace(/[-_:/]/g, '').replace('USDT', '/USDT'),
             price: lastNum, bid: bidNum, ask: askNum,
             spread: spread, change: change,
-            min_usdt: minUsdt, tags: scanTerminalRisk(t)
+            min_usdt: minUsdt, tags: scanTerminalRisk(t) || (meta?.st ? 'ST' : '')
         });
     });
 
