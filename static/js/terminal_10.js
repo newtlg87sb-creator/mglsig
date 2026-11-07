@@ -22,6 +22,18 @@ function addTerminalLog(msg) {
     container.scrollTop = container.scrollHeight;
 }
 
+function getTerminalApiError(raw) {
+    if (raw?.error) return raw.details || raw.error;
+    if (raw?.retCode != null && Number(raw.retCode) !== 0) return raw.retMsg || `API code ${raw.retCode}`;
+    if (raw?.code != null && !['0', '00000', '200000', '1000'].includes(String(raw.code))) {
+        return raw.msg || `API code ${raw.code}`;
+    }
+    if (raw?.status && !['ok', 'success'].includes(String(raw.status).toLowerCase())) {
+        return raw.message || `API status ${raw.status}`;
+    }
+    return null;
+}
+
 function initTerminalButtons() {
     const container = document.getElementById('exchange-buttons');
     if (!container) return;
@@ -40,10 +52,9 @@ function initTerminalButtons() {
 }
 
 function scanTerminalRisk(obj, foundTags = new Set()) {
-    const riskKeywords = ['ST', 'MONITORING', 'SEED', 'DELIST', 'WARNING', 'RISK', 'SPECIAL'];
+    const stMarker = /(^|[^A-Z0-9])ST([^A-Z0-9]|$)|SPECIAL[\s_-]+TREATMENT/i;
     if (typeof obj === 'string') {
-        const valUp = obj.toUpperCase();
-        riskKeywords.forEach(kw => { if (valUp.includes(kw)) foundTags.add(kw); });
+        if (stMarker.test(obj)) foundTags.add('ST');
     } else if (Array.isArray(obj)) {
         obj.forEach(item => scanTerminalRisk(item, foundTags));
     } else if (typeof obj === 'object' && obj !== null) {
@@ -68,10 +79,15 @@ function getFullNameTerminal(symbol, info) {
 
 async function fetchTerminalExchangeInfo(ex) {
     const type = document.getElementById('terminal-market-type')?.value || 'spot';
+    const marketKey = `${ex}:${type}`;
     try {
         const res = await fetch(`/api/universal?exchange=${ex}&type=${type}&info=true`);
         const raw = await res.json();
-        exchangeMetadataTerminal[ex] = {};
+        const apiError = getTerminalApiError(raw);
+        if (!res.ok || apiError) {
+            throw new Error(apiError || `HTTP ${res.status}`);
+        }
+        exchangeMetadataTerminal[marketKey] = {};
         let list = [];
         if (Array.isArray(raw)) list = raw;
         else if (raw.symbols && Array.isArray(raw.symbols)) list = raw.symbols;
@@ -97,10 +113,13 @@ async function fetchTerminalExchangeInfo(ex) {
             } else if (ex === 'gateio') {
                 minCost = parseFloat(m.min_quote_amount || 0);
             }
-            exchangeMetadataTerminal[ex][sym] = { minQty, minCost };
+            exchangeMetadataTerminal[marketKey][sym] = { minQty, minCost };
         });
         addTerminalLog(`✅ ${ex.toUpperCase()} limits loaded.`);
-    } catch (e) { addTerminalLog(`⚠️ ${ex.toUpperCase()} metadata error: ${e.message}`); }
+    } catch (e) {
+        addTerminalLog(`⚠️ ${ex.toUpperCase()} metadata error: ${e.message}`);
+        throw e;
+    }
 }
 
 async function toggleTerminalExchange(id) {
@@ -140,7 +159,15 @@ async function toggleTerminalExchange(id) {
         activeBtn.style.color = '#ef4444';
     }
     addTerminalLog(`Connecting to ${id.toUpperCase()}...`);
-    if (!exchangeMetadataTerminal[id]) await fetchTerminalExchangeInfo(id);
+    const marketType = document.getElementById('terminal-market-type')?.value || 'spot';
+    const marketKey = `${id}:${marketType}`;
+    if (!exchangeMetadataTerminal[marketKey]) {
+        try {
+            await fetchTerminalExchangeInfo(id);
+        } catch (e) {
+            addTerminalLog(`⚠️ ${id.toUpperCase()} limits unavailable; continuing with market data.`);
+        }
+    }
     fetchTerminalTickerData();
     if (terminalTimerInterval) clearInterval(terminalTimerInterval);
     let countdown = 50;
@@ -157,25 +184,41 @@ async function fetchTerminalTickerData() {
     try {
         const res = await fetch(`/api/universal?exchange=${activeTerminalExchange}&type=${type}`);
         const raw = await res.json();
+        const apiError = getTerminalApiError(raw);
+        if (!res.ok || apiError) {
+            throw new Error(apiError || `HTTP ${res.status}`);
+        }
         processTerminalTickerData(activeTerminalExchange, raw);
     } catch (e) { addTerminalLog(`⚠️ Error fetching ${activeTerminalExchange.toUpperCase()}: ${e.message}`); }
 }
 
 function processTerminalTickerData(ex, rawData) {
     let processed = [];
-    let list = Array.isArray(rawData) ? rawData : (rawData.data?.ticker || rawData.result?.list || rawData.result || rawData.data || rawData.tick?.data || []);
-    const isArrayOfArrays = list.length > 0 && Array.isArray(list[0]);
+    let list = Array.isArray(rawData) ? rawData : (rawData.data?.ticker || rawData.result?.list || rawData.result || rawData.data || rawData.ticks || rawData.tick?.data || []);
+    if (!Array.isArray(list)) {
+        addTerminalLog(`⚠️ ${ex.toUpperCase()} returned an unsupported data format.`);
+        return;
+    }
+    const isArrayOfArrays = Array.isArray(list) && list.length > 0 && Array.isArray(list[0]);
     
     list.forEach(t => {
         let symbol, lastRaw, bidRaw, askRaw, changeRaw;
         if (isArrayOfArrays) {
-            symbol = t[0]; lastRaw = t[1]; bidRaw = t[2]; askRaw = t[3]; changeRaw = t[8];
+            symbol = t[0]; lastRaw = t[1]; bidRaw = t[2]; askRaw = t[3];
+            changeRaw = t[4] ? ((Number(t[1]) - Number(t[4])) / Number(t[4])) * 100 : 0;
         } else {
-            symbol = (t.symbol || t.instId || t.s || t.currency_pair || t.inst_id || t.pair || '').toUpperCase();
-            lastRaw = t.lastPrice || t.last || t.lastPr || t.close || t.last_price || t.sell || t.lastEp;
-            bidRaw = t.bidPrice || t.buy || t.bid1Price || t.bidPx || t.highest_bid || t.bidPr || t.best_bid || t.bid1 || t.bidEp;
-            askRaw = t.askPrice || t.sell || t.ask1Price || t.askPx || t.lowest_ask || t.askPr || t.best_ask || t.ask1 || t.askEp;
-            changeRaw = t.priceChangePercent || t.changeRate || t.price24hPcnt || t.change_percentage || t.change24h || t.fluctuation || t.ratio24h;
+            const ticker = t.tick && typeof t.tick === 'object'
+                ? { ...t.tick, symbol: t.contract_code || t.symbol || t.tick.symbol }
+                : t;
+            symbol = (ticker.symbol || ticker.instId || ticker.s || ticker.currency_pair || ticker.inst_id || ticker.pair || ticker.contract || ticker.contract_code || '').toUpperCase();
+            lastRaw = ticker.lastPrice || ticker.last || ticker.lastPr || ticker.close || ticker.last_price || ticker.sell || ticker.lastEp || ticker.lastTradePrice || ticker.price;
+            bidRaw = ticker.bidPrice || ticker.buy || ticker.bid1Price || ticker.bidPx || ticker.highest_bid || ticker.bidPr || ticker.best_bid || ticker.bid1 || ticker.bidEp || ticker.bestBidPrice || ticker.bid?.[0];
+            askRaw = ticker.askPrice || ticker.sell || ticker.ask1Price || ticker.askPx || ticker.lowest_ask || ticker.askPr || ticker.best_ask || ticker.ask1 || ticker.askEp || ticker.bestAskPrice || ticker.ask?.[0];
+            changeRaw = ticker.priceChangePercent || ticker.changeRate || ticker.price24hPcnt || ticker.change_percentage || ticker.change24h || ticker.fluctuation || ticker.ratio24h || ticker.priceChgPct || ticker.riseFallRate;
+            const openPrice = ticker.open ?? ticker.open24h;
+            if (!changeRaw && Number(openPrice) > 0 && Number(lastRaw) > 0) {
+                changeRaw = ((Number(lastRaw) - Number(openPrice)) / Number(openPrice)) * 100;
+            }
         }
         
         if (!symbol || !symbol.includes('USDT')) return;
@@ -185,13 +228,14 @@ function processTerminalTickerData(ex, rawData) {
         let askNum = parseFloat(askRaw) || lastNum;
         let change = parseFloat(changeRaw || 0);
 
-        if (ex === 'kucoin' || ex === 'bybit' || ex === 'okx') change *= 100;
+        const type = document.getElementById('terminal-market-type')?.value || 'spot';
+        if (ex === 'kucoin' || ex === 'bybit' || ex === 'okx' || ex === 'bitget' && type === 'swap' || ex === 'mexc' && type === 'swap') change *= 100;
         if (t.lastEp || t.bidEp || (ex === 'phemex' && lastNum > 10000000)) { lastNum /= 1e8; bidNum /= 1e8; askNum /= 1e8; }
         if (lastNum === 0) return;
 
         const spread = bidNum > 0 ? ((askNum - bidNum) / bidNum * 100) : 0;
         let minUsdt = 0;
-        const meta = exchangeMetadataTerminal[ex]?.[symbol];
+        const meta = exchangeMetadataTerminal[`${ex}:${type}`]?.[symbol];
         if (meta) { if (meta.minCost > 0) minUsdt = meta.minCost; else if (meta.minQty > 0) minUsdt = meta.minQty * askNum; }
 
         processed.push({
@@ -234,7 +278,7 @@ function renderTerminalUI() {
             <td class="text-right p-3">$${d.price.toFixed(6).replace(/\.?0+$/, "")}</td>
             <td class="text-right p-3 text-yellow-500">${d.spread.toFixed(2)}%</td>
             <td class="text-right p-3 font-bold ${d.change >= 0 ? 'text-green-500' : 'text-red-500'}">${d.change >= 0 ? '+' : ''}${d.change.toFixed(2)}%</td>
-            <td class="p-3"><span class="bg-red-500/20 text-red-500 text-[8px] font-black px-1.5 py-0.5 rounded">${d.tags}</span></td>
+            <td class="p-3">${d.tags ? `<span class="bg-red-500/20 text-red-500 text-[8px] font-black px-1.5 py-0.5 rounded">${d.tags}</span>` : ''}</td>
         `;
         tbody.appendChild(row);
     });
