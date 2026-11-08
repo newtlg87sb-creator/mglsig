@@ -55,6 +55,65 @@ function activeIndex(m,padding,chartWidth,candleWidth,len){
  return len-1;
 }
 
+function drawIcebergProfitBoxes(ctx,data,states,start,padding,candleWidth,chartWidth,priceToY){
+ if(!Array.isArray(states)||!states.length)return;
+ const visibleEnd=start+data.length;
+ let localIndex=0;
+
+ ctx.save();
+ ctx.beginPath();
+ ctx.rect(padding,padding,chartWidth,ctx.canvas.height);
+ ctx.clip();
+
+ while(localIndex<data.length){
+  const globalIndex=start+localIndex;
+  const state=states[globalIndex];
+  if(state!=="up"&&state!=="down"){
+   localIndex++;
+   continue;
+  }
+
+  let segmentEnd=localIndex+1;
+  while(segmentEnd<data.length&&states[start+segmentEnd]===state)segmentEnd++;
+
+  let segmentStart=globalIndex;
+  while(segmentStart>0&&states[segmentStart-1]===state)segmentStart--;
+
+  const entry=Number(window.allData[segmentStart]?.[4]);
+  let favorable=state==="up"?-Infinity:Infinity;
+  for(let index=segmentStart;index<start+segmentEnd&&index<visibleEnd;index++){
+   const candle=window.allData[index];
+   if(!candle)continue;
+   favorable=state==="up"?Math.max(favorable,Number(candle[2])):Math.min(favorable,Number(candle[3]));
+  }
+
+  const isProfitable=state==="up"?favorable>entry:favorable<entry;
+  if(Number.isFinite(entry)&&Number.isFinite(favorable)&&isProfitable){
+   const visibleSegmentStart=Math.max(segmentStart,start);
+   const x=padding+(visibleSegmentStart-start)*candleWidth;
+   const width=(start+segmentEnd-visibleSegmentStart)*candleWidth;
+   const entryY=priceToY(entry);
+   const targetY=priceToY(favorable);
+   const top=Math.min(entryY,targetY);
+   const height=Math.max(1,Math.abs(entryY-targetY));
+
+   ctx.fillStyle="rgba(0,200,83,0.12)";
+   ctx.fillRect(x,top,width,height);
+   ctx.strokeStyle="rgba(0,230,118,0.55)";
+   ctx.lineWidth=1;
+   ctx.strokeRect(x,top,width,height);
+   ctx.fillStyle="#69f0ae";
+   ctx.font="10px Inter, sans-serif";
+   ctx.textAlign="right";
+   ctx.textBaseline="bottom";
+   ctx.fillText(`${state==="up"?"MAX":"MIN"} ${formatPrice(favorable)}`,x+width-4,targetY-3);
+  }
+
+  localIndex=segmentEnd;
+ }
+ ctx.restore();
+}
+
 // --- TECHNICAL INDICATORS (RSI & MACD) ---
 function calculateEMA(data, period) {
     const k = 2 / (period + 1);
@@ -132,6 +191,22 @@ document.addEventListener("DOMContentLoaded",()=>{
  const coinListEl=document.getElementById("coinList");
  const settingsButton=document.getElementById("toggleChartSettings");
  const settingsPanel=document.getElementById("chartSettings");
+ const marginInput=document.getElementById("positionMargin");
+ const leverageInput=document.getElementById("positionLeverage");
+ const positionEstimate=document.getElementById("positionSizeEstimate");
+
+ function updatePositionEstimate(){
+  if(!marginInput||!leverageInput||!positionEstimate)return;
+  const margin=Number(marginInput.value);
+  const leverage=Number(leverageInput.value);
+  const valid=Number.isFinite(margin)&&margin>0&&Number.isFinite(leverage)&&leverage>=1&&leverage<=125;
+  positionEstimate.textContent=valid
+   ? `${margin.toFixed(2)} USDT margin × ${leverage}x = ${(margin*leverage).toFixed(2)} USDT position`
+   : "Enter margin > 0 and leverage from 1x to 125x";
+ }
+ marginInput?.addEventListener("input",updatePositionEstimate);
+ leverageInput?.addEventListener("input",updatePositionEstimate);
+ updatePositionEstimate();
  
  settingsButton?.addEventListener("click",()=>{
   const isOpen=settingsPanel.style.display!=="none";
@@ -281,6 +356,8 @@ document.addEventListener("DOMContentLoaded",()=>{
    ctx.fillText(timeLabel(data[i][0],interval),x,padding+chartHeight+20);
   }
   ctx.textAlign="left";
+
+  drawIcebergProfitBoxes(ctx,data,window.icebergCandleStates,start,padding,candleWidth,chartWidth,priceToY);
 
   /* CANDLES */
   data.forEach((d,i)=>{

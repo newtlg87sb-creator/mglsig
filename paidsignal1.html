@@ -40,6 +40,26 @@
         </div>
     </div>
 
+    <div class="position-sizing-controls" aria-label="Position size calculator">
+        <label class="position-sizing-field">
+            <span>Margin</span>
+            <span class="position-sizing-input-wrap">
+                <input id="positionMargin" type="number" min="0.01" step="0.01" value="5" inputmode="decimal">
+                <span>USDT</span>
+            </span>
+        </label>
+        <label class="position-sizing-field">
+            <span>Leverage</span>
+            <span class="position-sizing-input-wrap">
+                <input id="positionLeverage" type="number" min="1" max="125" step="1" value="20" inputmode="numeric">
+                <span>x</span>
+            </span>
+        </label>
+        <output id="positionSizeEstimate" class="position-sizing-result" aria-live="polite">
+            5.00 USDT margin × 20x = 100.00 USDT position
+        </output>
+    </div>
+
     <!-- Индикатор тохиргооны самбар -->
     <div id="chartSettings" class="chart-settings" style="display: none;">
         <div class="chart-setting-group">
