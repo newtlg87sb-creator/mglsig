@@ -1,0 +1,241 @@
+/* --- SLIM & MODERN CHART HEADER STYLES --- */
+.chart-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  padding: 4px 6px;
+  background: #0b1017;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.chart-tools {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.chart-tool {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  min-width: 26px;
+  height: 26px;
+  padding: 0;
+  background: var(--field);
+  border: 1px solid var(--line2);
+  color: var(--gold2);
+  border-radius: 5px;
+  font-size: 13px;
+}
+
+.chart-tool:hover {
+  background: #202a38;
+}
+
+.chart-interval-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--muted);
+  margin-right: 2px;
+}
+
+.chart-interval-select {
+  min-width: 58px;
+  height: 26px !important;
+  padding: 0 4px !important;
+  background: var(--field);
+  border: 1px solid var(--line2);
+  color: var(--gold2);
+  border-radius: 5px;
+  font-size: 11px !important;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.chart-interval-select:hover {
+  border-color: var(--gold);
+}
+
+.chart-coin-input {
+  min-width: 84px;
+  width: 84px;
+  height: 26px !important;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 10px !important;
+}
+
+.chart-settings {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin: 0 0 6px;
+  padding: 6px 8px;
+  background: #0b1017;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.chart-setting-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  margin: 0;
+}
+
+.chart-setting-group + .chart-setting-group {
+  padding-left: 10px;
+  border-left: 1px solid var(--line2);
+}
+
+.chart-setting-group label {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.chart-setting-group input,
+.chart-setting-group select {
+  height: 24px !important;
+  font-size: 10px !important;
+  padding: 2px 6px !important;
+}
+
+.indicator-toggle {
+  height: 24px !important;
+  font-size: 10px !important;
+  padding: 0 6px !important;
+}
+
+/* =========================================================
+   FIXED TEXTS & WALL (BACKGROUND/PANEL) STYLES
+========================================================= */
+
+html, body {
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 8px !important;
+  box-sizing: border-box !important;
+  background: #07090d !important;
+  color: #e8edf5 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Бүх текст болон label-уудыг тод харагдуулах */
+label, span, div, p {
+  color: #e8edf5;
+}
+
+.label, .chart-interval-label, .chart-setting-group label {
+  color: #9fb0c0 !important;
+  font-weight: 700;
+}
+
+/* Chart container болон panel хануудад өнгө, хүрээ олгох */
+.section, .chart-title, .chart-settings, .box, .card {
+  background: #0f141c !important;
+  border: 1px solid #1f2a38 !important;
+  border-radius: 8px !important;
+}
+
+/* Чартын үндсэн контейнерийг дэлгэцний үлдэх зайг бүрэн эзэлж, доторх индикаторууд шахагдахгүй байхаар тохируулав */
+#metaChartContainer {
+  flex: 1 !important;
+  width: 100% !important;
+  height: 0 !important;
+  min-height: 450px !important;
+  background: #07090d !important;
+  border: 1px solid #2b394b !important;
+  border-radius: 8px !important;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* Input болон select dropdown хануудын өнгө */
+select, input {
+  background: #161e2a !important;
+  color: #e8edf5 !important;
+  border: 1px solid #2b394b !important;
+}
+
+select option {
+  background: #10161f !important;
+  color: #e8edf5 !important;
+}
+
+/* =========================================================
+   RESPONSIVE / MULTI-MONITOR FIX (2-ДОХ ДЭЛГЭЦИЙН ШАХАЛТЫГ ЗАСАХ)
+========================================================= */
+
+/* 1. Бүх төрлийн дэлгэцэнд шахагдахгүй байх үндсэн тохиргоо */
+html, body {
+  height: 100vh !important;
+  max-height: 100vh !important;
+  margin: 0 !important;
+  padding: 6px !important;
+  box-sizing: border-box !important;
+  background: #07090d !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* 2. Контейнер ямар ч дэлгэц дээр 100% сунаж, Canvas-ийг дотроо бүтэн багтаана */
+#metaChartContainer {
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  height: 0 !important; /* Flexbox дээр өндөр шахагдах боломж олгоно */
+  min-height: 350px !important; /* Том/жижиг дэлгэцэнд хамгийн багадаа байх өндөр */
+  position: relative !important;
+  overflow: hidden !important;
+  background: #07090d !important;
+  border: 1px solid #2b394b !important;
+  border-radius: 8px !important;
+}
+
+#chart-wrapper {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+}
+
+#chart {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* 3. Дэлгэцийн өндөр бага эсвэл 2 дахь дэлгэцийн хэмжээ өөр үед Header-ийн хэмжээг агшааж Чартад зай суллах */
+@media screen and (max-height: 800px) {
+  .chart-title {
+    padding: 2px 4px !important;
+    margin-bottom: 4px !important;
+  }
+  .chart-interval-select, .chart-coin-input, .chart-tool {
+    height: 22px !important;
+    font-size: 10px !important;
+  }
+  #rsiAverageBadge {
+    top: 5px !important;
+    padding: 4px 8px !important;
+    font-size: 10px !important;
+  }
+}
+
+/* 4. Маш нарийн эсвэл босоо/бага өндөртэй monitor дээр */
+@media screen and (max-height: 600px) {
+  #metaChartContainer {
+    min-height: 280px !important;
+  }
+}

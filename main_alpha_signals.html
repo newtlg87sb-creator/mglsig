@@ -28,13 +28,86 @@
         }
     </script>
     <link rel="stylesheet" href="/static/main_style.css">
+    <style>
+        .alpha-chart .chart-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 8px;
+            padding: 8px;
+            background: #0f1217;
+            border: 1px solid #1f242d;
+            border-radius: 8px;
+        }
+        .alpha-chart .chart-primary-controls,
+        .alpha-chart .chart-tools,
+        .alpha-chart .chart-settings,
+        .alpha-chart .chart-setting-group {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .alpha-chart .chart-tools { gap: 6px; }
+        .alpha-chart .chart-settings {
+            margin-bottom: 8px;
+            padding: 8px;
+            background: #0f1217;
+            border: 1px solid #1f242d;
+            border-radius: 8px;
+        }
+        .alpha-chart .chart-setting-group label,
+        .alpha-chart .chart-interval-label {
+            color: #9ca3af;
+            font-size: 11px;
+        }
+        .alpha-chart .chart-interval-select,
+        .alpha-chart .chart-coin-input,
+        .alpha-chart .chart-setting-group input {
+            min-height: 30px;
+            border: 1px solid #343b46;
+            border-radius: 6px;
+            background: #161e2a;
+            color: #e8edf5;
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+        .alpha-chart .chart-coin-input { width: 110px; }
+        .alpha-chart .chart-tool {
+            min-width: 32px;
+            min-height: 30px;
+            border: 1px solid #343b46;
+            border-radius: 6px;
+            background: #161e2a;
+            color: #c5a059;
+            cursor: pointer;
+        }
+        .alpha-chart #metaChartContainer {
+            position: relative;
+            width: 100%;
+            height: 640px;
+            min-height: 600px;
+            overflow: hidden;
+            border: 1px solid #2b394b;
+            border-radius: 12px;
+            background: #07090d;
+        }
+        @media (max-width: 640px) {
+            .alpha-chart #metaChartContainer {
+                height: 600px;
+                min-height: 600px;
+            }
+        }
+    </style>
 </head>
 <body class="bg-brand-dark text-white font-inter flex flex-col min-h-screen">
 
     <script src="/static/js/header.js"></script>
 
     <main class="flex-grow pt-24 pb-12 px-6">
-        <div class="max-w-4xl mx-auto">
+        <div class="max-w-6xl mx-auto">
             <!-- Header -->
             <div class="text-center mb-12">
                 <div class="inline-flex items-center space-x-2 bg-brand-gold/10 border border-brand-gold/20 px-4 py-1.5 rounded-full mb-6">
@@ -47,6 +120,65 @@
                 <p id="alpha-subtitle" class="text-gray-400 max-w-2xl mx-auto">Зөвхөн VIP гишүүдэд зориулсан өндөр нарийвчлалтай арилжааны дохионууд.</p>
                 <div class="w-20 h-1 bg-brand-gold mx-auto mt-6"></div>
             </div>
+
+            <section class="alpha-chart mb-12" aria-labelledby="alpha-chart-title">
+                <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+                    <div>
+                        <h2 id="alpha-chart-title" class="text-xl md:text-2xl font-black uppercase tracking-tight text-white">
+                            Market <span class="text-brand-gold italic">Chart</span>
+                        </h2>
+                        <p class="text-gray-500 text-xs mt-1">Үнэ болон индикаторуудыг өөрийн тохиргоогоор шинжлээрэй.</p>
+                    </div>
+                </div>
+
+                <div class="chart-title">
+                    <div class="chart-primary-controls">
+                        <span class="text-brand-gold font-bold text-xs tracking-wider">CHART</span>
+                        <select id="market" class="chart-interval-select" aria-label="Market type">
+                            <option value="spot" selected>SPOT</option>
+                            <option value="futures">FUTURES</option>
+                        </select>
+                        <input type="text" id="coin" value="BTCUSDT" list="coinList" class="chart-coin-input" placeholder="BTCUSDT" aria-label="Trading pair">
+                        <datalist id="coinList"></datalist>
+                    </div>
+                    <div class="chart-tools">
+                        <span id="candleCountdown" class="text-cyan-400 font-mono text-xs">--:--</span>
+                        <label for="interval" class="chart-interval-label">TIME:</label>
+                        <select id="interval" class="chart-interval-select">
+                            <option value="1s">1s</option>
+                            <option value="1m" selected>1m</option>
+                            <option value="5m">5m</option>
+                            <option value="15m">15m</option>
+                            <option value="1h">1h</option>
+                            <option value="4h">4h</option>
+                            <option value="1d">1d</option>
+                        </select>
+                        <button id="toggleChartSettings" class="chart-tool" aria-expanded="false" aria-label="Chart settings">⚙️</button>
+                    </div>
+                </div>
+
+                <div id="chartSettings" class="chart-settings" style="display: none;">
+                    <div class="chart-setting-group">
+                        <label><input type="checkbox" id="showMACD" checked> MACD</label>
+                        <label><input type="checkbox" id="showRSI" checked> RSI</label>
+                    </div>
+                    <div class="chart-setting-group">
+                        <label for="rsiPeriod">RSI:</label>
+                        <input type="number" id="rsiPeriod" value="14" style="width: 56px;">
+                    </div>
+                    <div class="chart-setting-group">
+                        <label for="macdFast">MACD:</label>
+                        <input type="number" id="macdFast" value="12" style="width: 48px;" aria-label="MACD fast">
+                        <span>/</span>
+                        <input type="number" id="macdSlow" value="26" style="width: 48px;" aria-label="MACD slow">
+                        <span>/</span>
+                        <input type="number" id="macdSignal" value="9" style="width: 48px;" aria-label="MACD signal">
+                    </div>
+                    <button id="applyIndicators" class="bg-brand-gold text-black px-3 py-1 rounded font-bold text-xs hover:bg-white transition">Apply</button>
+                </div>
+
+                <div id="metaChartContainer" aria-label="Interactive market chart"></div>
+            </section>
 
             <!-- Alpha Signals List -->
             <div id="alpha-signals-container" class="space-y-4">
@@ -110,5 +242,6 @@
             };
         });
     </script>
+        <script src="/api/Metachart.js"></script>
 </body>
 </html>
