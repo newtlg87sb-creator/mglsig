@@ -741,11 +741,11 @@ export default async function handler(req, res) {
     const authHeader = req.headers.authorization || "";
     const accessToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
     const supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseApiKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
-    if (!accessToken) {
+    const supabaseApiKey = req.headers.apikey;
+    if (!accessToken || !supabaseApiKey) {
         return res.status(401).json({ error: "Sign in to use Iceberg" });
     }
-    if (!supabaseUrl || !supabaseApiKey) {
+    if (!supabaseUrl) {
         console.error("[ICEBERG ACCESS ERROR] Supabase configuration is incomplete");
         return res.status(503).json({ error: "Iceberg access is temporarily unavailable" });
     }

@@ -715,11 +715,15 @@ document.addEventListener("DOMContentLoaded",()=>{
             if (!session?.access_token) {
                 throw new Error("Sign in to use Iceberg");
             }
+            if (!window.SUPABASE_API_KEY) {
+                throw new Error("Supabase public API key is unavailable");
+            }
 
             const response = await fetch("/api/data1", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
+                    apikey: window.SUPABASE_API_KEY,
                     Authorization: `Bearer ${session.access_token}`
                 },
                 body: JSON.stringify({ klines, fast, slow, signal })
