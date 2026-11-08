@@ -701,47 +701,61 @@ function calculateMacdArrays(klines, fast = 12, slow = 26, signal = 9) {
     };
 }
 
-function calculateIcebergCandleStates(macdLine) {
-    if (!Array.isArray(macdLine) || macdLine.length === 0) return [];
-
-    const states = new Array(macdLine.length).fill(null);
+function calculateIcebergCandleStates(klines, fast, slow, signal) {
+    const states = new Array(klines.length).fill(null);
     let state = null;
-    let macdPeak = 0;
-    let macdTrough = 0;
-    let activePeak = null;
-    let activeTrough = null;
 
-    for (let index = 0; index < macdLine.length - 1; index++) {
-        const value = Number(macdLine[index]);
-        const previous = index > 0 ? Number(macdLine[index - 1]) : 0;
+    for (let index = 3; index < klines.length - 1; index++) {
+        const closedKlines = klines.slice(0, index + 2);
+        const {
+            previous_macd_line,
+            previous_2_macd_line,
+        } = calculateMacdValues(closedKlines, fast, slow, signal);
+        const { macd_peak, macd_trough } = calculateMacdPeaks(closedKlines, fast, slow, signal);
+        const previous = Number(previous_macd_line);
+        const previous2 = Number(previous_2_macd_line);
+        const peak = Number(macd_peak.macd_value);
+        const trough = Number(macd_trough.macd_value);
 
-        if (index > 0) {
-            const crossedUp = (previous < macdPeak && value > macdPeak) ||
-                (previous < macdTrough && value > macdTrough);
-            const crossedDown = (previous > macdPeak && value < macdPeak) ||
-                (previous > macdTrough && value < macdTrough);
+        const crossedUp = (previous > peak && previous2 < peak) ||
+            (previous > trough && previous2 < trough);
+        const crossedDown = (previous < peak && previous2 > peak) ||
+            (previous < trough && previous2 > trough);
 
-            if (crossedUp) state = 'up';
-            else if (crossedDown) state = 'down';
-        }
-
+        if (crossedUp) state = 'up';
+        else if (crossedDown) state = 'down';
         states[index] = state;
-
-        if (previous >= 0 && value < 0) {
-            if (activePeak !== null) macdPeak = activePeak;
-            activePeak = null;
-            activeTrough = value;
-        } else if (previous <= 0 && value > 0) {
-            if (activeTrough !== null) macdTrough = activeTrough;
-            activeTrough = null;
-            activePeak = value;
-        } else if (value > 0) {
-            if (activePeak === null || value > activePeak) activePeak = value;
-        } else if (value < 0) {
-            if (activeTrough === null || value < activeTrough) activeTrough = value;
-        }
     }
 
-    states[macdLine.length - 1] = state;
+    states[klines.length - 1] = state;
     return states;
+}
+
+export default async function handler(req, res) {
+    res.setHeader("Cache-Control", "no-store");
+
+    if (req.method !== "POST") {
+        return res.status(405).json({ error: "Method not allowed" });
+    }
+
+    const { klines, fast = 12, slow = 26, signal = 9 } = req.body || {};
+    if (!Array.isArray(klines) || klines.length < 5 || klines.length > 2000 ||
+        klines.some(kline => !Array.isArray(kline) || kline.length < 6 ||
+            ![0, 1, 2, 3, 4, 5].every(index => Number.isFinite(Number(kline[index]))))) {
+        return res.status(400).json({ error: "Invalid candle data" });
+    }
+
+    const periods = [fast, slow, signal].map(Number);
+    if (!periods.every(period => Number.isInteger(period) && period > 0 && period <= 500) ||
+        periods[0] >= periods[1]) {
+        return res.status(400).json({ error: "Invalid MACD periods" });
+    }
+
+    try {
+        const states = calculateIcebergCandleStates(klines, ...periods);
+        return res.status(200).json({ states });
+    } catch (error) {
+        console.error("[ICEBERG STRATEGY ERROR]", error);
+        return res.status(500).json({ error: "Iceberg strategy calculation failed" });
+    }
 }

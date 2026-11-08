@@ -165,6 +165,9 @@ document.addEventListener("DOMContentLoaded",()=>{
  window.signalEvents=[];
 
  let visibleCount=500,offset=0;
+ let icebergStateKey=null;
+ let icebergRequestKey=null;
+ let icebergRequestPromise=null;
  const minVisible=20,maxVisible=10000;
  const mouse={x:null,y:null};
  let dragging=false,lastX=0;
@@ -520,10 +523,63 @@ document.addEventListener("DOMContentLoaded",()=>{
     window.macdArrayData = macdRes.macdLine;
     window.signalArrayData = macdRes.signalLine;
     window.histArrayData = macdRes.histogram;
-    window.icebergCandleStates = typeof calculateIcebergCandleStates === "function"
-        ? calculateIcebergCandleStates(window.macdArrayData)
-        : [];
+    await refreshIcebergCandleStates(macdFast, macdSlow, macdSignal);
  };
+
+ async function refreshIcebergCandleStates(fast, slow, signal) {
+    const klines = window.allData;
+    if (klines.length < 5) {
+        window.icebergCandleStates = [];
+        return;
+    }
+
+    const key = JSON.stringify([
+        currentSymbol(),
+        currentIntervalMinutes(),
+        currentMarketType(),
+        klines[0][0],
+        klines[klines.length - 2][0],
+        fast,
+        slow,
+        signal
+    ]);
+    if (key === icebergStateKey && window.icebergCandleStates?.length === klines.length) return;
+    if (icebergRequestPromise && key === icebergRequestKey) return icebergRequestPromise;
+
+    icebergRequestKey = key;
+    const request = (async () => {
+        try {
+            const response = await fetch("/api/data1", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ klines, fast, slow, signal })
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || `HTTP ${response.status}`);
+            if (!Array.isArray(result.states) || result.states.length !== klines.length) {
+                throw new Error("Invalid Iceberg strategy response");
+            }
+
+            if (icebergRequestKey === key) {
+                window.icebergCandleStates = result.states;
+                icebergStateKey = key;
+            }
+        } catch (error) {
+            console.error("[ICEBERG STRATEGY ERROR]", error);
+            if (icebergRequestKey === key) {
+                window.icebergCandleStates = [];
+                icebergStateKey = null;
+            }
+        } finally {
+            if (icebergRequestPromise === request) {
+                icebergRequestPromise = null;
+                icebergRequestKey = null;
+            }
+        }
+    })();
+    icebergRequestPromise = request;
+    return request;
+ }
 
  window.refreshChartIndicators = async function () {
     try {
