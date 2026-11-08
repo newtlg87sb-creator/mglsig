@@ -79,34 +79,53 @@ function drawIcebergProfitBoxes(ctx,data,states,start,padding,candleWidth,chartW
   let segmentStart=globalIndex;
   while(segmentStart>0&&states[segmentStart-1]===state)segmentStart--;
 
-  const entry=Number(window.allData[segmentStart]?.[4]);
+  const entry=Number(window.allData[segmentStart]?.[1]);
   let favorable=state==="up"?-Infinity:Infinity;
+  let favorableIndex=segmentStart;
   for(let index=segmentStart;index<start+segmentEnd&&index<visibleEnd;index++){
    const candle=window.allData[index];
    if(!candle)continue;
-   favorable=state==="up"?Math.max(favorable,Number(candle[2])):Math.min(favorable,Number(candle[3]));
+   const price=state==="up"?Number(candle[2]):Number(candle[3]);
+   if(state==="up"?price>=favorable:price<=favorable){
+    favorable=price;
+    favorableIndex=index;
+   }
   }
 
   const isProfitable=state==="up"?favorable>entry:favorable<entry;
   if(Number.isFinite(entry)&&Number.isFinite(favorable)&&isProfitable){
    const visibleSegmentStart=Math.max(segmentStart,start);
-   const x=padding+(visibleSegmentStart-start)*candleWidth;
-   const width=(start+segmentEnd-visibleSegmentStart)*candleWidth;
+   const visibleSegmentEnd=Math.min(start+segmentEnd,visibleEnd);
+   const greenEnd=Math.min(favorableIndex+1,visibleSegmentEnd);
+   const greenX=padding+(visibleSegmentStart-start)*candleWidth;
+   const greenWidth=Math.max(0,(greenEnd-visibleSegmentStart)*candleWidth);
+   const redX=padding+(Math.max(favorableIndex+1,visibleSegmentStart)-start)*candleWidth;
+   const redWidth=Math.max(0,(visibleSegmentEnd-Math.max(favorableIndex+1,visibleSegmentStart))*candleWidth);
    const entryY=priceToY(entry);
    const targetY=priceToY(favorable);
    const top=Math.min(entryY,targetY);
    const height=Math.max(1,Math.abs(entryY-targetY));
 
-   ctx.fillStyle="rgba(0,200,83,0.12)";
-   ctx.fillRect(x,top,width,height);
-   ctx.strokeStyle="rgba(0,230,118,0.55)";
-   ctx.lineWidth=1;
-   ctx.strokeRect(x,top,width,height);
+   if(greenWidth>0){
+    ctx.fillStyle="rgba(0,200,83,0.12)";
+    ctx.fillRect(greenX,top,greenWidth,height);
+    ctx.strokeStyle="rgba(0,230,118,0.55)";
+    ctx.lineWidth=1;
+    ctx.strokeRect(greenX,top,greenWidth,height);
+   }
+   if(redWidth>0){
+    ctx.fillStyle="rgba(255,61,87,0.12)";
+    ctx.fillRect(redX,top,redWidth,height);
+    ctx.strokeStyle="rgba(255,82,102,0.55)";
+    ctx.lineWidth=1;
+    ctx.strokeRect(redX,top,redWidth,height);
+   }
    ctx.fillStyle="#69f0ae";
    ctx.font="10px Inter, sans-serif";
-   ctx.textAlign="right";
+   ctx.textAlign="center";
    ctx.textBaseline="bottom";
-   ctx.fillText(`${state==="up"?"MAX":"MIN"} ${formatPrice(favorable)}`,x+width-4,targetY-3);
+   const peakX=padding+(favorableIndex-start+0.5)*candleWidth;
+   ctx.fillText(`${state==="up"?"MAX":"MIN"} ${formatPrice(favorable)}`,peakX,targetY-3);
   }
 
   localIndex=segmentEnd;
