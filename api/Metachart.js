@@ -55,9 +55,19 @@ function activeIndex(m,padding,chartWidth,candleWidth,len){
  return len-1;
 }
 
+function calculateIcebergProfit(state,entry,exit,margin,leverage){
+ if(!Number.isFinite(entry)||entry<=0||!Number.isFinite(exit)||
+    !Number.isFinite(margin)||margin<=0||!Number.isFinite(leverage)||leverage<1)return null;
+ const positionSize=margin*leverage;
+ const priceReturn=state==="up"?(exit-entry)/entry:(entry-exit)/entry;
+ return positionSize*priceReturn;
+}
+
 function drawIcebergProfitBoxes(ctx,data,states,start,padding,candleWidth,chartWidth,priceToY){
  if(!Array.isArray(states)||!states.length)return;
  const visibleEnd=start+data.length;
+ const margin=Number(document.getElementById("positionMargin")?.value);
+ const leverage=Number(document.getElementById("positionLeverage")?.value);
  let localIndex=0;
 
  ctx.save();
@@ -125,7 +135,10 @@ function drawIcebergProfitBoxes(ctx,data,states,start,padding,candleWidth,chartW
    ctx.textAlign="center";
    ctx.textBaseline="bottom";
    const peakX=padding+(favorableIndex-start+0.5)*candleWidth;
-   ctx.fillText(`${state==="up"?"MAX":"MIN"} ${formatPrice(favorable)}`,peakX,targetY-3);
+   const profit=calculateIcebergProfit(state,entry,favorable,margin,leverage);
+   if(profit!==null){
+    ctx.fillText(`MAX PROFIT +${profit.toFixed(2)} USDT`,peakX,targetY-3);
+   }
   }
 
   localIndex=segmentEnd;
