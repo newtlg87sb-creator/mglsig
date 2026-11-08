@@ -52,26 +52,29 @@ export default async function handler(req, res) {
     }
 
     const orderMatch = typeof orderId === 'string'
-      ? orderId.match(/^alpha_([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i)
+      ? orderId.match(/^(alpha|beta)_([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i)
       : null;
     if (!orderMatch) {
-      return res.status(200).send('Not an Alpha subscription');
+      return res.status(200).send('Not a supported subscription');
     }
     if (paymentId === undefined || paymentId === null || String(paymentId).length === 0) {
-      console.error('Finished Alpha payment is missing payment_id');
+      console.error(`Finished ${orderMatch[1]} payment is missing payment_id`);
       return res.status(400).send('Missing payment ID');
     }
 
-    const { data: activated, error } = await supabase.rpc('activate_alpha_subscription', {
-      p_user_id: orderMatch[1],
+    const activateFunction = orderMatch[1].toLowerCase() === 'beta'
+      ? 'activate_beta_subscription'
+      : 'activate_alpha_subscription';
+    const { data: activated, error } = await supabase.rpc(activateFunction, {
+      p_user_id: orderMatch[2],
       p_payment_id: String(paymentId)
     });
     if (error) {
-      console.error('Failed to activate Alpha subscription:', error.message);
+      console.error(`Failed to activate ${orderMatch[1]} subscription:`, error.message);
       return res.status(500).send('Database update failed');
     }
 
-    return res.status(200).send(activated ? 'Alpha access activated' : 'Payment already processed');
+    return res.status(200).send(activated ? `${orderMatch[1]} access activated` : 'Payment already processed');
 
   } catch (err) {
     console.error('NOWPayments webhook failed:', err.message);

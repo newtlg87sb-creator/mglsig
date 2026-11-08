@@ -4,6 +4,16 @@ export default async function handler(req, res) {
   }
 
   try {
+    const { plan } = req.body || {};
+    const plans = {
+      alpha: { price: 20, name: 'Alpha' },
+      beta: { price: 10, name: 'Beta' }
+    };
+    const selectedPlan = Object.hasOwn(plans, plan) ? plans[plan] : null;
+    if (!selectedPlan) {
+      return res.status(400).json({ error: 'Select an available subscription plan' });
+    }
+
     const authHeader = req.headers.authorization || '';
     const accessToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
     const supabaseUrl = process.env.SUPABASE_URL;
@@ -11,11 +21,11 @@ export default async function handler(req, res) {
     const nowPaymentsKey = process.env.NOWPAYMENTS_API_KEY;
 
     if (!accessToken) {
-      return res.status(401).json({ error: 'Sign in to purchase Alpha access' });
+      return res.status(401).json({ error: 'Sign in to purchase a subscription' });
     }
 
     if (!supabaseUrl || !supabaseKey || !nowPaymentsKey) {
-      console.error('Alpha invoice configuration is incomplete');
+      console.error('Subscription invoice configuration is incomplete');
       return res.status(503).json({ error: 'Payment service is not configured' });
     }
 
@@ -41,12 +51,12 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        price_amount: 20,
+        price_amount: selectedPlan.price,
         price_currency: 'usd',
         pay_currency: 'usdtbsc',
-        order_id: `alpha_${user.id}`,
-        order_description: 'MGL Signal Alpha Plan 1-Month Subscription',
-        success_url: 'https://mglsignal.com/main_pricing.html?payment=processing',
+        order_id: `${plan}_${user.id}`,
+        order_description: `MGL Signal ${selectedPlan.name} Plan 1-Month Subscription`,
+        success_url: `https://mglsignal.com/main_pricing.html?payment=processing&plan=${plan}`,
         cancel_url: 'https://mglsignal.com/main_pricing.html'
       }),
       signal: AbortSignal.timeout(15000)

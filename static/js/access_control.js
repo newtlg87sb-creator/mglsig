@@ -7,7 +7,7 @@
     const currentPage = window.location.pathname;
 
     // Заавал нэвтрэх шаардлагатай хуудсуудын жагсаалт
-    const authRequiredPages = ['main_alpha_signals.html'];
+    const authRequiredPages = ['main_alpha_signals.html', 'paidsignal1.html'];
     const needsAuth = authRequiredPages.some(p => currentPage.includes(p));
 
     if (needsAuth && (!userStr || userStr === "undefined")) {
@@ -35,14 +35,21 @@
 
     const user = JSON.parse(userStr);
 
-    // Alpha хуудсанд орох гэж байвал эрхийг нь шалгах
-    if (currentPage.includes('main_alpha_signals.html')) {
+    if (currentPage.includes('main_alpha_signals.html') || currentPage.includes('paidsignal1.html')) {
         const now = new Date();
         const expiresAt = user.membership_expires_at ? new Date(user.membership_expires_at) : null;
-        const isExpired = expiresAt && expiresAt < now;
+        const isExpired = expiresAt && (!Number.isFinite(expiresAt.getTime()) || expiresAt <= now);
+        const membershipType = String(user.membership_type || '').toLowerCase();
+        const hasAccess = currentPage.includes('main_alpha_signals.html')
+            ? membershipType === 'alpha'
+            : ['alpha', 'beta'].includes(membershipType);
 
-        if (user.membership_type !== 'alpha' || isExpired) {
-            const msg = isExpired ? 'Таны ALPHA эрхийн хугацаа дууссан байна.' : 'Энэ хуудсанд нэвтрэхийн тулд ALPHA багцтай байх шаардлагатай.';
+        if (!hasAccess || isExpired) {
+            const msg = isExpired
+                ? 'Таны багцын эрхийн хугацаа дууссан байна.'
+                : currentPage.includes('main_alpha_signals.html')
+                    ? 'Энэ хуудсанд нэвтрэхийн тулд ALPHA багцтай байх шаардлагатай.'
+                    : 'Iceberg ашиглахын тулд BETA эсвэл ALPHA багцтай байх шаардлагатай.';
             alert(msg);
             window.location.href = 'main_pricing.html';
         }

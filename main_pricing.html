@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Үнийн санал - MGL Signal</title>
-    <meta name="description" content="Choose your plan. Access free signals or upgrade to Alpha for premium features.">
+    <meta name="description" content="Choose a MGL Signal subscription plan, including Beta Iceberg access or Alpha Signals.">
     <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -46,10 +46,21 @@
                 "feat-alpha-unlock": "Alpha сигналууд",
                 "feat-exclusive": "Онцгой эрх & Давуу талууд",
                 "btn-select-plan": "Сонгох",
-                "modal-alpha-title": "Alpha Эрх Идэвхжүүлэх",
+                "plan-beta-name": "Beta Багц",
+                "plan-beta-desc": "Iceberg сигнал болон үндсэн үйлчилгээнүүд.",
+                "feat-beta-iceberg": "Iceberg интерактив сигнал",
+                "feat-beta-free": "Үндсэн сигнал, мэдээ, шинэ төслүүд, мэдлэгийн сан",
+                "feat-beta-no-alpha": "Alpha сигналууд багтахгүй",
+                "plan-gamma-name": "Gamma Багц",
+                "plan-delta-name": "Delta Багц",
+                "plan-epsilon-name": "Epsilon Багц",
+                "plan-coming-soon": "Тун удахгүй",
+                "plan-inactive": "Одоогоор идэвхгүй",
+                "modal-alpha-title": "Alpha эрх идэвхжүүлэх · $20",
+                "modal-beta-title": "Beta эрх идэвхжүүлэх · $10",
                 "badge-popular": "Хамгийн эрэлттэй",
                 "btn-messenger": "Админтой холбогдох",
-                "payment-pending-msg": "Төлбөрийн баталгааг хүлээж байна. NOWPayments төлбөрийг баталгаажуулсны дараа Alpha эрх идэвхжинэ."
+                "payment-pending-msg": "Төлбөрийн баталгааг хүлээж байна. NOWPayments баталгаажуулсны дараа сонгосон багцын эрх идэвхжинэ."
             },
             en: {
                 "pricing-title": "Pricing Plans",
@@ -70,10 +81,21 @@
                 "feat-alpha-unlock": "Alpha Signals",
                 "feat-exclusive": "Exclusive Rights & Benefits",
                 "btn-select-plan": "Select Plan",
-                "modal-alpha-title": "Activate Alpha Access",
+                "plan-beta-name": "Beta Plan",
+                "plan-beta-desc": "Iceberg signals and essential features.",
+                "feat-beta-iceberg": "Iceberg interactive signal",
+                "feat-beta-free": "Basic signals, news, new projects, and knowledge base",
+                "feat-beta-no-alpha": "Alpha Signals are not included",
+                "plan-gamma-name": "Gamma Plan",
+                "plan-delta-name": "Delta Plan",
+                "plan-epsilon-name": "Epsilon Plan",
+                "plan-coming-soon": "Coming Soon",
+                "plan-inactive": "Not available yet",
+                "modal-alpha-title": "Activate Alpha Access · $20",
+                "modal-beta-title": "Activate Beta Access · $10",
                 "badge-popular": "Most Popular",
                 "btn-messenger": "Contact via Messenger",
-                "payment-pending-msg": "Payment confirmation is pending. Alpha access will activate after NOWPayments confirms your payment."
+                "payment-pending-msg": "Payment confirmation is pending. Your selected plan will activate after NOWPayments confirms your payment."
             }
         };
         Object.keys(pageTranslations).forEach(lang => {
@@ -84,7 +106,7 @@
     <script src="/static/js/header.js"></script>
 
     <main class="flex-grow pt-24 pb-12 px-6">
-        <div class="max-w-4xl mx-auto">
+        <div class="max-w-6xl mx-auto">
             <div class="text-center mb-16">
                 <h1 data-i18n="pricing-title" class="text-3xl md:text-5xl font-black uppercase tracking-tight text-white mb-4">
                     Үнийн Санал
@@ -94,7 +116,7 @@
             </div>
             <div id="payment-status-message" data-i18n="payment-pending-msg" class="hidden mb-8 rounded-xl border border-brand-gold/30 bg-brand-gold/10 p-4 text-center text-sm text-brand-gold"></div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 max-w-6xl mx-auto">
 
                 <div class="bg-brand-dark-blue border border-brand-border rounded-2xl p-8 h-full flex flex-col hover:border-brand-gold/30 transition-all duration-300 relative overflow-hidden group">
                     <div class="absolute top-0 left-0 w-full h-1 bg-gray-600"></div>
@@ -103,7 +125,7 @@
                         <div class="text-4xl font-black text-white mb-2">₮0<span data-i18n="price-per-month" class="text-sm font-normal text-gray-500 ml-1">/ сар</span></div>
                         <p data-i18n="plan-free-desc" class="text-xs text-gray-400"></p>
                     </div>
-                    
+
                     <ul class="space-y-3 text-gray-300 mb-8 flex-grow">
                         <li class="flex items-center text-xs"><i class="fas fa-check text-green-500 mr-3"></i><span data-i18n="feat-basic-sig"></span></li>
                         <li class="flex items-center text-xs"><i class="fas fa-check text-green-500 mr-3"></i><span data-i18n="feat-news"></span></li>
@@ -137,9 +159,56 @@
                         <li class="flex items-center text-xs"><i class="fas fa-check text-brand-gold mr-3"></i><span data-i18n="feat-exclusive"></span></li>
                     </ul>
                     
-                    <a href="#" id="qpay-button" data-i18n="btn-select-plan" class="w-full block text-center bg-brand-gold text-black font-bold py-3 rounded-lg hover:bg-white transition uppercase text-xs tracking-widest shadow-lg shadow-brand-gold/20">
+                    <button type="button" class="paid-plan-btn w-full block text-center bg-brand-gold text-black font-bold py-3 rounded-lg hover:bg-white transition uppercase text-xs tracking-widest shadow-lg shadow-brand-gold/20" data-plan="alpha" data-i18n="btn-select-plan">
                         Сонгох
-                    </a>
+                    </button>
+                </div>
+
+                <div id="plan-beta-card" class="bg-brand-dark-blue border border-cyan-500/60 rounded-2xl p-8 h-full flex flex-col relative overflow-hidden shadow-2xl shadow-cyan-500/10">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-cyan-400"></div>
+                    <div class="mb-6">
+                        <h3 data-i18n="plan-beta-name" class="text-xl font-bold text-cyan-300 uppercase tracking-wider mb-2">Beta Багц</h3>
+                        <div class="text-4xl font-black text-white mb-2">$10<span data-i18n="price-per-month" class="text-sm font-normal text-gray-500 ml-1">/ сар</span></div>
+                        <p data-i18n="plan-beta-desc" class="text-xs text-gray-400">Iceberg сигнал болон үндсэн үйлчилгээнүүд.</p>
+                    </div>
+                    <ul class="space-y-3 text-gray-300 mb-8 flex-grow">
+                        <li class="flex items-center text-xs"><i class="fas fa-check text-cyan-400 mr-3"></i><span data-i18n="feat-beta-iceberg">Iceberg интерактив сигнал</span></li>
+                        <li class="flex items-start text-xs"><i class="fas fa-check text-cyan-400 mr-3 mt-0.5"></i><span data-i18n="feat-beta-free">Үндсэн сигнал, мэдээ, шинэ төслүүд, мэдлэгийн сан</span></li>
+                        <li class="flex items-center text-xs text-gray-500"><i class="fas fa-minus text-gray-600 mr-3"></i><span data-i18n="feat-beta-no-alpha">Alpha сигналууд багтахгүй</span></li>
+                    </ul>
+                    <button type="button" class="paid-plan-btn w-full block text-center bg-cyan-400 text-black font-bold py-3 rounded-lg hover:bg-white transition uppercase text-xs tracking-widest" data-plan="beta" data-i18n="btn-select-plan">
+                        Сонгох
+                    </button>
+                </div>
+
+                <div class="bg-brand-dark-blue/60 border border-brand-border rounded-2xl p-8 h-full flex flex-col relative overflow-hidden opacity-70">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gray-700"></div>
+                    <h3 data-i18n="plan-gamma-name" class="text-xl font-bold text-gray-400 uppercase tracking-wider mb-2">Gamma Багц</h3>
+                    <div class="text-4xl font-black text-gray-400 mb-6">—<span data-i18n="price-per-month" class="text-sm font-normal text-gray-600 ml-1">/ сар</span></div>
+                    <p data-i18n="plan-inactive" class="text-xs text-gray-500 flex-grow">Одоогоор идэвхгүй</p>
+                    <button type="button" disabled class="mt-8 w-full border border-gray-700 text-gray-600 font-bold py-3 rounded-lg uppercase text-xs tracking-widest cursor-not-allowed">
+                        <span data-i18n="plan-coming-soon">Тун удахгүй</span>
+                    </button>
+                </div>
+
+                <div class="bg-brand-dark-blue/60 border border-brand-border rounded-2xl p-8 h-full flex flex-col relative overflow-hidden opacity-70">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gray-700"></div>
+                    <h3 data-i18n="plan-delta-name" class="text-xl font-bold text-gray-400 uppercase tracking-wider mb-2">Delta Багц</h3>
+                    <div class="text-4xl font-black text-gray-400 mb-6">—<span data-i18n="price-per-month" class="text-sm font-normal text-gray-600 ml-1">/ сар</span></div>
+                    <p data-i18n="plan-inactive" class="text-xs text-gray-500 flex-grow">Одоогоор идэвхгүй</p>
+                    <button type="button" disabled class="mt-8 w-full border border-gray-700 text-gray-600 font-bold py-3 rounded-lg uppercase text-xs tracking-widest cursor-not-allowed">
+                        <span data-i18n="plan-coming-soon">Тун удахгүй</span>
+                    </button>
+                </div>
+
+                <div class="bg-brand-dark-blue/60 border border-brand-border rounded-2xl p-8 h-full flex flex-col relative overflow-hidden opacity-70">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gray-700"></div>
+                    <h3 data-i18n="plan-epsilon-name" class="text-xl font-bold text-gray-400 uppercase tracking-wider mb-2">Epsilon Багц</h3>
+                    <div class="text-4xl font-black text-gray-400 mb-6">—<span data-i18n="price-per-month" class="text-sm font-normal text-gray-600 ml-1">/ сар</span></div>
+                    <p data-i18n="plan-inactive" class="text-xs text-gray-500 flex-grow">Одоогоор идэвхгүй</p>
+                    <button type="button" disabled class="mt-8 w-full border border-gray-700 text-gray-600 font-bold py-3 rounded-lg uppercase text-xs tracking-widest cursor-not-allowed">
+                        <span data-i18n="plan-coming-soon">Тун удахгүй</span>
+                    </button>
                 </div>
 
             </div>
@@ -156,7 +225,7 @@
                 <div class="w-16 h-16 bg-brand-gold/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-brand-gold/20">
                     <i class="fas fa-crown text-brand-gold text-2xl"></i>
                 </div>
-                <h3 data-i18n="modal-alpha-title" class="text-2xl font-black text-white uppercase tracking-wider mb-1">Alpha Эрх Идэвхжүүлэх</h3>
+                <h3 id="payment-modal-title" data-i18n="modal-alpha-title" class="text-2xl font-black text-white uppercase tracking-wider mb-1">Alpha эрх идэвхжүүлэх · $20</h3>
                 <p class="text-gray-400 text-xs font-medium">Төлбөрийн хэрэгслээ сонгоно уу</p>
             </div>
 
@@ -183,13 +252,32 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const modal = document.getElementById('payment-modal');
-            const qpayBtn = document.getElementById('qpay-button');
+            const paidPlanButtons = document.querySelectorAll('.paid-plan-btn');
             const freeBtn = document.getElementById('free-plan-btn');
             const close = document.getElementById('close-modal');
             const nowpaymentsBtn = document.getElementById('nowpayments-button');
+            const modalTitle = document.getElementById('payment-modal-title');
+            let selectedPlan = 'alpha';
+            const requestedPlan = new URLSearchParams(window.location.search).get('plan');
+            if (requestedPlan === 'beta') {
+                document.getElementById('plan-beta-card')?.classList.add('ring-2', 'ring-cyan-400');
+            }
+
+            function updatePaymentModalTitle(language = localStorage.getItem('lang') || 'mn') {
+                const titleKey = `modal-${selectedPlan}-title`;
+                const title = window.translations?.[language]?.[titleKey];
+                if (title && modalTitle) modalTitle.textContent = title;
+            }
+
             if (new URLSearchParams(window.location.search).get('payment') === 'processing') {
                 document.getElementById('payment-status-message')?.classList.remove('hidden');
             }
+
+            const originalChangeLang = window.changeLang;
+            window.changeLang = function(language) {
+                if (originalChangeLang) originalChangeLang(language);
+                updatePaymentModalTitle(language);
+            };
 
             if(freeBtn) {
                 freeBtn.addEventListener('click', (e) => {
@@ -200,16 +288,17 @@
                 });
             }
 
-            // "Сонгох" дарахад Модал нээх хуучин логик
-            if(qpayBtn && modal) {
-                qpayBtn.addEventListener('click', (e) => {
+            if(modal) {
+                paidPlanButtons.forEach(button => button.addEventListener('click', (e) => {
                     e.preventDefault();
+                    selectedPlan = button.dataset.plan;
+                    updatePaymentModalTitle();
                     if (!localStorage.getItem('user')) {
                         window.location.href = '/main_login.html';
                         return;
                     }
                     modal.classList.remove('hidden');
-                });
+                }));
             }
 
             // Автомат төлбөрийн логик
@@ -240,7 +329,7 @@
                                 'Content-Type': 'application/json',
                                 Authorization: `Bearer ${session.access_token}`
                             },
-                            body: JSON.stringify({ type: 'alpha' })
+                            body: JSON.stringify({ plan: selectedPlan })
                         });
 
                         const data = await response.json();

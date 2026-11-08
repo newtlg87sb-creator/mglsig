@@ -738,6 +738,63 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: "Method not allowed" });
     }
 
+    const authHeader = req.headers.authorization || "";
+    const accessToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!accessToken) {
+        return res.status(401).json({ error: "Sign in to use Iceberg" });
+    }
+    if (!supabaseUrl || !serviceRoleKey) {
+        console.error("[ICEBERG ACCESS ERROR] Supabase configuration is incomplete");
+        return res.status(503).json({ error: "Iceberg access is temporarily unavailable" });
+    }
+
+    try {
+        const authResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
+            headers: {
+                apikey: serviceRoleKey,
+                Authorization: `Bearer ${accessToken}`
+            },
+            signal: AbortSignal.timeout(10000)
+        });
+        if (!authResponse.ok) {
+            return res.status(401).json({ error: "Your session has expired. Please sign in again." });
+        }
+
+        const user = await authResponse.json();
+        if (!user.id) {
+            return res.status(401).json({ error: "Unable to verify your account" });
+        }
+
+        const profileUrl = new URL("/rest/v1/User%20control", supabaseUrl);
+        profileUrl.searchParams.set("id", `eq.${user.id}`);
+        profileUrl.searchParams.set("select", "membership_type,membership_expires_at");
+        const profileResponse = await fetch(profileUrl, {
+            headers: {
+                apikey: serviceRoleKey,
+                Authorization: `Bearer ${serviceRoleKey}`
+            },
+            signal: AbortSignal.timeout(10000)
+        });
+        if (!profileResponse.ok) {
+            console.error("[ICEBERG ACCESS ERROR] Failed to load membership profile");
+            return res.status(503).json({ error: "Unable to verify Iceberg access" });
+        }
+
+        const profiles = await profileResponse.json();
+        const profile = Array.isArray(profiles) ? profiles[0] : null;
+        const membershipType = String(profile?.membership_type || "").toLowerCase();
+        const expiration = profile?.membership_expires_at ? Date.parse(profile.membership_expires_at) : null;
+        const isExpired = expiration !== null && (!Number.isFinite(expiration) || expiration <= Date.now());
+        if (!["alpha", "beta"].includes(membershipType) || isExpired) {
+            return res.status(403).json({ error: "An active Beta or Alpha subscription is required to use Iceberg" });
+        }
+    } catch (error) {
+        console.error("[ICEBERG ACCESS ERROR]", error.message);
+        return res.status(503).json({ error: "Unable to verify Iceberg access" });
+    }
+
     const { klines, fast = 12, slow = 26, signal = 9 } = req.body || {};
     if (!Array.isArray(klines) || klines.length < 5 || klines.length > 2000 ||
         klines.some(kline => !Array.isArray(kline) || kline.length < 6 ||

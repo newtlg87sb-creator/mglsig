@@ -707,9 +707,21 @@ document.addEventListener("DOMContentLoaded",()=>{
     icebergRequestKey = key;
     const request = (async () => {
         try {
+            if (typeof sb === "undefined" || !sb) {
+                throw new Error("Sign in to verify Iceberg access");
+            }
+            const { data: { session }, error: sessionError } = await sb.auth.getSession();
+            if (sessionError) throw sessionError;
+            if (!session?.access_token) {
+                throw new Error("Sign in to use Iceberg");
+            }
+
             const response = await fetch("/api/data1", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${session.access_token}`
+                },
                 body: JSON.stringify({ klines, fast, slow, signal })
             });
             const result = await response.json();
