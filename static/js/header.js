@@ -260,17 +260,28 @@ if (document.currentScript) {
 window.handleLogout = async function() {
     try {
         if (sb) {
-            await sb.auth.signOut();
+            const { error } = await sb.auth.signOut({ scope: 'local' });
+            if (error) throw error;
         }
     } catch (err) {
-        console.warn("Logout request failed, clearing local data anyway", err);
+        console.error("Supabase logout failed; clearing this browser's session", err);
     } finally {
-        const keysToRemove = [];
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key.includes('supabase.auth.token') || key === 'user') keysToRemove.push(key);
-        }
-        keysToRemove.forEach(k => localStorage.removeItem(k));
+        const clearSupabaseSession = (storage) => {
+            const keysToRemove = [];
+            for (let i = 0; i < storage.length; i++) {
+                const key = storage.key(i);
+                if (
+                    key === 'user' ||
+                    key === 'supabase.auth.token' ||
+                    (key && key.startsWith('sb-') && key.includes('-auth-token'))
+                ) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(key => storage.removeItem(key));
+        };
+        clearSupabaseSession(localStorage);
+        clearSupabaseSession(sessionStorage);
         window.location.reload();
     }
 };
