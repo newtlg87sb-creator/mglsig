@@ -119,14 +119,14 @@ function drawIcebergProfitBoxes(ctx,data,states,start,padding,candleWidth,chartW
    if(greenWidth>0){
     ctx.fillStyle="rgba(0,200,83,0.06)";
     ctx.fillRect(greenX,top,greenWidth,height);
-    ctx.strokeStyle="rgba(0,230,118,0.55)";
+    ctx.strokeStyle="rgba(0,230,118,0.22)";
     ctx.lineWidth=1;
     ctx.strokeRect(greenX,top,greenWidth,height);
    }
    if(redWidth>0){
     ctx.fillStyle="rgba(255,61,87,0.06)";
     ctx.fillRect(redX,top,redWidth,height);
-    ctx.strokeStyle="rgba(255,82,102,0.55)";
+    ctx.strokeStyle="rgba(255,82,102,0.22)";
     ctx.lineWidth=1;
     ctx.strokeRect(redX,top,redWidth,height);
    }
