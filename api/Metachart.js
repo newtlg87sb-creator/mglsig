@@ -595,15 +595,46 @@ document.addEventListener("DOMContentLoaded",()=>{
       
       if(data && data.symbols) {
           const symbols = data.symbols
-              .filter(s => s.status === "TRADING" && s.quoteAsset === "USDT")
+              .filter(s => s.status === "TRADING" && s.quoteAsset === "USDT" &&
+                  (marketType !== "futures" || s.contractType === "PERPETUAL"))
               .map(s => s.symbol);
 
           if(coinListEl) {
               coinListEl.innerHTML = symbols.map(sym => `<option value="${sym}">`).join('');
           }
+          return symbols;
       }
+      throw new Error("Invalid Binance exchange info response");
   } catch(e) {
       console.error("Failed to load symbols:", e);
+      return [];
+  }
+ }
+
+ async function selectTopGainer(symbols) {
+  if (!symbols.length) return;
+
+  try {
+      const marketType = currentMarketType();
+      const url = marketType === "futures"
+          ? "https://fapi.binance.com/fapi/v1/ticker/24hr"
+          : "https://api.binance.com/api/v3/ticker/24hr";
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Binance ticker API error: HTTP ${response.status}`);
+
+      const tickers = await response.json();
+      if (!Array.isArray(tickers)) throw new Error("Invalid Binance 24-hour ticker response");
+
+      const tradableSymbols = new Set(symbols);
+      const topGainer = tickers
+          .filter(ticker => tradableSymbols.has(ticker.symbol) &&
+              Number.isFinite(Number(ticker.priceChangePercent)) &&
+              Number(ticker.priceChangePercent) > 0)
+          .sort((a, b) => Number(b.priceChangePercent) - Number(a.priceChangePercent))[0];
+
+      if (topGainer) coinEl.value = topGainer.symbol;
+  } catch(error) {
+      console.error("[BINANCE TOP GAINER ERROR]", error);
   }
  }
 
@@ -736,7 +767,8 @@ document.addEventListener("DOMContentLoaded",()=>{
   coinEl.addEventListener("keydown",e=>{if(e.key==="Enter")triggerAutoUpdate()});
  }
 
- loadExchangeSymbols().then(() => {
+ loadExchangeSymbols().then(async symbols => {
+     await selectTopGainer(symbols);
      startCountdown(60);
      fetchCandles();
  });
