@@ -276,6 +276,72 @@ body.chart-page .chart-setting-group label {
   font-size: 12px;
 }
 
+.chart-page .signal-guide {
+  margin: 14px 0 24px;
+  padding: clamp(14px, 2.5vw, 24px);
+  background: #0b1017;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.chart-page .signal-guide h2 {
+  margin: 0;
+  color: #f3f4f6;
+  font-size: clamp(17px, 2vw, 21px);
+  font-weight: 700;
+}
+
+.chart-page .signal-guide h3 {
+  margin: 0 0 7px;
+  color: #e8edf5;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.chart-page .signal-guide p {
+  margin: 0;
+  color: #aeb9c7;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.chart-page .signal-guide-intro {
+  margin-top: 6px !important;
+}
+
+.chart-page .signal-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.chart-page .signal-guide-card,
+.chart-page .signal-guide-risk {
+  padding: 14px;
+  background: #101721;
+  border: 1px solid #263243;
+  border-radius: 7px;
+}
+
+.chart-page .signal-guide-long {
+  border-left: 3px solid #00c8e8;
+}
+
+.chart-page .signal-guide-short {
+  border-left: 3px solid #ef5350;
+}
+
+.chart-page .signal-guide-risk {
+  margin-top: 12px;
+  background: #101721;
+  border-color: #263243;
+}
+
+.chart-page .signal-guide-risk h3 {
+  color: #e8edf5;
+}
+
 .chart-page .chart-panel {
   display: flex;
   flex-direction: column;
@@ -409,6 +475,17 @@ body.chart-page .chart-setting-group label {
   .chart-page .chart-workspace {
     height: 58dvh;
     min-height: 240px;
+  }
+
+  .chart-page .signal-guide-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .chart-page .signal-guide-card,
+  .chart-page .signal-guide-risk {
+    padding: 12px;
   }
 }
 

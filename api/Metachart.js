@@ -137,7 +137,7 @@ function drawIcebergProfitBoxes(ctx,data,states,start,padding,candleWidth,chartW
    const peakX=padding+(favorableIndex-start+0.5)*candleWidth;
    const profit=calculateIcebergProfit(state,entry,favorable,margin,leverage);
    if(profit!==null){
-    ctx.fillText(`MAX PROFIT +${profit.toFixed(2)} USDT`,peakX,targetY-3);
+    ctx.fillText(`+${profit.toFixed(2)} USDT`,peakX,targetY-3);
    }
   }
 

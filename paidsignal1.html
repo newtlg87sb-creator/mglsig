@@ -34,6 +34,14 @@
             mn: {
                 "iceberg-page-title": "Iceberg график",
                 "iceberg-page-subtitle": "Зах зээлийн график болон фьючерсийн байрлалын хэмжээг шинжлээрэй.",
+                "signal-guide-title": "Ашиглах заавар",
+                "signal-guide-intro": "Лааны өнгө чиглэлийг, ногоон дөрвөлжин боломжит ашиг авах цэгийг харуулна.",
+                "signal-guide-long-title": "Цэнхэр лаа · Long",
+                "signal-guide-long-text": "Цэнхэр лаа Long нээх дохио. Long нээсэн бол ногоон дөрвөлжин доторх түвшин позициос гарах боломжит цэгийг заана. Лаа улаан болж өөрчлөгдвөл Long-оо хаах эсэхээ шийдээрэй. MAX PROFIT нь тухайн хөдөлгөөний дээд цэг хүртэл барьсан бол авах байсан тооцоолсон ашгийг харуулна.",
+                "signal-guide-short-title": "Улаан лаа · Short",
+                "signal-guide-short-text": "Улаан лаа Short нээх дохио. Short нээсэн бол ногоон дөрвөлжин доторх түвшин позициос гарах боломжит цэгийг заана. Үнэ цааш буурна гэж үзвэл Short-оо үргэлжлүүлэн барих эсэхээ өөрөө шийдэж болно. Ногоон дөрвөлжин тухайн хөдөлгөөний боломжит ашгийг харуулна.",
+                "signal-guide-risk-title": "Сигналын тухай",
+                "signal-guide-risk-text": "Iceberg нь түүхэн үнийн өгөгдөлд тулгуурлан чиглэл болон боломжит гарах цэгийг тооцоолдог. Сигналыг Long, Short тус бүрээр эсвэл hedge байдлаар ашиглаж болно. MAX PROFIT нь margin болон leverage-д суурилсан тооцоолол бөгөөд бодит үр дүн үнийн хөдөлгөөн, шимтгэлээс хамаарч өөр байж болно.",
                 "chart-label": "ГРАФИК",
                 "market-spot": "СПОТ",
                 "market-futures": "ФЬЮЧЕРС",
@@ -59,6 +67,14 @@
             en: {
                 "iceberg-page-title": "Iceberg Chart",
                 "iceberg-page-subtitle": "Analyze the market chart and your estimated futures position size.",
+                "signal-guide-title": "How to use this chart",
+                "signal-guide-intro": "Candle colors show direction; the green box marks a potential profit-taking point.",
+                "signal-guide-long-title": "Cyan candle · Long",
+                "signal-guide-long-text": "A cyan candle signals a possible Long entry. If you enter Long, the level inside the green box shows a potential exit point. If the candle turns red, decide whether to close your Long. MAX PROFIT shows the estimated profit available if held to the move's high.",
+                "signal-guide-short-title": "Red candle · Short",
+                "signal-guide-short-text": "A red candle signals a possible Short entry. If you enter Short, the level inside the green box shows a potential exit point. If you expect the price to keep falling, you can decide whether to continue holding your Short. The green box shows the potential profit for that move.",
+                "signal-guide-risk-title": "About the signal",
+                "signal-guide-risk-text": "Iceberg uses historical price data to estimate direction and potential exit points. You can use the signal for Long or Short positions, or in a hedge. MAX PROFIT is an estimate based on margin and leverage; actual results may vary with price movement and fees.",
                 "chart-label": "CHART",
                 "market-spot": "SPOT",
                 "market-futures": "FUTURES",
@@ -169,6 +185,25 @@
                 <div class="chart-workspace">
                     <div id="metaChartContainer" aria-label="Interactive market chart"></div>
                 </div>
+            </section>
+
+            <section class="signal-guide" aria-labelledby="signalGuideTitle">
+                <h2 id="signalGuideTitle" data-i18n="signal-guide-title">Ашиглах заавар</h2>
+                <p class="signal-guide-intro" data-i18n="signal-guide-intro">Лааны өнгө чиглэлийг, ногоон дөрвөлжин боломжит ашиг авах цэгийг харуулна.</p>
+                <div class="signal-guide-grid">
+                    <article class="signal-guide-card signal-guide-long">
+                        <h3 data-i18n="signal-guide-long-title">Цэнхэр лаа · Long</h3>
+                        <p data-i18n="signal-guide-long-text">Цэнхэр лаа Long нээх дохио. Long нээсэн бол ногоон дөрвөлжин доторх түвшин позициос гарах боломжит цэгийг заана. Лаа улаан болж өөрчлөгдвөл Long-оо хаах эсэхээ шийдээрэй. MAX PROFIT нь тухайн хөдөлгөөний дээд цэг хүртэл барьсан бол авах байсан тооцоолсон ашгийг харуулна.</p>
+                    </article>
+                    <article class="signal-guide-card signal-guide-short">
+                        <h3 data-i18n="signal-guide-short-title">Улаан лаа · Short</h3>
+                        <p data-i18n="signal-guide-short-text">Улаан лаа Short нээх дохио. Short нээсэн бол ногоон дөрвөлжин доторх түвшин позициос гарах боломжит цэгийг заана. Үнэ цааш буурна гэж үзвэл Short-оо үргэлжлүүлэн барих эсэхээ өөрөө шийдэж болно. Ногоон дөрвөлжин тухайн хөдөлгөөний боломжит ашгийг харуулна.</p>
+                    </article>
+                </div>
+                <aside class="signal-guide-risk">
+                    <h3 data-i18n="signal-guide-risk-title">Сигналын тухай</h3>
+                    <p data-i18n="signal-guide-risk-text">Iceberg нь түүхэн үнийн өгөгдөлд тулгуурлан чиглэл болон боломжит гарах цэгийг тооцоолдог. Сигналыг Long, Short тус бүрээр эсвэл hedge байдлаар ашиглаж болно. MAX PROFIT нь margin болон leverage-д суурилсан тооцоолол бөгөөд бодит үр дүн үнийн хөдөлгөөн, шимтгэлээс хамаарч өөр байж болно.</p>
+                </aside>
             </section>
         </div>
     </main>
