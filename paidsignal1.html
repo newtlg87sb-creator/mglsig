@@ -10,7 +10,7 @@
     
     <!-- Top Bar (Header & Controls) -->
     <div class="section-title chart-title">
-        <div style="display: flex; align-items: center; gap: 8px;">
+        <div class="chart-primary-controls">
             <span style="font-weight: bold; font-size: 14px; letter-spacing: 1px;">CHART</span>
             
             <select id="market" class="chart-interval-select">
@@ -20,6 +20,28 @@
 
             <input type="text" id="coin" value="BTCUSDT" list="coinList" class="chart-coin-input" placeholder="BTCUSDT">
             <datalist id="coinList"></datalist>
+        </div>
+
+        <div class="position-sizing-controls" aria-label="Futures position size calculator">
+            <label class="position-sizing-field">
+                <span>Margin <small>(your funds)</small></span>
+                <span class="position-sizing-input-wrap">
+                    <input id="positionMargin" type="number" min="0.01" step="0.01" value="10" inputmode="decimal">
+                    <span>USDT</span>
+                </span>
+            </label>
+            <span class="position-sizing-times" aria-hidden="true">×</span>
+            <label class="position-sizing-field">
+                <span>Leverage</span>
+                <span class="position-sizing-input-wrap">
+                    <input id="positionLeverage" type="number" min="1" max="125" step="1" value="20" inputmode="numeric">
+                    <span>x</span>
+                </span>
+            </label>
+            <output id="positionSizeEstimate" class="position-sizing-result" aria-live="polite">
+                10.00 USDT margin × 20x = 200.00 USDT position
+            </output>
+            <span class="position-sizing-note">Position is trade value, not profit; leverage increases both potential gains and losses.</span>
         </div>
 
         <div class="chart-tools">
@@ -38,26 +60,6 @@
 
             <button id="toggleChartSettings" class="chart-tool" aria-expanded="false">⚙️</button>
         </div>
-    </div>
-
-    <div class="position-sizing-controls" aria-label="Position size calculator">
-        <label class="position-sizing-field">
-            <span>Margin</span>
-            <span class="position-sizing-input-wrap">
-                <input id="positionMargin" type="number" min="0.01" step="0.01" value="5" inputmode="decimal">
-                <span>USDT</span>
-            </span>
-        </label>
-        <label class="position-sizing-field">
-            <span>Leverage</span>
-            <span class="position-sizing-input-wrap">
-                <input id="positionLeverage" type="number" min="1" max="125" step="1" value="20" inputmode="numeric">
-                <span>x</span>
-            </span>
-        </label>
-        <output id="positionSizeEstimate" class="position-sizing-result" aria-live="polite">
-            5.00 USDT margin × 20x = 100.00 USDT position
-        </output>
     </div>
 
     <!-- Индикатор тохиргооны самбар -->
