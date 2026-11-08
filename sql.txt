@@ -46,36 +46,21 @@ CREATE POLICY "Allow individual read" ON public."User control" FOR SELECT USING 
 -- 2. SYSTEM SETTINGS & ADMIN CONTROL (Системийн тохиргоо)
 -- ============================================================================
 
--- Тохиргооны хүснэгт (Админ нууц үг, Ботын статус)
-CREATE TABLE IF NOT EXISTS system_settings (
+-- Тохиргооны хүснэгт (Ботын статус; client role-ууд хандах боломжгүй)
+CREATE TABLE IF NOT EXISTS public.system_settings (
     key TEXT PRIMARY KEY,
     value TEXT
 );
 
--- Админ нууц үг тохируулах (Default: Admin1352)
-INSERT INTO system_settings (key, value) VALUES ('admin_password', 'Admin1352') ON CONFLICT (key) DO NOTHING;
-INSERT INTO system_settings (key, value) VALUES ('bot_status', 'on') ON CONFLICT (key) DO NOTHING;
+ALTER TABLE public.system_settings ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON TABLE public.system_settings FROM PUBLIC, anon, authenticated;
+GRANT ALL ON TABLE public.system_settings TO service_role;
+DELETE FROM public.system_settings WHERE key = 'admin_password';
+INSERT INTO public.system_settings (key, value) VALUES ('bot_status', 'on') ON CONFLICT (key) DO NOTHING;
 
--- RPC: Нууц үг шалгах
-CREATE OR REPLACE FUNCTION verify_admin_password(input_password TEXT)
-RETURNS BOOLEAN AS $$
-BEGIN
-    RETURN EXISTS (SELECT 1 FROM system_settings WHERE key = 'admin_password' AND value = input_password);
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- RPC: Ботын статус солих (Аюулгүй)
-CREATE OR REPLACE FUNCTION toggle_bot_status(input_password TEXT, new_value TEXT)
-RETURNS void AS $$
-BEGIN
-    IF EXISTS (SELECT 1 FROM system_settings WHERE key = 'admin_password' AND value = input_password) THEN
-        INSERT INTO system_settings (key, value) VALUES ('bot_status', new_value)
-        ON CONFLICT (key) DO UPDATE SET value = new_value;
-    ELSE
-        RAISE EXCEPTION 'Unauthorized: Буруу нууц үг';
-    END IF;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+DROP FUNCTION IF EXISTS public.verify_admin_password(TEXT);
+DROP FUNCTION IF EXISTS public.toggle_bot_status(TEXT, TEXT);
+DROP FUNCTION IF EXISTS public.purge_system_data(TEXT);
 
 -- ============================================================================
 -- 3. MARKET DATA FEEDS (Биржүүдийн өгөгдөл)
@@ -184,19 +169,6 @@ CREATE POLICY "Enable full access for service_role" ON public.balance_data FOR A
 -- ============================================================================
 -- 5. MAINTENANCE & HELPERS (Засвар үйлчилгээ)
 -- ============================================================================
-
--- RPC: Системийг бүрэн цэвэрлэх (Аюултай!)
-CREATE OR REPLACE FUNCTION purge_system_data(input_password TEXT)
-RETURNS void AS $$
-BEGIN
-    IF EXISTS (SELECT 1 FROM system_settings WHERE key = 'admin_password' AND value = input_password) THEN
-        DELETE FROM public.trade_history;
-        DELETE FROM public.balance_data;
-    ELSE
-        RAISE EXCEPTION 'Unauthorized: Буруу нууц үг';
-    END IF;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Гишүүнчлэлийн эрх гар аргаар сунгах жишээ (Postgres Format):
 -- UPDATE "User control" SET membership_type = 'alpha', membership_expires_at = NOW() + interval '30 days' WHERE email = 'example@gmail.com';

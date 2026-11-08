@@ -1,5 +1,6 @@
 // api/donation-invoice.js
 // Динамик дүнтэй хандив үүсгэх бэкенд код
+import { randomUUID } from 'crypto';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -7,26 +8,30 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { userId, price_amount } = req.body;
+    const amount = Number(req.body?.price_amount);
+    const apiKey = process.env.NOWPAYMENTS_API_KEY;
 
-    if (!userId || !price_amount) {
-      return res.status(400).json({ error: 'User ID and Amount are required' });
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return res.status(400).json({ error: 'A valid donation amount is required' });
+    }
+    if (!apiKey) {
+      console.error('Donation invoice configuration is incomplete');
+      return res.status(503).json({ error: 'Payment service is not configured' });
     }
 
     // NOWPayments API руу хүсэлт шиднэ
     const response = await fetch('https://api.nowpayments.io/v1/invoice', {
       method: 'POST',
       headers: {
-        'x-api-key': process.env.NOWPAYMENTS_API_KEY,
+        'x-api-key': apiKey,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        price_amount: parseFloat(price_amount), // Хэрэглэгчийн сонгосон дүн (5, 10, 30 гэх мэт)
+        price_amount: amount,
         price_currency: 'usd',
         pay_currency: 'usdtbsc', // USDT (BEP20) default
-        
-        order_id: userId, 
-        order_description: `MGL Signal Donation - $${price_amount}`,
+        order_id: `donation_${randomUUID()}`,
+        order_description: `MGL Signal Donation - $${amount}`,
         success_url: 'https://mglsignal.com/main_about.html?payment=success',
         cancel_url: 'https://mglsignal.com/main_about.html'
       })

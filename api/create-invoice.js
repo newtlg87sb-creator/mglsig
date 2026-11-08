@@ -1,3 +1,12 @@
+import { randomUUID } from 'crypto';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.SUPABASE_URL;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabase = supabaseUrl && serviceRoleKey
+  ? createClient(supabaseUrl, serviceRoleKey)
+  : null;
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -24,7 +33,7 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Sign in to purchase a subscription' });
     }
 
-    if (!supabaseUrl || !supabaseApiKey || !nowPaymentsKey) {
+    if (!supabaseUrl || !supabaseApiKey || !nowPaymentsKey || !supabase) {
       console.error('Subscription invoice configuration is incomplete');
       return res.status(503).json({ error: 'Payment service is not configured' });
     }
@@ -53,6 +62,22 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Unable to verify your account' });
     }
 
+    const orderId = randomUUID();
+    const { error: orderError } = await supabase
+      .from('subscription_orders')
+      .insert({
+        order_id: orderId,
+        user_id: user.id,
+        plan,
+        price_amount: selectedPlan.price,
+        price_currency: 'usd',
+        pay_currency: 'usdtbsc'
+      });
+    if (orderError) {
+      console.error('Failed to record subscription order:', orderError.message);
+      return res.status(503).json({ error: 'Unable to create a payment order right now' });
+    }
+
     const response = await fetch('https://api.nowpayments.io/v1/invoice', {
       method: 'POST',
       headers: {
@@ -63,7 +88,7 @@ export default async function handler(req, res) {
         price_amount: selectedPlan.price,
         price_currency: 'usd',
         pay_currency: 'usdtbsc',
-        order_id: `${plan}_${user.id}`,
+        order_id: `subscription_${orderId}`,
         order_description: `MGL Signal ${selectedPlan.name} Plan 1-Month Subscription`,
         success_url: `https://mglsignal.com/main_pricing.html?payment=processing&plan=${plan}`,
         cancel_url: 'https://mglsignal.com/main_pricing.html'
@@ -72,10 +97,24 @@ export default async function handler(req, res) {
     });
     const data = await response.json();
 
-    if (response.ok && data.invoice_url) {
+    if (response.ok && data.invoice_url && data.invoice_id !== undefined && data.invoice_id !== null) {
+      const { error: invoiceUpdateError } = await supabase
+        .from('subscription_orders')
+        .update({ invoice_id: String(data.invoice_id) })
+        .eq('order_id', orderId)
+        .eq('status', 'pending');
+      if (invoiceUpdateError) {
+        console.error('Failed to link provider invoice to subscription order:', invoiceUpdateError.message);
+        return res.status(502).json({ error: 'Failed to prepare payment invoice' });
+      }
       return res.status(200).json({ invoiceUrl: data.invoice_url });
     }
 
+    await supabase
+      .from('subscription_orders')
+      .update({ status: 'cancelled' })
+      .eq('order_id', orderId)
+      .eq('status', 'pending');
     console.error('NOWPayments invoice creation failed:', data.message || `HTTP ${response.status}`);
     return res.status(502).json({ error: 'Failed to create payment invoice' });
   } catch (error) {

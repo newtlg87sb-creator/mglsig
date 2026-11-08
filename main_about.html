@@ -257,10 +257,6 @@
             const cancelCustomBtn = document.getElementById('cancel-custom-amount');
 
             async function processPayment(amount, targetBtn) {
-                // Нэвтрэх шаардлагыг хасав - Зочин хэрэглэгч хандив өгөх боломжтой
-                const userStr = localStorage.getItem('user');
-                const user = userStr ? JSON.parse(userStr) : null;
-
                 if (!amount || isNaN(amount) || amount <= 0) {
                     alert('Зөв дүн оруулна уу.');
                     return;
@@ -279,7 +275,6 @@
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
-                            userId: user ? user.id : 'guest_donation',
                             price_amount: amount
                         })
                     });

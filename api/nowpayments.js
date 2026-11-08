@@ -52,29 +52,42 @@ export default async function handler(req, res) {
     }
 
     const orderMatch = typeof orderId === 'string'
-      ? orderId.match(/^(alpha|beta)_([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i)
+      ? orderId.match(/^subscription_([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i)
       : null;
     if (!orderMatch) {
       return res.status(200).send('Not a supported subscription');
     }
-    if (paymentId === undefined || paymentId === null || String(paymentId).length === 0) {
-      console.error(`Finished ${orderMatch[1]} payment is missing payment_id`);
-      return res.status(400).send('Missing payment ID');
+    const invoiceId = req.body.invoice_id;
+    const paidAmount = Number(req.body.price_amount);
+    const paidCurrency = typeof req.body.price_currency === 'string'
+      ? req.body.price_currency.toLowerCase()
+      : '';
+    const payCurrency = typeof req.body.pay_currency === 'string'
+      ? req.body.pay_currency.toLowerCase()
+      : '';
+    if (
+      paymentId === undefined || paymentId === null || String(paymentId).length === 0 ||
+      invoiceId === undefined || invoiceId === null ||
+      !Number.isFinite(paidAmount) || !paidCurrency || !payCurrency
+    ) {
+      console.error('Finished subscription payment is missing invoice details');
+      return res.status(400).send('Missing invoice details');
     }
 
-    const activateFunction = orderMatch[1].toLowerCase() === 'beta'
-      ? 'activate_beta_subscription'
-      : 'activate_alpha_subscription';
-    const { data: activated, error } = await supabase.rpc(activateFunction, {
-      p_user_id: orderMatch[2],
-      p_payment_id: String(paymentId)
+    const { data: activated, error } = await supabase.rpc('activate_subscription_order', {
+      p_order_id: orderMatch[1],
+      p_invoice_id: String(invoiceId),
+      p_payment_id: String(paymentId),
+      p_paid_amount: paidAmount,
+      p_paid_currency: paidCurrency,
+      p_pay_currency: payCurrency
     });
     if (error) {
-      console.error(`Failed to activate ${orderMatch[1]} subscription:`, error.message);
-      return res.status(500).send('Database update failed');
+      console.error('Failed to validate or activate subscription payment:', error.message);
+      return res.status(400).send('Payment does not match a valid subscription order');
     }
 
-    return res.status(200).send(activated ? `${orderMatch[1]} access activated` : 'Payment already processed');
+    return res.status(200).send(activated ? 'Subscription access activated' : 'Payment already processed');
 
   } catch (err) {
     console.error('NOWPayments webhook failed:', err.message);
