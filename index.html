@@ -702,65 +702,108 @@
             window.checkLiveTradeStatus = function() { console.log("Live Trade monitor active."); };
         }
 
+        function escapeNewsHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            })[char]);
+        }
+
         // News translation helper
         async function translateText(text, targetLang = 'mn') {
             if (!text || targetLang === 'en') return text;
             try {
                 const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`);
+                if (!res.ok) return text;
                 const data = await res.json();
-                return data[0].map(item => item[0]).join('');
+                return Array.isArray(data[0]) ? data[0].map(item => item[0]).join('') : text;
             } catch (e) { return text; }
+        }
+
+        async function renderLatestNews(news, lang, isCached = false) {
+            const container = document.getElementById('latest-news-card-container');
+            let title = news.title || '';
+            let body = (news.body || '').slice(0, 250);
+
+            if (lang === 'mn') {
+                [title, body] = await Promise.all([
+                    translateText(title, 'mn'),
+                    translateText(body, 'mn')
+                ]);
+            }
+
+            const date = Number.isFinite(Number(news.published_on))
+                ? new Date(Number(news.published_on) * 1000).toLocaleDateString(lang === 'mn' ? 'mn-MN' : 'en-US')
+                : '';
+            const readMoreText = lang === 'mn' ? 'Дэлгэрэнгүй' : 'Read More';
+            const cachedText = lang === 'mn' ? 'Хадгалсан мэдээ' : 'Saved news';
+            const url = /^https:\/\/[^\s]+$/i.test(news.url || '') ? news.url : 'main_news.html';
+            const imageUrl = /^https:\/\/[^\s]+$/i.test(news.imageurl || '')
+                ? news.imageurl
+                : 'https://via.placeholder.com/400x225?text=Crypto+News';
+            const category = (news.categories || 'CRYPTO').split('|')[0];
+
+            container.innerHTML = `
+                <a href="${escapeNewsHtml(url)}" target="_blank" rel="noopener noreferrer" class="bg-brand-dark-blue border border-brand-border rounded-2xl overflow-hidden hover:border-brand-gold/50 transition-all duration-300 group flex flex-col md:flex-row md:h-64 shadow-2xl">
+                    <div class="h-48 md:h-full md:w-1/3 overflow-hidden relative bg-gray-800 shrink-0">
+                        <img src="${escapeNewsHtml(imageUrl)}" alt="News" class="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-80 group-hover:opacity-100" onerror="this.src='https://via.placeholder.com/400x225?text=Crypto+News'">
+                    </div>
+                    <div class="flex-1 min-w-0 p-5 md:p-8 flex flex-col justify-center overflow-hidden">
+                        <div class="flex items-center space-x-2 mb-3">
+                            <span class="text-[9px] text-brand-gold font-black uppercase tracking-widest">${escapeNewsHtml(category)}</span>
+                            <span class="text-[9px] text-gray-600 font-mono">${escapeNewsHtml(date)}</span>
+                            ${isCached ? `<span class="text-[9px] text-gray-500">${cachedText}</span>` : ''}
+                        </div>
+                        <h3 class="text-white font-bold text-sm mb-3 line-clamp-2 group-hover:text-brand-gold transition-colors leading-relaxed">${escapeNewsHtml(title)}</h3>
+                        <p class="text-gray-500 text-[11px] line-clamp-3 mb-4 leading-relaxed">${escapeNewsHtml(body)}${body.length >= 250 ? '...' : ''}</p>
+                        <div class="text-brand-gold text-[10px] font-black uppercase tracking-widest flex items-center">
+                            ${readMoreText} <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+                        </div>
+                    </div>
+                </a>
+            `;
         }
 
         async function fetchLatestNews() {
             const container = document.getElementById('latest-news-card-container');
             if (!container) return;
 
+            const lang = localStorage.getItem('lang') || 'mn';
+            const cacheKey = 'mglsignal.latest-news.v1';
             try {
-                const lang = localStorage.getItem('lang') || 'mn';
-                const apiKey = "e1a405da7b5c9741bea263ba620e6de9eeea91b8d1cafc81e36dd5d0ebdaa6ea"; 
-                const response = await fetch(`https://min-api.cryptocompare.com/data/v2/news/?lang=EN&api_key=${apiKey}`);
+                const response = await fetch('/api/news');
+                if (!response.ok) throw new Error(`News service returned HTTP ${response.status}`);
                 const data = await response.json();
-                
-                if (!data.Data || data.Data.length === 0) return;
-
-                const news = data.Data[0]; // Just the latest one
-                let title = news.title;
-                let body = news.body;
-
-                if (lang === 'mn') {
-                    [title, body] = await Promise.all([
-                        translateText(news.title, 'mn'),
-                        translateText(news.body.substring(0, 150) + '...', 'mn')
-                    ]);
-                } else {
-                    body = body.substring(0, 150) + '...';
+                if (data.Response === 'Error' || !Array.isArray(data.Data) || data.Data.length === 0) {
+                    throw new Error(data.Message || 'News service returned no articles');
                 }
 
-                const date = new Date(news.published_on * 1000).toLocaleDateString(lang === 'mn' ? 'mn-MN' : 'en-US');
-                const readMoreText = lang === 'mn' ? "Дэлгэрэнгүй" : "Read More";
-
-                container.innerHTML = `
-                    <a href="${news.url}" target="_blank" rel="noopener noreferrer" class="bg-brand-dark-blue border border-brand-border rounded-2xl overflow-hidden hover:border-brand-gold/50 transition-all duration-300 group flex flex-col md:flex-row md:h-64 shadow-2xl">
-                        <div class="h-48 md:h-full md:w-1/3 overflow-hidden relative bg-gray-800 shrink-0">
-                            <img src="${news.imageurl}" alt="News" class="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-80 group-hover:opacity-100" onerror="this.src='https://via.placeholder.com/400x225?text=News+Image'">
-                        </div>
-                        <div class="flex-1 min-w-0 p-5 md:p-8 flex flex-col justify-center overflow-hidden">
-                            <div class="flex items-center space-x-2 mb-3">
-                                <span class="text-[9px] text-brand-gold font-black uppercase tracking-widest">${news.categories?.split('|')[0] || 'CRYPTO'}</span>
-                                <span class="text-[9px] text-gray-600 font-mono">${date}</span>
-                            </div>
-                            <h3 class="text-white font-bold text-sm mb-3 line-clamp-2 group-hover:text-brand-gold transition-colors leading-relaxed">${title}</h3>
-                            <p class="text-gray-500 text-[11px] line-clamp-3 mb-4 leading-relaxed">${body}</p>
-                            <div class="text-brand-gold text-[10px] font-black uppercase tracking-widest flex items-center">
-                                ${readMoreText} <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-                            </div>
-                        </div>
-                    </a>
-                `;
+                const news = data.Data[0];
+                try {
+                    localStorage.setItem(cacheKey, JSON.stringify(news));
+                } catch (cacheError) {
+                    console.warn('Latest news could not be saved locally:', cacheError);
+                }
+                await renderLatestNews(news, lang);
             } catch (error) {
                 console.error("News Fetch Error:", error);
-                container.innerHTML = `<div class="p-4 text-xs text-red-500/50">News sync failed.</div>`;
+                try {
+                    const cachedNews = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+                    if (cachedNews?.title) {
+                        await renderLatestNews(cachedNews, lang, true);
+                        return;
+                    }
+                } catch (cacheError) {
+                    console.warn('Saved news could not be loaded:', cacheError);
+                }
+
+                const unavailableText = lang === 'mn'
+                    ? 'Мэдээг түр авах боломжгүй байна. Дараа дахин оролдоно уу.'
+                    : 'News is temporarily unavailable. Please try again later.';
+                container.innerHTML = `<div class="bg-brand-dark-blue border border-brand-border rounded-2xl p-8 text-center text-sm text-gray-400">${escapeNewsHtml(unavailableText)} <a href="main_news.html" class="text-brand-gold hover:underline">${lang === 'mn' ? 'Бүх мэдээ' : 'Browse news'}</a></div>`;
             }
         }
 
