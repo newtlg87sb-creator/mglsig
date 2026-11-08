@@ -741,11 +741,11 @@ export default async function handler(req, res) {
     const authHeader = req.headers.authorization || "";
     const accessToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
     const supabaseUrl = process.env.SUPABASE_URL;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseApiKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
     if (!accessToken) {
         return res.status(401).json({ error: "Sign in to use Iceberg" });
     }
-    if (!supabaseUrl || !serviceRoleKey) {
+    if (!supabaseUrl || !supabaseApiKey) {
         console.error("[ICEBERG ACCESS ERROR] Supabase configuration is incomplete");
         return res.status(503).json({ error: "Iceberg access is temporarily unavailable" });
     }
@@ -753,7 +753,7 @@ export default async function handler(req, res) {
     try {
         const authResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
             headers: {
-                apikey: serviceRoleKey,
+                apikey: supabaseApiKey,
                 Authorization: `Bearer ${accessToken}`
             },
             signal: AbortSignal.timeout(10000)
@@ -772,8 +772,8 @@ export default async function handler(req, res) {
         profileUrl.searchParams.set("select", "membership_type,membership_expires_at");
         const profileResponse = await fetch(profileUrl, {
             headers: {
-                apikey: serviceRoleKey,
-                Authorization: `Bearer ${serviceRoleKey}`
+                apikey: supabaseApiKey,
+                Authorization: `Bearer ${accessToken}`
             },
             signal: AbortSignal.timeout(10000)
         });

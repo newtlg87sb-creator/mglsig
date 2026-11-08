@@ -17,21 +17,21 @@ export default async function handler(req, res) {
     const authHeader = req.headers.authorization || '';
     const accessToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
     const supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseApiKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
     const nowPaymentsKey = process.env.NOWPAYMENTS_API_KEY;
 
     if (!accessToken) {
       return res.status(401).json({ error: 'Sign in to purchase a subscription' });
     }
 
-    if (!supabaseUrl || !supabaseKey || !nowPaymentsKey) {
+    if (!supabaseUrl || !supabaseApiKey || !nowPaymentsKey) {
       console.error('Subscription invoice configuration is incomplete');
       return res.status(503).json({ error: 'Payment service is not configured' });
     }
 
     const authResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
       headers: {
-        apikey: supabaseKey,
+        apikey: supabaseApiKey,
         Authorization: `Bearer ${accessToken}`
       },
       signal: AbortSignal.timeout(10000)
@@ -43,7 +43,7 @@ export default async function handler(req, res) {
         code: authError.code,
         message: authError.msg || authError.message || authError.error_description
       });
-      if (authResponse.status === 401) {
+      if (authResponse.status === 401 && authError.code !== 'unregistered_api_key') {
         return res.status(401).json({ error: 'Your session has expired. Please sign in again.' });
       }
       return res.status(503).json({ error: 'Unable to verify your account right now. Please try again later.' });
