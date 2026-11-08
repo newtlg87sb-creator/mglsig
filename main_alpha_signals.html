@@ -77,8 +77,9 @@
                     : "Exclusive high-precision trading signals and analytical tools for VIP members.";
 
                 container.innerHTML = alphaSignals.map(item => `
-                    <a href="${item.link}" class="group block bg-brand-dark-blue border border-brand-border rounded-xl p-5 hover:border-brand-gold/50 transition duration-300 shadow-lg">
-                        <div class="flex items-center justify-between">
+                    <a href="${item.link}" class="group block bg-brand-dark-blue border border-brand-border rounded-xl overflow-hidden hover:border-brand-gold/50 transition duration-300 shadow-lg">
+                        <img src="/static/images/iceberg1.jpg" alt="Iceberg trading signal chart" class="block w-full h-auto max-h-[520px] object-contain bg-[#07090d] border-b border-brand-border">
+                        <div class="flex items-center justify-between p-5">
                             <div class="flex items-center space-x-4">
                                 <div class="w-10 h-10 rounded-lg bg-brand-gold/10 flex items-center justify-center border border-brand-gold/20 group-hover:bg-brand-gold/20 transition">
                                     <i class="fas fa-crown text-brand-gold"></i>
