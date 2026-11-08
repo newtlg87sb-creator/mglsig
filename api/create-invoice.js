@@ -37,7 +37,16 @@ export default async function handler(req, res) {
       signal: AbortSignal.timeout(10000)
     });
     if (!authResponse.ok) {
-      return res.status(401).json({ error: 'Your session has expired. Please sign in again.' });
+      const authError = await authResponse.json().catch(() => ({}));
+      console.error('Supabase rejected subscription session:', {
+        status: authResponse.status,
+        code: authError.code,
+        message: authError.msg || authError.message || authError.error_description
+      });
+      if (authResponse.status === 401) {
+        return res.status(401).json({ error: 'Your session has expired. Please sign in again.' });
+      }
+      return res.status(503).json({ error: 'Unable to verify your account right now. Please try again later.' });
     }
     const user = await authResponse.json();
     if (!user.id) {
