@@ -1,89 +1,181 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="mn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iceberg - MGL Signal</title>
+    <meta name="description" content="Iceberg interactive market chart with futures position sizing and MACD/RSI tools.">
+    <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 'dark': '#05070a', 'dark-blue': '#0f1217', 'gold': '#c5a059', 'border': '#1f242d' }
+                    },
+                    fontFamily: { 'inter': ['Inter', 'sans-serif'] }
+                }
+            }
+        };
+    </script>
+    <link rel="stylesheet" href="/static/main_style.css">
     <link rel="stylesheet" href="/static/chart_style.css">
-    <title>Binance Chart</title>
 </head>
-<body>
-    
-    <!-- Top Bar (Header & Controls) -->
-    <div class="section-title chart-title">
-        <div class="chart-primary-controls">
-            <span style="font-weight: bold; font-size: 14px; letter-spacing: 1px;">CHART</span>
-            
-            <select id="market" class="chart-interval-select">
-                <option value="spot" selected>SPOT</option>
-                <option value="futures">FUTURES</option>
-            </select>
+<body class="chart-page bg-brand-dark text-white font-inter flex flex-col min-h-screen">
+    <script>
+        const pageTranslations = {
+            mn: {
+                "iceberg-page-title": "Iceberg график",
+                "iceberg-page-subtitle": "Зах зээлийн график болон фьючерсийн байрлалын хэмжээг шинжлээрэй.",
+                "chart-label": "ГРАФИК",
+                "market-spot": "СПОТ",
+                "market-futures": "ФЬЮЧЕРС",
+                "coin-placeholder": "BTCUSDT",
+                "market-type-label": "Зах зээлийн төрөл",
+                "pair-label": "Арилжааны хослол",
+                "margin-input-label": "Margin USDT",
+                "leverage-input-label": "Хөшүүргийн хэмжээ",
+                "interval-input-label": "Лааны хугацаа",
+                "margin-label": "Margin",
+                "margin-help": "(таны ашиглах хөрөнгө)",
+                "leverage-label": "Хөшүүрэг",
+                "position-explanation": "Position нь арилжааны нийт хэмжээ болохоос ашиг биш. MAX PROFIT нь шимтгэл, funding хасаагүй тооцоо; хөшүүрэг ашиг, алдагдлыг хоёуланг өсгөнө.",
+                "time-label": "ХУГАЦАА:",
+                "chart-settings-label": "Графикийн тохиргоо",
+                "macd-label": "MACD",
+                "rsi-label": "RSI",
+                "rsi-period-label": "RSI:",
+                "macd-period-label": "MACD:",
+                "apply-indicators": "Хэрэглэх",
+                "position-size-invalid": "Margin 0-ээс их, хөшүүрэг 1x–125x байх ёстой"
+            },
+            en: {
+                "iceberg-page-title": "Iceberg Chart",
+                "iceberg-page-subtitle": "Analyze the market chart and your estimated futures position size.",
+                "chart-label": "CHART",
+                "market-spot": "SPOT",
+                "market-futures": "FUTURES",
+                "coin-placeholder": "BTCUSDT",
+                "market-type-label": "Market type",
+                "pair-label": "Trading pair",
+                "margin-input-label": "Margin in USDT",
+                "leverage-input-label": "Leverage",
+                "interval-input-label": "Candle interval",
+                "margin-label": "Margin",
+                "margin-help": "(your funds used)",
+                "leverage-label": "Leverage",
+                "position-explanation": "Position is total trade value, not profit. MAX PROFIT is estimated before fees and funding; leverage increases both gains and losses.",
+                "time-label": "TIME:",
+                "chart-settings-label": "Chart settings",
+                "macd-label": "MACD",
+                "rsi-label": "RSI",
+                "rsi-period-label": "RSI:",
+                "macd-period-label": "MACD:",
+                "apply-indicators": "Apply",
+                "position-size-invalid": "Margin must be over 0 and leverage must be 1x–125x"
+            }
+        };
+        if (!window.translations) window.translations = {};
+        if (!window.translations.mn) window.translations.mn = {};
+        if (!window.translations.en) window.translations.en = {};
+        Object.keys(pageTranslations).forEach(lang => Object.assign(window.translations[lang], pageTranslations[lang]));
+    </script>
+    <script src="/static/js/header.js"></script>
 
-            <input type="text" id="coin" value="BTCUSDT" list="coinList" class="chart-coin-input" placeholder="BTCUSDT">
-            <datalist id="coinList"></datalist>
-        </div>
+    <main class="chart-main flex-grow px-3 md:px-6">
+        <div class="chart-page-content">
+            <header class="chart-page-heading">
+                <h1 data-i18n="iceberg-page-title">Iceberg график</h1>
+                <p data-i18n="iceberg-page-subtitle">Зах зээлийн график болон фьючерсийн байрлалын хэмжээг шинжлээрэй.</p>
+            </header>
 
-        <div class="position-sizing-controls" aria-label="Futures position size calculator">
-            <label class="position-sizing-field">
-                <span>Margin <small>(your funds)</small></span>
-                <span class="position-sizing-input-wrap">
-                    <input id="positionMargin" type="number" min="0.01" step="0.01" value="10" inputmode="decimal">
-                    <span>USDT</span>
-                </span>
-            </label>
-            <span class="position-sizing-times" aria-hidden="true">×</span>
-            <label class="position-sizing-field">
-                <span>Leverage</span>
-                <span class="position-sizing-input-wrap">
-                    <input id="positionLeverage" type="number" min="1" max="125" step="1" value="20" inputmode="numeric">
-                    <span>x</span>
-                </span>
-            </label>
-            <output id="positionSizeEstimate" class="position-sizing-result" aria-live="polite">
-                10.00 USDT margin × 20x = 200.00 USDT position
-            </output>
-            <span class="position-sizing-note">Position is trade value, not profit. MAX PROFIT is estimated gross PnL before fees and funding; leverage increases both gains and losses.</span>
-        </div>
+            <section class="chart-panel" aria-label="Iceberg chart">
+                <div class="section-title chart-title">
+                    <div class="chart-primary-controls">
+                        <span data-i18n="chart-label" class="chart-brand-label">ГРАФИК</span>
+                        <select id="market" class="chart-interval-select" aria-label="Market type" data-i18n-aria-label="market-type-label">
+                            <option value="spot" selected data-i18n="market-spot">СПОТ</option>
+                            <option value="futures" data-i18n="market-futures">ФЬЮЧЕРС</option>
+                        </select>
+                        <input type="text" id="coin" value="BTCUSDT" list="coinList" class="chart-coin-input" placeholder="BTCUSDT" data-i18n-placeholder="coin-placeholder" aria-label="Trading pair" data-i18n-aria-label="pair-label">
+                        <datalist id="coinList"></datalist>
+                    </div>
 
-        <div class="chart-tools">
-            <span id="candleCountdown" style="color: #00bcd4; font-family: monospace; font-size: 11px; margin-right: 8px;">--:--</span>
-            
-            <label for="interval" class="chart-interval-label">TIME:</label>
-            <select id="interval" class="chart-interval-select">
-                <option value="1s">1s</option>
-                <option value="1m" selected>1m</option>
-                <option value="5m">5m</option>
-                <option value="15m">15m</option>
-                <option value="1h">1h</option>
-                <option value="4h">4h</option>
-                <option value="1d">1d</option>
-            </select>
+                    <div class="position-sizing-controls" aria-label="Futures position size calculator">
+                        <label class="position-sizing-field">
+                            <span><span data-i18n="margin-label">Margin</span> <small data-i18n="margin-help">(таны ашиглах хөрөнгө)</small></span>
+                            <span class="position-sizing-input-wrap">
+                                <input id="positionMargin" type="number" min="0.01" step="0.01" value="10" inputmode="decimal" aria-label="Margin in USDT" data-i18n-aria-label="margin-input-label">
+                                <span>USDT</span>
+                            </span>
+                        </label>
+                        <span class="position-sizing-times" aria-hidden="true">×</span>
+                        <label class="position-sizing-field">
+                            <span data-i18n="leverage-label">Хөшүүрэг</span>
+                            <span class="position-sizing-input-wrap">
+                                <input id="positionLeverage" type="number" min="1" max="125" step="1" value="20" inputmode="numeric" aria-label="Leverage" data-i18n-aria-label="leverage-input-label">
+                                <span>x</span>
+                            </span>
+                        </label>
+                        <output id="positionSizeEstimate" class="position-sizing-result" aria-live="polite">
+                            10.00 USDT margin × 20x = 200.00 USDT position
+                        </output>
+                        <span data-i18n="position-explanation" class="position-sizing-note">Position нь арилжааны нийт хэмжээ болохоос ашиг биш. MAX PROFIT нь шимтгэл, funding хасаагүй тооцоо; хөшүүрэг ашиг, алдагдлыг хоёуланг өсгөнө.</span>
+                    </div>
 
-            <button id="toggleChartSettings" class="chart-tool" aria-expanded="false">⚙️</button>
-        </div>
-    </div>
+                    <div class="chart-tools">
+                        <span id="candleCountdown" class="chart-countdown">--:--</span>
+                        <label for="interval" data-i18n="time-label" class="chart-interval-label">ХУГАЦАА:</label>
+                        <select id="interval" class="chart-interval-select" aria-label="Candle interval" data-i18n-aria-label="interval-input-label">
+                            <option value="1s">1s</option>
+                            <option value="1m" selected>1m</option>
+                            <option value="5m">5m</option>
+                            <option value="15m">15m</option>
+                            <option value="1h">1h</option>
+                            <option value="4h">4h</option>
+                            <option value="1d">1d</option>
+                        </select>
+                        <button id="toggleChartSettings" class="chart-tool" aria-expanded="false" aria-label="Chart settings" data-i18n-aria-label="chart-settings-label">⚙️</button>
+                    </div>
+                </div>
 
-    <!-- Индикатор тохиргооны самбар -->
-    <div id="chartSettings" class="chart-settings" style="display: none;">
-        <div class="chart-setting-group">
-            <label><input type="checkbox" id="showMACD" checked> MACD</label>
-            <label><input type="checkbox" id="showRSI" checked style="margin-left: 8px;"> RSI</label>
-        </div>
-        <div class="chart-setting-group">
-            <label>RSI:</label> <input type="number" id="rsiPeriod" value="14" style="width: 40px;">
-        </div>
-        <div class="chart-setting-group">
-            <label>MACD:</label> 
-            <input type="number" id="macdFast" value="12" style="width: 32px;">/
-            <input type="number" id="macdSlow" value="26" style="width: 32px;">/
-            <input type="number" id="macdSignal" value="9" style="width: 32px;">
-        </div>
-        <button id="applyIndicators" style="background: #00bcd4; border: none; color: #07090d; padding: 3px 8px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px;">Apply</button>
-    </div>
+                <div id="chartSettings" class="chart-settings" style="display: none;">
+                    <div class="chart-setting-group">
+                        <label><input type="checkbox" id="showMACD" checked> <span data-i18n="macd-label">MACD</span></label>
+                        <label><input type="checkbox" id="showRSI" checked> <span data-i18n="rsi-label">RSI</span></label>
+                    </div>
+                    <div class="chart-setting-group">
+                        <label for="rsiPeriod" data-i18n="rsi-period-label">RSI:</label>
+                        <input type="number" id="rsiPeriod" value="14" min="1" style="width: 48px;">
+                    </div>
+                    <div class="chart-setting-group">
+                        <label data-i18n="macd-period-label">MACD:</label>
+                        <input type="number" id="macdFast" value="12" min="1" aria-label="MACD fast" style="width: 42px;">
+                        <span>/</span>
+                        <input type="number" id="macdSlow" value="26" min="2" aria-label="MACD slow" style="width: 42px;">
+                        <span>/</span>
+                        <input type="number" id="macdSignal" value="9" min="1" aria-label="MACD signal" style="width: 42px;">
+                    </div>
+                    <button id="applyIndicators" class="chart-apply-button" data-i18n="apply-indicators">Хэрэглэх</button>
+                </div>
 
-    <!-- Чартын үндсэн контейнер -->
-    <div id="metaChartContainer"></div>
-    
-    <!-- Scripts -->
+                <div class="chart-workspace">
+                    <div id="metaChartContainer" aria-label="Interactive market chart"></div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="/static/js/footer.js"></script>
+    <script src="/static/js/access_control.js"></script>
+    <script src="/static/lock.js"></script>
     <script src="/api/Metachart.js"></script>
 </body>
 </html>

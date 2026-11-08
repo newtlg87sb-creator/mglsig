@@ -227,18 +227,36 @@ document.addEventListener("DOMContentLoaded",()=>{
  const leverageInput=document.getElementById("positionLeverage");
  const positionEstimate=document.getElementById("positionSizeEstimate");
 
- function updatePositionEstimate(){
+ function updatePositionEstimate(language=localStorage.getItem("lang")||"mn"){
   if(!marginInput||!leverageInput||!positionEstimate)return;
   const margin=Number(marginInput.value);
   const leverage=Number(leverageInput.value);
   const valid=Number.isFinite(margin)&&margin>0&&Number.isFinite(leverage)&&leverage>=1&&leverage<=125;
-  positionEstimate.textContent=valid
-   ? `${margin.toFixed(2)} USDT margin × ${leverage}x = ${(margin*leverage).toFixed(2)} USDT position`
-   : "Enter margin > 0 and leverage from 1x to 125x";
+  if(!valid){
+   positionEstimate.textContent=language==="mn"
+    ? "Margin 0-ээс их, хөшүүрэг 1x–125x байх ёстой"
+    : "Margin must be over 0 and leverage must be 1x–125x";
+   return;
+  }
+  positionEstimate.textContent=language==="mn"
+   ? `${margin.toFixed(2)} USDT margin × ${leverage}x = ${(margin*leverage).toFixed(2)} USDT нийт арилжаа`
+   : `${margin.toFixed(2)} USDT margin × ${leverage}x = ${(margin*leverage).toFixed(2)} USDT position`;
  }
  marginInput?.addEventListener("input",updatePositionEstimate);
  leverageInput?.addEventListener("input",updatePositionEstimate);
  updatePositionEstimate();
+ const originalChangeLang=window.changeLang;
+ window.changeLang=function(language){
+  if(originalChangeLang)originalChangeLang(language);
+  document.querySelectorAll("[data-i18n-aria-label]").forEach(element=>{
+   const key=element.getAttribute("data-i18n-aria-label");
+   const translated=window.translations?.[language]?.[key];
+   if(translated)element.setAttribute("aria-label",translated);
+  });
+  updatePositionEstimate(language);
+  document.title=language==="mn"?"Iceberg график - MGL Signal":"Iceberg Chart - MGL Signal";
+ };
+ window.changeLang(localStorage.getItem("lang")||"mn");
  
  settingsButton?.addEventListener("click",()=>{
   const isOpen=settingsPanel.style.display!=="none";
