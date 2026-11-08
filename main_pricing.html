@@ -6,6 +6,7 @@
     <title>Үнийн санал - MGL Signal</title>
     <meta name="description" content="Choose your plan. Access free signals or upgrade to Alpha for premium features.">
     <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -47,7 +48,8 @@
                 "btn-select-plan": "Сонгох",
                 "modal-alpha-title": "Alpha Эрх Идэвхжүүлэх",
                 "badge-popular": "Хамгийн эрэлттэй",
-                "btn-messenger": "Админтой холбогдох"
+                "btn-messenger": "Админтой холбогдох",
+                "payment-pending-msg": "Төлбөрийн баталгааг хүлээж байна. NOWPayments төлбөрийг баталгаажуулсны дараа Alpha эрх идэвхжинэ."
             },
             en: {
                 "pricing-title": "Pricing Plans",
@@ -70,7 +72,8 @@
                 "btn-select-plan": "Select Plan",
                 "modal-alpha-title": "Activate Alpha Access",
                 "badge-popular": "Most Popular",
-                "btn-messenger": "Contact via Messenger"
+                "btn-messenger": "Contact via Messenger",
+                "payment-pending-msg": "Payment confirmation is pending. Alpha access will activate after NOWPayments confirms your payment."
             }
         };
         Object.keys(pageTranslations).forEach(lang => {
@@ -89,6 +92,7 @@
                 <p data-i18n="pricing-subtitle" class="text-gray-400 max-w-2xl mx-auto"></p>
                 <div class="w-20 h-1 bg-brand-gold mx-auto mt-6"></div>
             </div>
+            <div id="payment-status-message" data-i18n="payment-pending-msg" class="hidden mb-8 rounded-xl border border-brand-gold/30 bg-brand-gold/10 p-4 text-center text-sm text-brand-gold"></div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
 
@@ -183,6 +187,9 @@
             const freeBtn = document.getElementById('free-plan-btn');
             const close = document.getElementById('close-modal');
             const nowpaymentsBtn = document.getElementById('nowpayments-button');
+            if (new URLSearchParams(window.location.search).get('payment') === 'processing') {
+                document.getElementById('payment-status-message')?.classList.remove('hidden');
+            }
 
             if(freeBtn) {
                 freeBtn.addEventListener('click', (e) => {
@@ -210,36 +217,43 @@
                 nowpaymentsBtn.addEventListener('click', async (e) => {
                     e.preventDefault();
                     
-                    const userStr = localStorage.getItem('user');
-                    if (!userStr) return;
-                    const user = JSON.parse(userStr);
+                    if (typeof sb === 'undefined' || !sb) {
+                        alert('Нэвтрэх систем холбогдсонгүй. Хуудсаа шинэчлээд дахин оролдоно уу.');
+                        return;
+                    }
 
                     nowpaymentsBtn.innerText = "ТӨЛБӨРИЙН ЛИНК ҮҮСГЭЖ БАЙНА...";
                     nowpaymentsBtn.style.pointerEvents = 'none';
                     nowpaymentsBtn.style.opacity = '0.7';
 
                     try {
+                        const { data: { session }, error: sessionError } = await sb.auth.getSession();
+                        if (sessionError) throw sessionError;
+                        if (!session) {
+                            window.location.href = '/main_login.html';
+                            return;
+                        }
+
                         const response = await fetch('/api/create-invoice', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ 
-                                userId: user.id,
-                                price_amount: 20, // Үнийг тодорхой болгож өгөв
-                                type: 'alpha'
-                            })
+                            headers: {
+                                'Content-Type': 'application/json',
+                                Authorization: `Bearer ${session.access_token}`
+                            },
+                            body: JSON.stringify({ type: 'alpha' })
                         });
 
                         const data = await response.json();
 
+                        if (!response.ok) throw new Error(data.error || 'Invoice creation failed');
                         if (data.invoiceUrl) {
                             window.location.href = data.invoiceUrl;
                         } else {
-                            alert('Алдаа гарлаа. Дахин оролдоно уу.');
-                            resetCryptoButton();
+                            throw new Error('Payment invoice URL was not returned');
                         }
                     } catch (error) {
                         console.error('Error:', error);
-                        alert('Сүлжээний алдаа гарлаа.');
+                        alert(error.message || 'Сүлжээний алдаа гарлаа.');
                         resetCryptoButton();
                     }
                 });

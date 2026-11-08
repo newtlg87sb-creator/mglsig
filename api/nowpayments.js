@@ -1,17 +1,13 @@
-// api/nowpayments.js
-// Чиний "User control" хүснэгтийн бүтцэд 100% тааруулсан ES Module бэкенд код
-
 import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 
-// 1. Supabase бэкенд клайент (SERVICE_ROLE_KEY ашиглаж байгаа тул RLS-ийг алгасна)
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+const supabaseUrl = process.env.SUPABASE_URL;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabase = supabaseUrl && serviceRoleKey
+  ? createClient(supabaseUrl, serviceRoleKey)
+  : null;
 
 export default async function handler(req, res) {
-  // Зөвхөн POST хүсэлт хүлээж авна
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -20,11 +16,15 @@ export default async function handler(req, res) {
     const ipnSignature = req.headers['x-nowpayments-sig'];
     const ipnSecret = process.env.NOWPAYMENTS_IPN_SECRET;
 
-    if (!ipnSignature || !ipnSecret) {
-      return res.status(400).send('Missing signature or secret');
+    if (!ipnSignature || !ipnSecret || !supabase) {
+      console.error('NOWPayments webhook configuration is incomplete');
+      return res.status(503).send('Webhook service is not configured');
     }
 
-    // 2. NOWPayments-аас ирсэн өгөгдлийг эрэмбэлж кодлох (Хамгаалалт)
+    if (!req.body || typeof req.body !== 'object' || Array.isArray(req.body)) {
+      return res.status(400).send('Invalid webhook body');
+    }
+
     const sortedData = Object.keys(req.body)
       .sort()
       .reduce((obj, key) => {
@@ -35,45 +35,46 @@ export default async function handler(req, res) {
     const hmac = crypto.createHmac('sha512', ipnSecret);
     hmac.update(JSON.stringify(sortedData));
     const signature = hmac.digest('hex');
+    const receivedSignature = Buffer.from(ipnSignature, 'hex');
+    const expectedSignature = Buffer.from(signature, 'hex');
 
-    // 3. Хэрэв гарын үсэг зөрвөл хакер гэж үзнэ
-    if (signature !== ipnSignature) {
-      console.error('⚠️ Анхаар! Баталгаагүй Webhook илэрлээ!');
+    if (
+      receivedSignature.length !== expectedSignature.length ||
+      !crypto.timingSafeEqual(receivedSignature, expectedSignature)
+    ) {
+      console.error('Rejected NOWPayments webhook with invalid signature');
       return res.status(401).send('Invalid signature');
     }
 
-    // 4. Төлбөрийн мэдээллийг хүлээж авах
-    const { payment_status, order_id } = req.body;
-
-    console.log(`Төлбөрийн статус: ${order_id} -> ${payment_status}`);
-
-    // 5. Төлбөр амжилттай 'finished' болсон үед Supabase-ийг шинэчлэх
-    if (payment_status === 'finished') {
-      
-      // 🚨 ШИНЭЧЛЭЛТ: Чиний "User control" хүснэгт болон баганын нэрнүүдтэй яг таг нийцүүлсэн хэсэг
-      const { error } = await supabase
-        .from('User control') // Чиний хүснэгтийн нэр
-        .update({ 
-          membership_type: 'alpha', // Эрхийг нь 'alpha' болгох
-          membership_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 хоног нэмэх (ISO формат)
-          updated_at: new Date().toISOString()
-        }) 
-        .eq('id', order_id); // Төлбөр үүсгэхдээ шидсэн Хэрэглэгчийн ID (UUID)
-
-      if (error) {
-        console.error('Supabase шинэчлэхэд алдаа гарлаа:', error.message);
-        return res.status(500).send('Database update failed');
-      }
-
-      console.log(`🎉 Хэрэглэгч ${order_id}-ийн Alpha эрх Supabase дээр амжилттай идэвхжлээ!`);
-      return res.status(200).send('OK');
+    const { payment_status: paymentStatus, order_id: orderId, payment_id: paymentId } = req.body;
+    if (paymentStatus !== 'finished') {
+      return res.status(200).send('Waiting for confirmation');
     }
 
-    // Хэрэв төлбөр хараахан батлагдаж дуусаагүй (confirming, waiting) бол
-    return res.status(200).send('Waiting for confirmation');
+    const orderMatch = typeof orderId === 'string'
+      ? orderId.match(/^alpha_([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i)
+      : null;
+    if (!orderMatch) {
+      return res.status(200).send('Not an Alpha subscription');
+    }
+    if (paymentId === undefined || paymentId === null || String(paymentId).length === 0) {
+      console.error('Finished Alpha payment is missing payment_id');
+      return res.status(400).send('Missing payment ID');
+    }
+
+    const { data: activated, error } = await supabase.rpc('activate_alpha_subscription', {
+      p_user_id: orderMatch[1],
+      p_payment_id: String(paymentId)
+    });
+    if (error) {
+      console.error('Failed to activate Alpha subscription:', error.message);
+      return res.status(500).send('Database update failed');
+    }
+
+    return res.status(200).send(activated ? 'Alpha access activated' : 'Payment already processed');
 
   } catch (err) {
-    console.error('Webhook алдаа:', err.message);
+    console.error('NOWPayments webhook failed:', err.message);
     return res.status(500).send('Internal Server Error');
   }
 }
