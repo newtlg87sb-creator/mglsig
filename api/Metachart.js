@@ -289,8 +289,11 @@ document.addEventListener("DOMContentLoaded",()=>{
    if(!Number.isFinite(yO) || !Number.isFinite(yC) || !Number.isFinite(yH) || !Number.isFinite(yL)) return;
 
    const bull=close>=open;
-   const candleColor = bull ? "#00bcd4" : "#ff3d57"; 
-   const wickColor = bull ? "#00e5ff" : "#ff1744";
+   const icebergState = window.icebergCandleStates?.[start + i];
+   const candleColor = icebergState === 'up' ? "#00bcd4" :
+       icebergState === 'down' ? "#ff3d57" : bull ? "#00bcd4" : "#ff3d57";
+   const wickColor = icebergState === 'up' ? "#00e5ff" :
+       icebergState === 'down' ? "#ff1744" : bull ? "#00e5ff" : "#ff1744";
 
    ctx.strokeStyle = wickColor;
    ctx.lineWidth = 1;
@@ -517,6 +520,9 @@ document.addEventListener("DOMContentLoaded",()=>{
     window.macdArrayData = macdRes.macdLine;
     window.signalArrayData = macdRes.signalLine;
     window.histArrayData = macdRes.histogram;
+    window.icebergCandleStates = typeof calculateIcebergCandleStates === "function"
+        ? calculateIcebergCandleStates(window.macdArrayData)
+        : [];
  };
 
  window.refreshChartIndicators = async function () {
