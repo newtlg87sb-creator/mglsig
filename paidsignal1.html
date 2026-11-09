@@ -37,6 +37,8 @@
                 "iceberg-page-subtitle": "Зах зээлийн график болон фьючерсийн байрлалын хэмжээг шинжлээрэй.",
                 "signal-guide-title": "Ашиглах заавар",
                 "signal-guide-intro": "Лааны өнгө чиглэлийг, ногоон дөрвөлжин боломжит ашиг авах цэгийг харуулна.",
+                "signal-guide-blind-title": "Сохор бүсийн анхааруулга",
+                "signal-guide-blind-text": "Үнэ тогтвортой буюу сохор бүсэд орвол ойр ойрхон олон сигнал гарч болзошгүй. Бүсээс гарах хүртэл олон дохиогоор арилжаа нээх нь хөрөнгөө алдах, шатаах эрсдэлтэй.",
                 "signal-guide-long-title": "Цэнхэр лаа · Long",
                 "signal-guide-long-text": "Цэнхэр лаа Long нээх дохио. Long нээсэн бол ногоон дөрвөлжин доторх түвшин позициос гарах боломжит цэгийг заана. Лаа улаан болж өөрчлөгдвөл Long-оо хаах эсэхээ шийдээрэй. MAX PROFIT нь тухайн хөдөлгөөний дээд цэг хүртэл барьсан бол авах байсан тооцоолсон ашгийг харуулна.",
                 "signal-guide-short-title": "Улаан лаа · Short",
@@ -70,6 +72,8 @@
                 "iceberg-page-subtitle": "Analyze the market chart and your estimated futures position size.",
                 "signal-guide-title": "How to use this chart",
                 "signal-guide-intro": "Candle colors show direction; the green box marks a potential profit-taking point.",
+                "signal-guide-blind-title": "Blind-area warning",
+                "signal-guide-blind-text": "When price enters a stable, or blind, area, many signals may appear in quick succession. Trading every signal before price leaves the area increases the risk of losses and burning through your funds.",
                 "signal-guide-long-title": "Cyan candle · Long",
                 "signal-guide-long-text": "A cyan candle signals a possible Long entry. If you enter Long, the level inside the green box shows a potential exit point. If the candle turns red, decide whether to close your Long. MAX PROFIT shows the estimated profit available if held to the move's high.",
                 "signal-guide-short-title": "Red candle · Short",
@@ -191,6 +195,13 @@
             <section class="signal-guide" aria-labelledby="signalGuideTitle">
                 <h2 id="signalGuideTitle" data-i18n="signal-guide-title">Ашиглах заавар</h2>
                 <p class="signal-guide-intro" data-i18n="signal-guide-intro">Лааны өнгө чиглэлийг, ногоон дөрвөлжин боломжит ашиг авах цэгийг харуулна.</p>
+                <aside class="signal-guide-blind-warning" aria-labelledby="blindAreaWarningTitle">
+                    <div>
+                        <h3 id="blindAreaWarningTitle" data-i18n="signal-guide-blind-title">Сохор бүсийн анхааруулга</h3>
+                        <p data-i18n="signal-guide-blind-text">Үнэ тогтвортой буюу сохор бүсэд орвол ойр ойрхон олон сигнал гарч болзошгүй. Бүсээс гарах хүртэл олон дохиогоор арилжаа нээх нь хөрөнгөө алдах, шатаах эрсдэлтэй.</p>
+                    </div>
+                    <img src="/static/images/blindarea.jpg" alt="Сохор бүсэд давхцсан олон сигналын жишээ" loading="lazy">
+                </aside>
                 <div class="signal-guide-grid">
                     <article class="signal-guide-card signal-guide-long">
                         <h3 data-i18n="signal-guide-long-title">Цэнхэр лаа · Long</h3>
