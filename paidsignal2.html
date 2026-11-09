@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="mn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="/static/chart_style.css">
-    <title>Binance Chart</title>
+    <link rel="stylesheet" href="/static/chart_style2.css">
+    <title>HVN / LVN Volume Profile - MGL Signal</title>
 </head>
 <body>
     
@@ -45,6 +45,7 @@
         <div class="chart-setting-group">
             <label><input type="checkbox" id="showMACD" checked> MACD</label>
             <label><input type="checkbox" id="showRSI" checked style="margin-left: 8px;"> RSI</label>
+            <label><input type="checkbox" id="showVolumeProfile" checked style="margin-left: 8px;"> Volume Profile / HVN-LVN</label>
         </div>
         <div class="chart-setting-group">
             <label>RSI:</label> <input type="number" id="rsiPeriod" value="14" style="width: 40px;">
@@ -60,8 +61,42 @@
 
     <!-- Чартын үндсэн контейнер -->
     <div id="metaChartContainer"></div>
+
+    <section id="hvn-signal-panel" class="hvn-signal-panel" aria-labelledby="hvn-signal-title" aria-live="polite">
+        <div>
+            <h1 id="hvn-signal-title">HVN / LVN стратегийн дохио</h1>
+            <p id="hvn-signal-status">Өгөгдөл тооцоолж байна...</p>
+        </div>
+        <div id="hvn-signal-details" class="hvn-signal-details">Энэ нь автомат арилжаа биш. Дохиог өөрөө нягталж, эрсдэлээ удирдана уу.</div>
+    </section>
+
+    <section class="hvn-guide" aria-labelledby="hvn-guide-title">
+        <h2 id="hvn-guide-title">HVN / LVN ашиглах заавар</h2>
+        <p class="hvn-guide-intro"><strong>HVN (High-Volume Node)</strong> нь эзэлхүүн төвлөрсөн бүс; Volume Profile дээр хамгийн их эзэлхүүнтэй үнэ нь <strong>POC (Point of Control)</strong>. HVN нь дэмжлэг, эсэргүүцэл эсвэл тэнцвэрийн бүс болж болох ч үнийн чиглэлийг баталгаажуулахгүй. <strong>LVN (Low-Volume Node)</strong> нь эзэлхүүн багатай, үнэ хурдан нэвтрэх магадлалтай бүс.</p>
+
+        <div class="hvn-strategy-grid">
+            <article class="hvn-strategy-card">
+                <h3>1. HVN Bounce · Тулгуур / эсэргүүцлээс ойх</h3>
+                <p>Үнэ HVN-ээс гарч, буцан retest хийхийг хүлээнэ. HVN дээр урт сүүлтэй rejection лаа эсвэл bullish engulfing гарч, үнэ бүсийн дээд талаас хаагдвал Long; эсрэгээр бүсийн доод талаас хаагдсан bearish rejection байвал Short дохиог ажиглана.</p>
+                <p><strong>Stop:</strong> HVN бүсийн цаана. <strong>Target:</strong> чиглэлийн дагуух дараагийн HVN эсвэл LVN.</p>
+            </article>
+            <article class="hvn-strategy-card">
+                <h3>2. HVN Accept / Range · Тэнцвэрийн бүс</h3>
+                <p>Хажуу хөдөлгөөнд үнэ HVN-ийн дээд захад буцаж ойвол Short, доод захад буцаж ойвол Long; зорилтот түвшин нь POC. Хүчтэй трендтэй үед эсрэг чиглэлд range арилжаа хийхээс зайлсхий.</p>
+                <p>Range эсэхийг сүүлийн 20 лааны хэлбэлзэл болон дундаж true range-ээр ойролцоолно.</p>
+            </article>
+            <article class="hvn-strategy-card">
+                <h3>3. LVN Breakout · Дараагийн HVN хүртэл</h3>
+                <p>Үнэ LVN бүсийг хүчтэй лаагаар сэтэлж, бүсийн гадна хаагдвал breakout чиглэлийг дагах боломжийг ажиглана. Зорилтот түвшин нь тухайн чиглэлд байрлах дараагийн HVN; stop-ийг LVN-ийн нөгөө талд байрлуулах зарчмыг баримтална.</p>
+            </article>
+        </div>
+
+        <aside class="hvn-method-note">
+            <strong>Тооцооллын хязгаарлалт:</strong> Индикатор сүүлийн 200 хаагдсан лааны эзэлхүүнийг лааны High–Low мужийн 48 үнийн бин дээр тэнцүү хуваарилан profile байгуулна. Бины эзэлхүүн хамгийн их эзэлхүүний 55%-иас дээш бол HVN, 20%-иас доош бол LVN гэж тэмдэглэнэ. Энэ нь Binance-ийн бодит trade-by-price Volume Profile биш, OHLCV-д суурилсан ойролцоо тооцоо. HVN/LVN болон дохио нь баталгаатай үр дүн биш; хөшүүрэг эрсдэлийг нэмэгдүүлнэ.
+        </aside>
+    </section>
     
     <!-- Scripts -->
-    <script src="/api/Metachart.js"></script>
+    <script src="/api/Metachart2.js"></script>
 </body>
 </html>
