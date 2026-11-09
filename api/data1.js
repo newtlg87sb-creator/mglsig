@@ -556,10 +556,8 @@ function calculateRsiAverage(klines, window = 7) {
     }
 
     let offset = klines.length - rsi_series.length;
-    let price_history = {
-        "rsi_30_up": [], "rsi_30_down": [],
-        "rsi_70_up": [], "rsi_70_down": []
-    };
+    let s30 = null;
+    let s70 = null;
 
     for (let index = rsi_series.length - 2; index > 2; index--) {
         let previous_rsi = Number(rsi_series[index - 1]);
@@ -567,17 +565,19 @@ function calculateRsiAverage(klines, window = 7) {
         let window_klines = klines.slice(index + offset - 3, index + offset + 1);
         let opens = window_klines.map(k => Number(k[1]));
 
-        if (previous_rsi <= 30 && current_rsi > 30) price_history.rsi_30_up.push(Math.min(...opens));
-        if (previous_rsi >= 30 && current_rsi < 30) price_history.rsi_30_down.push(Math.max(...opens));
-        if (previous_rsi <= 70 && current_rsi > 70) price_history.rsi_70_up.push(Math.min(...opens));
-        if (previous_rsi >= 70 && current_rsi < 70) price_history.rsi_70_down.push(Math.max(...opens));
+        if (s30 === null) {
+            if (previous_rsi <= 30 && current_rsi > 30) s30 = Math.min(...opens);
+            else if (previous_rsi >= 30 && current_rsi < 30) s30 = Math.max(...opens);
+        }
+        if (s70 === null) {
+            if (previous_rsi <= 70 && current_rsi > 70) s70 = Math.min(...opens);
+            else if (previous_rsi >= 70 && current_rsi < 70) s70 = Math.max(...opens);
+        }
+        if (s30 !== null && s70 !== null) break;
     }
 
-    let s30u = price_history.rsi_30_up.length > 0 ? price_history.rsi_30_up[0] : null;
-    let s70d = price_history.rsi_70_down.length > 0 ? price_history.rsi_70_down[0] : null;
-
     return {
-        "average_status": (s30u !== null && s70d !== null) ? (s30u + s70d) / 2.0 : null,
+        "average_status": (s30 !== null && s70 !== null) ? (s30 + s70) / 2.0 : null,
     };
 }
 

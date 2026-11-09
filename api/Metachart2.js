@@ -126,25 +126,27 @@ function calculateAverageStatus(klines, period) {
         updateRsi(index);
     }
 
-    let rsi30UpPrice = null;
-    let rsi70DownPrice = null;
-    for (let index = rsi.length - 2; index > 2; index--) {
+    let rsi30Price = null;
+    let rsi70Price = null;
+    for (let index = rsi.length - 2; index > period + 2; index--) {
         const previousRsi = rsi[index - 1];
         const currentRsi = rsi[index];
         const opens = klines.slice(index - 3, index + 1).map(candle => Number(candle[1]));
         if (opens.length < 4) continue;
 
-        if (rsi30UpPrice === null && previousRsi <= 30 && currentRsi > 30) {
-            rsi30UpPrice = Math.min(...opens);
+        if (rsi30Price === null) {
+            if (previousRsi <= 30 && currentRsi > 30) rsi30Price = Math.min(...opens);
+            else if (previousRsi >= 30 && currentRsi < 30) rsi30Price = Math.max(...opens);
         }
-        if (rsi70DownPrice === null && previousRsi >= 70 && currentRsi < 70) {
-            rsi70DownPrice = Math.max(...opens);
+        if (rsi70Price === null) {
+            if (previousRsi <= 70 && currentRsi > 70) rsi70Price = Math.min(...opens);
+            else if (previousRsi >= 70 && currentRsi < 70) rsi70Price = Math.max(...opens);
         }
-        if (rsi30UpPrice !== null && rsi70DownPrice !== null) break;
+        if (rsi30Price !== null && rsi70Price !== null) break;
     }
 
-    return rsi30UpPrice !== null && rsi70DownPrice !== null
-        ? (rsi30UpPrice + rsi70DownPrice) / 2
+    return rsi30Price !== null && rsi70Price !== null
+        ? (rsi30Price + rsi70Price) / 2
         : null;
 }
 
