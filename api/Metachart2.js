@@ -173,11 +173,12 @@ function findHvnSignal(candles,profile){
  return null;
 }
 
-function updateHvnSignalPanel(profile,signal,enabled){
+function updateHvnSignalPanel(profile,signalState,enabled,currentInterval){
  const panel=document.getElementById("hvn-signal-panel");
  const status=document.getElementById("hvn-signal-status");
  const details=document.getElementById("hvn-signal-details");
  if(!panel||!status||!details)return;
+ const signal=signalState?.signal;
  panel.dataset.direction=signal?.direction||"";
  if(!enabled){
   status.textContent="Volume Profile / HVN-LVN overlay унтраалттай";
@@ -191,13 +192,19 @@ function updateHvnSignalPanel(profile,signal,enabled){
  }
  const levels=`POC ${formatPrice(profile.poc)} · HVN ${profile.hvns.length} · LVN ${profile.lvns.length}`;
  if(!signal){
-  status.textContent=`Идэвхтэй нөхцөл алга · ${levels}`;
-  details.textContent="Bounce, range эсвэл LVN breakout-ийн шалгуур одоогоор бүрдээгүй. Хүлээгээд баталгаажуулна уу.";
+  status.textContent=`Шинэ setup алга · ${levels}`;
+  details.textContent="Дохио зөвхөн хаагдсан лаан дээр шалгагдана. Энэ нь захиалга өгөх заавар биш.";
   return;
  }
  const names={bounce:"HVN Bounce",range:"HVN Range",breakout:"LVN Breakout"};
- status.textContent=`${signal.direction==="long"?"LONG":"SHORT"} · ${names[signal.type]} · ${levels}`;
- details.textContent=`Entry ${formatPrice(signal.entry)} · Stop ${formatPrice(signal.stop)} · Target ${formatPrice(signal.target)}. Автомат арилжаа биш; орохын өмнө өөрөө нягтална уу.`;
+ const direction=signal.direction==="long"?"LONG":"SHORT";
+ const outcome=signalState.status==="active"?"setup хадгалагдсан":signalState.status==="stop"?"STOP хүрсэн":"TARGET хүрсэн";
+ status.textContent=`${direction} setup · ${names[signal.type]} · ${outcome} · ${timeLabel(signalState.time,currentInterval)} · ${levels}`;
+ const stateHint=signalState.status==="active"
+  ?"Триггер лаа хаагдсан; төлөв нь Stop/Target хүрэх хүртэл хадгалагдана."
+  :signalState.status==="stop"?"Триггерийн дараа Stop түвшин хүрсэн."
+  :"Триггерийн дараа Target түвшин хүрсэн.";
+ details.textContent=`${stateHint} Entry ${formatPrice(signal.entry)} · Stop ${formatPrice(signal.stop)} · Target ${formatPrice(signal.target)}. Шууд захиалга өгөх заавар биш.`;
 }
 
 function drawVolumeProfile(ctx,profile,padding,chartWidth,mainChartHeight,priceToY,visibleMin,visibleMax){
@@ -383,6 +390,8 @@ document.addEventListener("DOMContentLoaded",()=>{
  });
 
  let symbol="BTCUSDT",interval="1m";
+ let lastProcessedSignalTime=null;
+ let trackedHvnSignal=null;
 
  window.allData=[];
  window.rsiArrayData = [];
@@ -428,9 +437,30 @@ document.addEventListener("DOMContentLoaded",()=>{
   const closedCandles=getClosedCandles(window.allData,interval);
   const volumeProfile=buildVolumeProfile(closedCandles.slice(-200));
   const signalProfile=buildVolumeProfile(closedCandles.slice(-201,-1));
-  const activeSignal=findHvnSignal(closedCandles,signalProfile);
+  const latestClosedCandle=closedCandles[closedCandles.length-1];
+  const latestClosedTime=latestClosedCandle?.[0]??null;
+  if(latestClosedTime!==null&&latestClosedTime!==lastProcessedSignalTime){
+   lastProcessedSignalTime=latestClosedTime;
+   if(trackedHvnSignal?.status==="active"){
+    const signal=trackedHvnSignal.signal;
+    const stopHit=signal.direction==="long"
+     ?latestClosedCandle[3]<=signal.stop
+     :latestClosedCandle[2]>=signal.stop;
+    const targetHit=signal.direction==="long"
+     ?latestClosedCandle[2]>=signal.target
+     :latestClosedCandle[3]<=signal.target;
+    if(stopHit)trackedHvnSignal.status="stop";
+    else if(targetHit)trackedHvnSignal.status="target";
+   }else{
+    const newSignal=findHvnSignal(closedCandles,signalProfile);
+    if(newSignal){
+     trackedHvnSignal={signal:newSignal,time:latestClosedTime,status:"active"};
+    }
+   }
+  }
+  const activeSignal=trackedHvnSignal?.signal??null;
   const volumeProfileEnabled=showVolumeProfile?.checked!==false;
-  updateHvnSignalPanel(signalProfile,activeSignal,volumeProfileEnabled);
+  updateHvnSignalPanel(signalProfile,trackedHvnSignal,volumeProfileEnabled,interval);
 
   let maxPrice=-Infinity,minPrice=Infinity;
   data.forEach(d=>{if(d[2]>maxPrice)maxPrice=d[2];if(d[3]<minPrice)minPrice=d[3]});
@@ -546,8 +576,9 @@ document.addEventListener("DOMContentLoaded",()=>{
    );
   });
 
-  if(volumeProfileEnabled&&activeSignal&&activeSignal.index>=start&&activeSignal.index<end){
-   const signalX=padding+(activeSignal.index-start+0.5)*candleWidth;
+  const signalIndex=activeSignal?data.findIndex(candle=>candle[0]===trackedHvnSignal.time):-1;
+  if(volumeProfileEnabled&&activeSignal&&signalIndex>=0){
+   const signalX=padding+(signalIndex+0.5)*candleWidth;
    const signalY=priceToY(activeSignal.entry);
    const color=activeSignal.direction==="long"?"#00c853":"#ff3d57";
    if(signalY>=padding&&signalY<=padding+mainChartHeight){
@@ -796,6 +827,8 @@ document.addEventListener("DOMContentLoaded",()=>{
  const triggerAutoUpdate=()=>{
   clearTimeout(updateTimer);
   updateTimer=setTimeout(async()=>{
+   lastProcessedSignalTime=null;
+   trackedHvnSignal=null;
    offset=0;visibleCount=500;priceScale=1;priceOffset=0;
    await fetchCandles();
   },150);
