@@ -118,16 +118,13 @@
 ========================================================= */
 
 html, body {
-  min-height: 100vh !important;
-  height: auto !important;
-  max-height: none !important;
+  height: 100vh !important;
   margin: 0 !important;
   padding: 8px !important;
   box-sizing: border-box !important;
   background: #07090d !important;
   color: #e8edf5 !important;
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
+  overflow: hidden !important;
   display: flex !important;
   flex-direction: column !important;
 }
@@ -181,24 +178,22 @@ select option {
 
 /* 1. Бүх төрлийн дэлгэцэнд шахагдахгүй байх үндсэн тохиргоо */
 html, body {
-  min-height: 100vh !important;
-  height: auto !important;
-  max-height: none !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
   margin: 0 !important;
   padding: 6px !important;
   box-sizing: border-box !important;
   background: #07090d !important;
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
+  overflow: hidden !important;
   display: flex !important;
   flex-direction: column !important;
 }
 
 /* 2. Контейнер ямар ч дэлгэц дээр 100% сунаж, Canvas-ийг дотроо бүтэн багтаана */
 #metaChartContainer {
-  flex: 0 0 min(68vh, 760px) !important;
+  flex: 1 1 auto !important;
   width: 100% !important;
-  height: min(68vh, 760px) !important;
+  height: 0 !important; /* Flexbox дээр өндөр шахагдах боломж олгоно */
   min-height: 350px !important;
   position: relative !important;
   overflow: hidden !important;
@@ -210,7 +205,7 @@ html, body {
 #chart-wrapper {
   width: 100% !important;
   height: 100% !important;
-  min-height: 0 !important;
+  min-height: 100% !important;
   position: absolute !important;
   top: 0 !important;
   left: 0 !important;
@@ -241,101 +236,6 @@ html, body {
 /* 4. Маш нарийн эсвэл босоо/бага өндөртэй monitor дээр */
 @media screen and (max-height: 600px) {
   #metaChartContainer {
-    flex-basis: 60vh !important;
-    height: 60vh !important;
     min-height: 280px !important;
-  }
-}
-
-.hvn-signal-panel,
-.hvn-guide {
-  flex: 0 0 auto;
-  margin-top: 10px;
-  padding: 14px;
-  background: #0f141c;
-  border: 1px solid #1f2a38;
-  border-radius: 8px;
-}
-
-.hvn-signal-panel {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
-  gap: 12px;
-  border-left: 3px solid #00bcd4;
-}
-
-.hvn-signal-panel h1,
-.hvn-guide h2 {
-  margin: 0 0 6px;
-  color: #f3f4f6;
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.hvn-signal-panel p,
-.hvn-signal-details,
-.hvn-guide p,
-.hvn-method-note {
-  margin: 0;
-  color: #aeb9c7;
-  font-size: 12px;
-  line-height: 1.65;
-}
-
-.hvn-signal-details {
-  align-self: center;
-  padding: 8px 10px;
-  background: #101721;
-  border: 1px solid #263243;
-  border-radius: 6px;
-}
-
-.hvn-signal-panel[data-direction="long"] {
-  border-left-color: #00c853;
-}
-
-.hvn-signal-panel[data-direction="short"] {
-  border-left-color: #ff3d57;
-}
-
-.hvn-guide-intro {
-  margin-bottom: 12px !important;
-}
-
-.hvn-strategy-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.hvn-strategy-card {
-  padding: 12px;
-  background: #101721;
-  border: 1px solid #263243;
-  border-radius: 6px;
-}
-
-.hvn-strategy-card h3 {
-  margin: 0 0 8px;
-  color: #f7d56b;
-  font-size: 13px;
-}
-
-.hvn-strategy-card p + p {
-  margin-top: 8px;
-}
-
-.hvn-method-note {
-  margin-top: 12px;
-  padding: 10px;
-  background: #211710;
-  border: 1px solid #754b27;
-  border-radius: 6px;
-}
-
-@media (max-width: 760px) {
-  .hvn-signal-panel,
-  .hvn-strategy-grid {
-    grid-template-columns: minmax(0, 1fr);
   }
 }

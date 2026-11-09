@@ -1,7 +1,7 @@
 (function(){
  const c=document.getElementById("metaChartContainer");
  if(!c)return console.error("[META CHART] #metaChartContainer not found");
- c.innerHTML=`<div id="chart-wrapper" style="position:relative;width:100%;height:100%;min-height:0;background:#07090d;overflow:hidden;"><canvas id="chart" style="display:block;width:100%;height:100%;cursor:crosshair;"></canvas></div>`;
+ c.innerHTML=`<div id="chart-wrapper" style="position:relative;width:100%;height:100%;min-height:600px;background:#07090d;overflow:hidden;"><canvas id="chart" style="display:block;width:100%;height:100%;cursor:crosshair;"></canvas></div>`;
 })();
 
 window.dispatchChartUpdate=function(){};
@@ -15,238 +15,6 @@ function formatPrice(p){
  if(p>=1)return p.toFixed(4);
  if(p>=0.001)return p.toFixed(6);
  return p.toPrecision(4);
-}
-
-function intervalDurationMs(value){
- const match=/^(\d+)([smhd])$/.exec(value||"");
- if(!match)return 60_000;
- const unitMs={s:1000,m:60_000,h:3_600_000,d:86_400_000};
- return Number(match[1])*unitMs[match[2]];
-}
-
-function getClosedCandles(candles,intervalValue){
- const duration=intervalDurationMs(intervalValue);
- const now=Date.now();
- return candles.filter(candle=>Number(candle[0])+duration<=now);
-}
-
-function buildVolumeProfile(candles,binsCount=48){
- const valid=candles.filter(candle=>
-  Number.isFinite(candle[2])&&Number.isFinite(candle[3])&&
-  Number.isFinite(candle[5])&&candle[2]>=candle[3]&&candle[5]>=0
- );
- if(valid.length<20)return null;
-
- const minPrice=Math.min(...valid.map(candle=>candle[3]));
- const maxPrice=Math.max(...valid.map(candle=>candle[2]));
- if(!Number.isFinite(minPrice)||!Number.isFinite(maxPrice)||maxPrice<=minPrice)return null;
-
- const binSize=(maxPrice-minPrice)/binsCount;
- const volumes=new Array(binsCount).fill(0);
- valid.forEach(candle=>{
-  const first=Math.max(0,Math.min(binsCount-1,Math.floor((candle[3]-minPrice)/binSize)));
-  const last=Math.max(0,Math.min(binsCount-1,Math.floor((candle[2]-minPrice)/binSize)));
-  const covered=last-first+1;
-  const perBin=candle[5]/covered;
-  for(let i=first;i<=last;i++)volumes[i]+=perBin;
- });
-
- const maxVolume=Math.max(...volumes);
- if(!Number.isFinite(maxVolume)||maxVolume<=0)return null;
-
- const regionsFor=(threshold,includeBelow=false)=>{
-  const regions=[];
-  let start=-1;
-  for(let i=0;i<=binsCount;i++){
-   const matches=i<binsCount&&(includeBelow?volumes[i]<=threshold:volumes[i]>=threshold);
-   if(matches&&start<0)start=i;
-   if(!matches&&start>=0){
-    const end=i-1;
-    const peakIndex=start+volumes.slice(start,i).indexOf(Math.max(...volumes.slice(start,i)));
-    regions.push({
-     start,end,
-     low:minPrice+start*binSize,
-     high:minPrice+(end+1)*binSize,
-     center:minPrice+(peakIndex+0.5)*binSize,
-     peakVolume:volumes[peakIndex]
-    });
-    start=-1;
-   }
-  }
-  return regions;
- };
-
- let hvns=regionsFor(maxVolume*0.55).sort((a,b)=>b.peakVolume-a.peakVolume).slice(0,5);
- const pocIndex=volumes.indexOf(maxVolume);
- if(!hvns.some(zone=>pocIndex>=zone.start&&pocIndex<=zone.end)){
-  hvns.push({
-   start:pocIndex,end:pocIndex,
-   low:minPrice+pocIndex*binSize,
-   high:minPrice+(pocIndex+1)*binSize,
-   center:minPrice+(pocIndex+0.5)*binSize,
-   peakVolume:maxVolume
-  });
- }
- hvns.sort((a,b)=>a.low-b.low);
-
- const hvnStart=Math.min(...hvns.map(zone=>zone.start));
- const hvnEnd=Math.max(...hvns.map(zone=>zone.end));
- const lvns=regionsFor(maxVolume*0.2,true)
-  .filter(zone=>zone.end-zone.start>=1&&zone.start>hvnStart&&zone.end<hvnEnd);
-
- return {
-  minPrice,maxPrice,binSize,maxVolume,poc:minPrice+(pocIndex+0.5)*binSize,
-  bins:volumes.map((volume,index)=>({
-   low:minPrice+index*binSize,
-   high:minPrice+(index+1)*binSize,
-   volume,
-   ratio:volume/maxVolume
-  })),
-  hvns,lvns
- };
-}
-
-function findHvnSignal(candles,profile){
- if(!profile||candles.length<22)return null;
- const current=candles[candles.length-1];
- const previous=candles[candles.length-2];
- const [,,high,low,close]=current;
- const prevClose=previous[4];
- const open=current[1];
- const body=Math.max(Math.abs(close-open),profile.binSize*0.1);
- const lowerWick=Math.min(open,close)-low;
- const upperWick=high-Math.max(open,close);
- const bullish=close>open;
- const bearish=close<open;
-
- const nearestNextNode=(entry,direction)=>{
-  const levels=[
-   ...profile.hvns.map(zone=>({price:direction==="long"?zone.low:zone.high})),
-   ...profile.lvns.map(zone=>({price:direction==="long"?zone.low:zone.high}))
-  ].filter(level=>direction==="long"?level.price>entry:level.price<entry);
-  levels.sort((a,b)=>direction==="long"?a.price-b.price:b.price-a.price);
-  return levels[0]?.price??null;
- };
-
- for(const zone of [...profile.hvns].sort((a,b)=>Math.abs(close-a.center)-Math.abs(close-b.center))){
-  if(prevClose>zone.high&&low<=zone.high&&close>zone.high&&
-     (bullish&&lowerWick>=body*1.2||previous[4]<previous[1]&&close>previous[1]&&open<=previous[4])){
-   const target=nearestNextNode(close,"long");
-   if(target)return {type:"bounce",direction:"long",entry:close,stop:zone.low-profile.binSize,target,index:window.allData.indexOf(current)};
-  }
-  if(prevClose<zone.low&&high>=zone.low&&close<zone.low&&
-     (bearish&&upperWick>=body*1.2||previous[4]>previous[1]&&close<previous[1]&&open>=previous[4])){
-   const target=nearestNextNode(close,"short");
-   if(target)return {type:"bounce",direction:"short",entry:close,stop:zone.high+profile.binSize,target,index:window.allData.indexOf(current)};
-  }
- }
-
- for(const zone of profile.lvns){
-  if(prevClose<=zone.high&&close>zone.high&&bullish){
-   const next=profile.hvns.filter(node=>node.low>zone.high).sort((a,b)=>a.low-b.low)[0];
-   if(next)return {type:"breakout",direction:"long",entry:close,stop:zone.low-profile.binSize,target:next.center,index:window.allData.indexOf(current)};
-  }
-  if(prevClose>=zone.low&&close<zone.low&&bearish){
-   const next=profile.hvns.filter(node=>node.high<zone.low).sort((a,b)=>b.high-a.high)[0];
-   if(next)return {type:"breakout",direction:"short",entry:close,stop:zone.high+profile.binSize,target:next.center,index:window.allData.indexOf(current)};
-  }
- }
-
- const range=candles.slice(-20);
- const atr=range.reduce((sum,candle,index)=>{
-  const previousClose=index?range[index-1][4]:candles[candles.length-21][4];
-  return sum+Math.max(candle[2]-candle[3],Math.abs(candle[2]-previousClose),Math.abs(candle[3]-previousClose));
- },0)/range.length;
- const rangeHigh=Math.max(...range.map(candle=>candle[2]));
- const rangeLow=Math.min(...range.map(candle=>candle[3]));
- const isRanging=atr>0&&Math.abs(close-range[0][4])<=atr*1.5&&(rangeHigh-rangeLow)<=atr*6;
- if(isRanging){
-  for(const zone of [...profile.hvns].sort((a,b)=>Math.abs(close-a.center)-Math.abs(close-b.center))){
-   if(low<=zone.low+profile.binSize&&close>zone.low&&close<profile.poc){
-    return {type:"range",direction:"long",entry:close,stop:zone.low-profile.binSize,target:profile.poc,index:window.allData.indexOf(current)};
-   }
-   if(high>=zone.high-profile.binSize&&close<zone.high&&close>profile.poc){
-    return {type:"range",direction:"short",entry:close,stop:zone.high+profile.binSize,target:profile.poc,index:window.allData.indexOf(current)};
-   }
-  }
- }
- return null;
-}
-
-function updateHvnSignalPanel(profile,signalState,enabled,currentInterval){
- const panel=document.getElementById("hvn-signal-panel");
- const status=document.getElementById("hvn-signal-status");
- const details=document.getElementById("hvn-signal-details");
- if(!panel||!status||!details)return;
- const signal=signalState?.signal;
- panel.dataset.direction=signal?.direction||"";
- if(!enabled){
-  status.textContent="Volume Profile / HVN-LVN overlay унтраалттай";
-  details.textContent="Тохиргооноос индикаторыг асааж профайл болон дохиог харуулна уу.";
-  return;
- }
- if(!profile){
-  status.textContent="HVN / LVN тооцоход хаагдсан лааны өгөгдөл хүрэлцэхгүй байна.";
-  details.textContent="Дор хаяж 22 хаагдсан лаа шаардлагатай.";
-  return;
- }
- const levels=`POC ${formatPrice(profile.poc)} · HVN ${profile.hvns.length} · LVN ${profile.lvns.length}`;
- if(!signal){
-  status.textContent=`Шинэ setup алга · ${levels}`;
-  details.textContent="Дохио зөвхөн хаагдсан лаан дээр шалгагдана. Энэ нь захиалга өгөх заавар биш.";
-  return;
- }
- const names={bounce:"HVN Bounce",range:"HVN Range",breakout:"LVN Breakout"};
- const direction=signal.direction==="long"?"LONG":"SHORT";
- const outcome=signalState.status==="active"?"setup хадгалагдсан":signalState.status==="stop"?"STOP хүрсэн":"TARGET хүрсэн";
- status.textContent=`${direction} setup · ${names[signal.type]} · ${outcome} · ${timeLabel(signalState.time,currentInterval)} · ${levels}`;
- const stateHint=signalState.status==="active"
-  ?"Триггер лаа хаагдсан; төлөв нь Stop/Target хүрэх хүртэл хадгалагдана."
-  :signalState.status==="stop"?"Триггерийн дараа Stop түвшин хүрсэн."
-  :"Триггерийн дараа Target түвшин хүрсэн.";
- details.textContent=`${stateHint} Entry ${formatPrice(signal.entry)} · Stop ${formatPrice(signal.stop)} · Target ${formatPrice(signal.target)}. Шууд захиалга өгөх заавар биш.`;
-}
-
-function drawVolumeProfile(ctx,profile,padding,chartWidth,mainChartHeight,priceToY,visibleMin,visibleMax){
- if(!profile)return;
- const maxWidth=Math.min(100,chartWidth*0.24);
- ctx.save();
- ctx.beginPath();
- ctx.rect(padding,padding,chartWidth,mainChartHeight);
- ctx.clip();
- profile.bins.forEach(bin=>{
-  if(bin.high<visibleMin||bin.low>visibleMax)return;
-  const yHigh=priceToY(bin.high),yLow=priceToY(bin.low);
-  const barHeight=Math.max(1,yLow-yHigh);
-  const width=maxWidth*bin.ratio;
-  ctx.fillStyle=bin.ratio>=0.55?"rgba(247,213,107,0.28)":"rgba(41,182,246,0.18)";
-  ctx.fillRect(padding+chartWidth-width,yHigh,width,barHeight);
- });
- const drawLevel=(price,color,label,dashed=true)=>{
-  if(price<visibleMin||price>visibleMax)return;
-  const y=priceToY(price);
-  ctx.strokeStyle=color;
-  ctx.lineWidth=1;
-  ctx.setLineDash(dashed?[4,3]:[]);
-  ctx.beginPath();ctx.moveTo(padding,y);ctx.lineTo(padding+chartWidth,y);ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle=color;
-  ctx.font="bold 9px Inter, sans-serif";
-  ctx.fillText(label,padding+chartWidth-maxWidth-42,y-3);
- };
- drawLevel(profile.poc,"#f7d56b","POC");
- const currentPrice=window.allData?.[window.allData.length-1]?.[4];
- const nearestHvn=[...profile.hvns].sort((a,b)=>Math.abs(currentPrice-a.center)-Math.abs(currentPrice-b.center))[0];
- if(nearestHvn){
-  drawLevel(nearestHvn.low,"#00c853","HVN");
-  drawLevel(nearestHvn.high,"#00c853","HVN");
- }
- const nearestLvn=[...profile.lvns].sort((a,b)=>Math.abs(currentPrice-a.center)-Math.abs(currentPrice-b.center))[0];
- if(nearestLvn){
-  drawLevel(nearestLvn.low,"#ab47bc","LVN");
-  drawLevel(nearestLvn.high,"#ab47bc","LVN");
- }
- ctx.restore();
 }
 
 const pad2=n=>String(n).padStart(2,"0");
@@ -334,6 +102,52 @@ function calculateRSI(closes, period = 14) {
     return rsi;
 }
 
+function calculateAverageStatus(klines, period) {
+    if (!Array.isArray(klines) || klines.length < period + 5) return null;
+
+    const closes = klines.map(candle => Number(candle[4]));
+    const deltas = closes.slice(1).map((close, index) => close - closes[index]);
+    const gains = deltas.map(delta => delta > 0 ? delta : 0);
+    const losses = deltas.map(delta => delta < 0 ? -delta : 0);
+    let averageGain = gains.slice(0, period).reduce((sum, value) => sum + value, 0) / period;
+    let averageLoss = losses.slice(0, period).reduce((sum, value) => sum + value, 0) / period;
+    const rsi = new Array(closes.length).fill(Number.NaN);
+
+    const updateRsi = index => {
+        rsi[index] = averageLoss === 0
+            ? 100
+            : 100 - 100 / (1 + averageGain / averageLoss);
+    };
+    updateRsi(period);
+
+    for (let index = period + 1; index < closes.length; index++) {
+        averageGain = (averageGain * (period - 1) + gains[index - 1]) / period;
+        averageLoss = (averageLoss * (period - 1) + losses[index - 1]) / period;
+        updateRsi(index);
+    }
+
+    let rsi30UpPrice = null;
+    let rsi70DownPrice = null;
+    for (let index = rsi.length - 2; index > 2; index--) {
+        const previousRsi = rsi[index - 1];
+        const currentRsi = rsi[index];
+        const opens = klines.slice(index - 3, index + 1).map(candle => Number(candle[1]));
+        if (opens.length < 4) continue;
+
+        if (rsi30UpPrice === null && previousRsi <= 30 && currentRsi > 30) {
+            rsi30UpPrice = Math.min(...opens);
+        }
+        if (rsi70DownPrice === null && previousRsi >= 70 && currentRsi < 70) {
+            rsi70DownPrice = Math.max(...opens);
+        }
+        if (rsi30UpPrice !== null && rsi70DownPrice !== null) break;
+    }
+
+    return rsi30UpPrice !== null && rsi70DownPrice !== null
+        ? (rsi30UpPrice + rsi70DownPrice) / 2
+        : null;
+}
+
 function calculateMACD(closes, fastPeriod = 12, slowPeriod = 26, signalPeriod = 9) {
     const fastEMA = calculateEMA(closes, fastPeriod);
     const slowEMA = calculateEMA(closes, slowPeriod);
@@ -364,7 +178,6 @@ document.addEventListener("DOMContentLoaded",()=>{
  const coinListEl=document.getElementById("coinList");
  const settingsButton=document.getElementById("toggleChartSettings");
  const settingsPanel=document.getElementById("chartSettings");
- const showVolumeProfile=document.getElementById("showVolumeProfile");
  
  settingsButton?.addEventListener("click",()=>{
   const isOpen=settingsPanel.style.display!=="none";
@@ -375,7 +188,6 @@ document.addEventListener("DOMContentLoaded",()=>{
  ["showRSI","showMACD"].forEach(id=>{
   document.getElementById(id)?.addEventListener("change",draw);
  });
- showVolumeProfile?.addEventListener("change",draw);
 
  document.getElementById("applyIndicators")?.addEventListener("click",async event=>{
   const button=event.currentTarget;
@@ -390,8 +202,6 @@ document.addEventListener("DOMContentLoaded",()=>{
  });
 
  let symbol="BTCUSDT",interval="1m";
- let lastProcessedSignalTime=null;
- let trackedHvnSignal=null;
 
  window.allData=[];
  window.rsiArrayData = [];
@@ -434,33 +244,6 @@ document.addEventListener("DOMContentLoaded",()=>{
   if(!data.length)return;
 
   const candleWidth=chartWidth/data.length;
-  const closedCandles=getClosedCandles(window.allData,interval);
-  const volumeProfile=buildVolumeProfile(closedCandles.slice(-200));
-  const signalProfile=buildVolumeProfile(closedCandles.slice(-201,-1));
-  const latestClosedCandle=closedCandles[closedCandles.length-1];
-  const latestClosedTime=latestClosedCandle?.[0]??null;
-  if(latestClosedTime!==null&&latestClosedTime!==lastProcessedSignalTime){
-   lastProcessedSignalTime=latestClosedTime;
-   if(trackedHvnSignal?.status==="active"){
-    const signal=trackedHvnSignal.signal;
-    const stopHit=signal.direction==="long"
-     ?latestClosedCandle[3]<=signal.stop
-     :latestClosedCandle[2]>=signal.stop;
-    const targetHit=signal.direction==="long"
-     ?latestClosedCandle[2]>=signal.target
-     :latestClosedCandle[3]<=signal.target;
-    if(stopHit)trackedHvnSignal.status="stop";
-    else if(targetHit)trackedHvnSignal.status="target";
-   }else{
-    const newSignal=findHvnSignal(closedCandles,signalProfile);
-    if(newSignal){
-     trackedHvnSignal={signal:newSignal,time:latestClosedTime,status:"active"};
-    }
-   }
-  }
-  const activeSignal=trackedHvnSignal?.signal??null;
-  const volumeProfileEnabled=showVolumeProfile?.checked!==false;
-  updateHvnSignalPanel(signalProfile,trackedHvnSignal,volumeProfileEnabled,interval);
 
   let maxPrice=-Infinity,minPrice=Infinity;
   data.forEach(d=>{if(d[2]>maxPrice)maxPrice=d[2];if(d[3]<minPrice)minPrice=d[3]});
@@ -518,6 +301,23 @@ document.addEventListener("DOMContentLoaded",()=>{
   const mainChartHeight=chartHeight*mainRatio;
   const priceToY=p=>padding+(maxPrice-p)/(maxPrice-minPrice)*mainChartHeight;
   const yToPrice=y=>maxPrice-((y-padding)/mainChartHeight)*(maxPrice-minPrice);
+  const averageStatus=calculateAverageStatus(
+   window.allData,
+   Number(document.getElementById("rsiPeriod")?.value||7)
+  );
+  const averageStatusY=Number.isFinite(averageStatus)?priceToY(averageStatus):null;
+
+  if(averageStatusY!==null&&averageStatusY>=padding&&averageStatusY<=padding+mainChartHeight){
+   ctx.save();
+   ctx.beginPath();
+   ctx.rect(padding,padding,chartWidth,mainChartHeight);
+   ctx.clip();
+   ctx.fillStyle="rgba(34,197,94,0.08)";
+   ctx.fillRect(padding,padding,chartWidth,averageStatusY-padding);
+   ctx.fillStyle="rgba(239,68,68,0.08)";
+   ctx.fillRect(padding,averageStatusY,chartWidth,padding+mainChartHeight-averageStatusY);
+   ctx.restore();
+  }
 
   /* PRICE GRID */
   ctx.font="11px Inter, sans-serif";
@@ -541,10 +341,6 @@ document.addEventListener("DOMContentLoaded",()=>{
    ctx.fillText(timeLabel(data[i][0],interval),x,padding+chartHeight+20);
   }
   ctx.textAlign="left";
-
-  if(volumeProfileEnabled){
-   drawVolumeProfile(ctx,volumeProfile,padding,chartWidth,mainChartHeight,priceToY,minPrice,maxPrice);
-  }
 
   /* CANDLES */
   data.forEach((d,i)=>{
@@ -576,73 +372,28 @@ document.addEventListener("DOMContentLoaded",()=>{
    );
   });
 
-  const signalIndex=activeSignal?data.findIndex(candle=>candle[0]===trackedHvnSignal.time):-1;
-  if(volumeProfileEnabled&&activeSignal&&signalIndex>=0){
-   const signalX=padding+(signalIndex+0.5)*candleWidth;
-   const signalY=priceToY(activeSignal.entry);
-   const color=activeSignal.direction==="long"?"#00c853":"#ff3d57";
-   if(signalY>=padding&&signalY<=padding+mainChartHeight){
-    ctx.save();
-    ctx.fillStyle=color;
-    ctx.beginPath();
-    ctx.arc(signalX,signalY,5,0,Math.PI*2);
-    ctx.fill();
-    ctx.strokeStyle=color;
-    ctx.setLineDash([4,3]);
-    [activeSignal.stop,activeSignal.target].forEach((price,index)=>{
-     const y=priceToY(price);
-     if(y<padding||y>padding+mainChartHeight)return;
-     ctx.beginPath();
-     ctx.moveTo(signalX,y);
-     ctx.lineTo(padding+chartWidth,y);
-     ctx.stroke();
-     ctx.fillStyle=index===0?"#ff3d57":"#00c853";
-     ctx.font="bold 9px Inter, sans-serif";
-     ctx.fillText(index===0?"SL":"TP",padding+chartWidth-23,y-3);
-    });
-    ctx.restore();
-   }
-  }
+  /* --- RSI AVERAGE STATUS LEVEL --- */
+  if(averageStatusY!==null&&averageStatusY>=padding&&averageStatusY<=padding+mainChartHeight){
+      ctx.save();
+      ctx.setLineDash([4,4]);
+      ctx.strokeStyle="#ab47bc";
+      ctx.lineWidth=2;
+      ctx.beginPath();
+      ctx.moveTo(padding,averageStatusY);
+      ctx.lineTo(padding+chartWidth,averageStatusY);
+      ctx.stroke();
+      ctx.restore();
 
-  /* --- RSI AVERAGE LEVEL LINE --- */
-  try {
-      if (typeof calculateAllRsiIndicators === "function" && window.allData && window.allData.length) {
-          const rsiPeriod = document.getElementById("rsiPeriod")?.value || "7";
-          const rsiIndicators = calculateAllRsiIndicators(window.allData, Number(rsiPeriod));
-          const avgPrice = rsiIndicators.average_status;
-
-          if (avgPrice !== null && Number.isFinite(avgPrice)) {
-              const yAvg = priceToY(avgPrice);
-              
-              // Хэрэв шугам чартын харагдах хүрээнд байвал зурах
-              if (yAvg >= padding && yAvg <= padding + mainChartHeight) {
-                  ctx.save();
-                  ctx.setLineDash([4, 4]);
-                  ctx.strokeStyle = "#ab47bc"; // Ягаан өнгийн AVG шугам
-                  ctx.lineWidth = 2;
-                  ctx.beginPath();
-                  ctx.moveTo(padding, yAvg);
-                  ctx.lineTo(padding + chartWidth, yAvg);
-                  ctx.stroke();
-                  ctx.restore();
-
-                  // Баруун талын үнийн шкаф (priceScaleWidth) дээр шошго гаргах
-                  ctx.save();
-                  ctx.fillStyle = "#161e2a";
-                  ctx.fillRect(padding + chartWidth, yAvg - 10, priceScaleWidth, 20);
-                  ctx.strokeStyle = "#2b394b";
-                  ctx.strokeRect(padding + chartWidth, yAvg - 10, priceScaleWidth, 20);
-
-                  ctx.fillStyle = "#ab47bc";
-                  ctx.font = "bold 10px Inter, sans-serif";
-                  ctx.textBaseline = "middle";
-                  ctx.fillText("AVG:" + formatPrice(avgPrice), padding + chartWidth + 4, yAvg);
-                  ctx.restore();
-              }
-          }
-      }
-  } catch (err) {
-      // Дата боловсруулахад түр зуур алдаа гарвал чартыг гацаахгүйгээр алгасна
+      ctx.save();
+      ctx.fillStyle="#161e2a";
+      ctx.fillRect(padding+chartWidth,averageStatusY-10,priceScaleWidth,20);
+      ctx.strokeStyle="#2b394b";
+      ctx.strokeRect(padding+chartWidth,averageStatusY-10,priceScaleWidth,20);
+      ctx.fillStyle="#ab47bc";
+      ctx.font="bold 10px Inter, sans-serif";
+      ctx.textBaseline="middle";
+      ctx.fillText("AVG:"+formatPrice(averageStatus),padding+chartWidth+4,averageStatusY);
+      ctx.restore();
   }
 
   /* LAST PRICE LINE */
@@ -827,8 +578,6 @@ document.addEventListener("DOMContentLoaded",()=>{
  const triggerAutoUpdate=()=>{
   clearTimeout(updateTimer);
   updateTimer=setTimeout(async()=>{
-   lastProcessedSignalTime=null;
-   trackedHvnSignal=null;
    offset=0;visibleCount=500;priceScale=1;priceOffset=0;
    await fetchCandles();
   },150);
