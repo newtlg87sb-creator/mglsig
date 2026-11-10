@@ -170,6 +170,40 @@ function calculateRangeMass(klines, range) {
     return { upMass, downMass };
 }
 
+function findRangeBos(klines, previousRange, currentRange) {
+    let maxOpen = -Infinity;
+    let minOpen = Infinity;
+    const previousFirst = Math.max(0, Math.floor(previousRange.startPosition));
+    const previousLast = Math.min(klines.length - 1, Math.ceil(previousRange.endPosition) - 1);
+
+    for (let index = previousFirst; index <= previousLast; index++) {
+        const candle = klines[index];
+        const overlap = Math.min(previousRange.endPosition, index + 1) -
+            Math.max(previousRange.startPosition, index);
+        const open = Number(candle[1]);
+        if (overlap > 0 && Number.isFinite(open)) {
+            maxOpen = Math.max(maxOpen, open);
+            minOpen = Math.min(minOpen, open);
+        }
+    }
+
+    if (!Number.isFinite(maxOpen) || !Number.isFinite(minOpen)) return null;
+
+    const currentFirst = Math.max(0, Math.floor(currentRange.startPosition));
+    const currentLast = Math.min(klines.length - 1, Math.ceil(currentRange.endPosition) - 1);
+    for (let index = currentFirst; index <= currentLast; index++) {
+        const candle = klines[index];
+        const overlap = Math.min(currentRange.endPosition, index + 1) -
+            Math.max(currentRange.startPosition, index);
+        const open = Number(candle[1]);
+        if (overlap <= 0 || !Number.isFinite(open)) continue;
+        if (open > maxOpen) return { index, price: maxOpen, direction: "up" };
+        if (open < minOpen) return { index, price: minOpen, direction: "down" };
+    }
+
+    return null;
+}
+
 function calculateMACD(closes, fastPeriod = 12, slowPeriod = 26, signalPeriod = 9) {
     const fastEMA = calculateEMA(closes, fastPeriod);
     const slowEMA = calculateEMA(closes, slowPeriod);
@@ -324,7 +358,8 @@ document.addEventListener("DOMContentLoaded",()=>{
   const priceToY=p=>padding+(maxPrice-p)/(maxPrice-minPrice)*mainChartHeight;
   const yToPrice=y=>maxPrice-((y-padding)/mainChartHeight)*(maxPrice-minPrice);
   const rsiPeriod=Number(document.getElementById("rsiPeriod")?.value||14);
-  const rsiRanges=calculateRsiRanges(window.allData,rsiPeriod);
+  const rsiRangeHistory=calculateRsiRanges(window.allData,rsiPeriod,5);
+  const rsiRanges=rsiRangeHistory.slice(-4);
   const rangeColors=[
    "rgba(255, 61, 87, 0.13)",
    "rgba(33, 150, 243, 0.13)",
@@ -400,6 +435,35 @@ document.addEventListener("DOMContentLoaded",()=>{
         Math.max(1, Math.abs(yO - yC))
    );
   });
+
+  /* BOS: next range's candle open breaks the previous range's open extreme. */
+  for(let index=0;index<rsiRanges.length;index++){
+   const currentRange=rsiRanges[index];
+   const previousRange=index>0?rsiRanges[index-1]:rsiRangeHistory[rsiRangeHistory.length-5];
+   if(!previousRange)continue;
+   const bos=findRangeBos(window.allData,previousRange,currentRange);
+   if(!bos||bos.index<start||bos.index>=end)continue;
+
+   const x=padding+(bos.index-start+0.5)*candleWidth;
+   const y=priceToY(bos.price);
+   if(y<padding||y>padding+mainChartHeight)continue;
+   const color=bos.direction==="up"?"#22c55e":"#ff3d57";
+   ctx.save();
+   ctx.strokeStyle=color;
+   ctx.fillStyle=color;
+   ctx.lineWidth=1.5;
+   ctx.setLineDash([5,3]);
+   ctx.beginPath();
+   ctx.moveTo(padding+(Math.max(start,currentRange.startPosition)-start)*candleWidth,y);
+   ctx.lineTo(x,y);
+   ctx.stroke();
+   ctx.setLineDash([]);
+   ctx.font="bold 10px Inter, sans-serif";
+   ctx.textBaseline="bottom";
+   ctx.textAlign="left";
+   ctx.fillText("BOS",x+3,y-2);
+   ctx.restore();
+  }
 
   /* LAST PRICE LINE */
   const lastClose=data[data.length-1][4],yLast=priceToY(lastClose);
@@ -491,10 +555,9 @@ document.addEventListener("DOMContentLoaded",()=>{
    rsiRanges.forEach((range,index)=>{
     const colorIndex=rangeColors.length-rsiRanges.length+index;
     const mass=calculateRangeMass(window.allData,range);
-    const formatMass=value=>new Intl.NumberFormat("en-US",{maximumSignificantDigits:6}).format(value);
     const label="MASS:";
-    const upValue=formatMass(mass.upMass);
-    const downValue=formatMass(mass.downMass);
+    const upValue=formatPrice(mass.upMass);
+    const downValue=formatPrice(mass.downMass);
     const centerX=padding+slotWidth*(index+0.5);
     ctx.fillStyle="rgba(7, 9, 13, 0.78)";
     ctx.fillRect(centerX-slotWidth/2+3,padding+19,slotWidth-6,19);
