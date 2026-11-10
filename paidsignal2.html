@@ -2,66 +2,181 @@
 <html lang="mn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSI Range + BOS Trend - MGL Signal</title>
+    <meta name="description" content="RSI range, candle body mass, HH/LL BOS levels, and trend analysis chart.">
+    <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 'dark': '#05070a', 'dark-blue': '#0f1217', 'gold': '#c5a059', 'border': '#1f242d' }
+                    },
+                    fontFamily: { 'inter': ['Inter', 'sans-serif'] }
+                }
+            }
+        };
+    </script>
+    <link rel="stylesheet" href="/static/main_style.css">
     <link rel="stylesheet" href="/static/chart_style2.css">
-    <title>Binance Chart</title>
+    <link rel="stylesheet" href="/static/chart_style.css">
 </head>
-<body>
-    
-    <!-- Top Bar (Header & Controls) -->
-    <div class="section-title chart-title">
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-weight: bold; font-size: 14px; letter-spacing: 1px;">CHART</span>
-            
-            <select id="market" class="chart-interval-select">
-                <option value="spot" selected>SPOT</option>
-                <option value="futures">FUTURES</option>
-            </select>
+<body class="chart-page bg-brand-dark text-white font-inter flex flex-col min-h-screen">
+    <script>
+        const pageTranslations = {
+            mn: {
+                "range-page-title": "RSI Range + BOS Trend",
+                "range-page-subtitle": "Сүүлийн RSI range, лааны mass болон HH/LL BOS түвшнээр трендийн бүтцийг ажиглаарай.",
+                "chart-label": "ГРАФИК",
+                "market-spot": "СПОТ",
+                "market-futures": "ФЬЮЧЕРС",
+                "coin-placeholder": "BTCUSDT",
+                "market-type-label": "Зах зээлийн төрөл",
+                "pair-label": "Арилжааны хослол",
+                "time-label": "ХУГАЦАА:",
+                "interval-input-label": "Лааны хугацаа",
+                "chart-settings-label": "Графикийн тохиргоо",
+                "macd-label": "MACD",
+                "rsi-label": "RSI",
+                "rsi-period-label": "RSI:",
+                "macd-period-label": "MACD:",
+                "apply-indicators": "Хэрэглэх",
+                "range-guide-title": "Range, Mass, BOS ашиглах заавар",
+                "range-guide-intro": "Графикийн өнгөт хэсэг нь RSI-ийн 30 ба 70-ын crossing хоорондох range-ийг харуулна.",
+                "range-guide-mass-title": "MASS · Лааны биеийн нийлбэр",
+                "range-guide-mass-text": "Range бүрийн MASS нь өссөн лааны |close − open| нийлбэрийг ногооноор, буурсан лааны нийлбэрийг улаанаар харуулна. Энэ нь volume биш, лааны үнийн хөдөлгөөний хэмжүүр юм.",
+                "range-guide-bos-title": "HH / LL BOS",
+                "range-guide-bos-text": "Range-ийн хамгийн өндөр high (HH) болон хамгийн бага low (LL)-г түвшин болгоно. Дараагийн хаагдсан лааны close тухайн түвшнийг сэтлээгүй бол өнгөт BOS шугам графикийн баруун зах хүртэл үлдэнэ.",
+                "range-guide-trend-title": "Trend ба сохор бүс",
+                "range-guide-trend-text": "Трендийн чиглэл, хувь нь одоо нээлттэй HH/LL BOS-ийн тоонд суурилсан дүрслэл бөгөөд баталгаатай магадлал биш. HH болон LL хоёулаа 3 буюу түүнээс олон бол график сохор бүсэд хумигдаж болзошгүй: шийдвэргүй олон trade хийх нь алдагдлыг өсгөх эрсдэлтэй."
+            },
+            en: {
+                "range-page-title": "RSI Range + BOS Trend",
+                "range-page-subtitle": "Review recent RSI ranges, candle-body mass, and trend structure from HH/LL BOS levels.",
+                "chart-label": "CHART",
+                "market-spot": "SPOT",
+                "market-futures": "FUTURES",
+                "coin-placeholder": "BTCUSDT",
+                "market-type-label": "Market type",
+                "pair-label": "Trading pair",
+                "time-label": "TIME:",
+                "interval-input-label": "Candle interval",
+                "chart-settings-label": "Chart settings",
+                "macd-label": "MACD",
+                "rsi-label": "RSI",
+                "rsi-period-label": "RSI:",
+                "macd-period-label": "MACD:",
+                "apply-indicators": "Apply",
+                "range-guide-title": "How to read ranges, mass, and BOS",
+                "range-guide-intro": "The colored chart areas show ranges between RSI crossings of 30 and 70.",
+                "range-guide-mass-title": "MASS · Candle-body totals",
+                "range-guide-mass-text": "For each range, MASS shows the sum of |close − open| for rising candles in green and falling candles in red. This measures price movement, not traded volume.",
+                "range-guide-bos-title": "HH / LL BOS",
+                "range-guide-bos-text": "The highest high (HH) and lowest low (LL) in a range become levels. If a later closed candle does not break a level by its close, its colored BOS line remains extended to the right edge of the chart.",
+                "range-guide-trend-title": "Trend and blind area",
+                "range-guide-trend-text": "Trend direction and percentage are visual estimates based on currently unbroken HH/LL BOS counts, not guaranteed probabilities. If both HH and LL counts reach 3 or more, the chart may be compressing into a blind area; repeated indecisive trades can increase losses."
+            }
+        };
+        if (!window.translations) window.translations = {};
+        if (!window.translations.mn) window.translations.mn = {};
+        if (!window.translations.en) window.translations.en = {};
+        Object.keys(pageTranslations).forEach(lang => Object.assign(window.translations[lang], pageTranslations[lang]));
+    </script>
+    <script src="/static/js/header.js"></script>
 
-            <input type="text" id="coin" value="BTCUSDT" list="coinList" class="chart-coin-input" placeholder="BTCUSDT">
-            <datalist id="coinList"></datalist>
+    <main class="chart-main flex-grow px-3 md:px-6">
+        <div class="chart-page-content">
+            <header class="chart-page-heading">
+                <h1 data-i18n="range-page-title">RSI Range + BOS Trend</h1>
+                <p data-i18n="range-page-subtitle">Сүүлийн RSI range, лааны mass болон HH/LL BOS түвшнээр трендийн бүтцийг ажиглаарай.</p>
+            </header>
+
+            <section class="chart-panel" aria-label="RSI range and BOS trend chart">
+                <div class="section-title chart-title">
+                    <div class="chart-primary-controls">
+                        <span data-i18n="chart-label" class="chart-brand-label">ГРАФИК</span>
+                        <select id="market" class="chart-interval-select" aria-label="Market type" data-i18n-aria-label="market-type-label">
+                            <option value="spot" data-i18n="market-spot">СПОТ</option>
+                            <option value="futures" selected data-i18n="market-futures">ФЬЮЧЕРС</option>
+                        </select>
+                        <input type="text" id="coin" value="BTCUSDT" list="coinList" class="chart-coin-input" placeholder="BTCUSDT" data-i18n-placeholder="coin-placeholder" aria-label="Trading pair" data-i18n-aria-label="pair-label">
+                        <datalist id="coinList"></datalist>
+                    </div>
+
+                    <div class="chart-tools">
+                        <span id="candleCountdown" class="chart-countdown">--:--</span>
+                        <label for="interval" data-i18n="time-label" class="chart-interval-label">ХУГАЦАА:</label>
+                        <select id="interval" class="chart-interval-select" aria-label="Candle interval" data-i18n-aria-label="interval-input-label">
+                            <option value="1s">1s</option>
+                            <option value="1m" selected>1m</option>
+                            <option value="5m">5m</option>
+                            <option value="15m">15m</option>
+                            <option value="1h">1h</option>
+                            <option value="4h">4h</option>
+                            <option value="1d">1d</option>
+                        </select>
+                        <button id="toggleChartSettings" class="chart-tool" aria-expanded="false" aria-label="Chart settings" data-i18n-aria-label="chart-settings-label">⚙️</button>
+                    </div>
+                </div>
+
+                <div id="chartSettings" class="chart-settings" style="display: none;">
+                    <div class="chart-setting-group">
+                        <label><input type="checkbox" id="showMACD" checked> <span data-i18n="macd-label">MACD</span></label>
+                        <label><input type="checkbox" id="showRSI" checked> <span data-i18n="rsi-label">RSI</span></label>
+                    </div>
+                    <div class="chart-setting-group">
+                        <label for="rsiPeriod" data-i18n="rsi-period-label">RSI:</label>
+                        <input type="number" id="rsiPeriod" value="14" min="1" style="width: 48px;">
+                    </div>
+                    <div class="chart-setting-group">
+                        <label data-i18n="macd-period-label">MACD:</label>
+                        <input type="number" id="macdFast" value="12" min="1" aria-label="MACD fast" style="width: 42px;">
+                        <span>/</span>
+                        <input type="number" id="macdSlow" value="26" min="2" aria-label="MACD slow" style="width: 42px;">
+                        <span>/</span>
+                        <input type="number" id="macdSignal" value="9" min="1" aria-label="MACD signal" style="width: 42px;">
+                    </div>
+                    <button id="applyIndicators" class="chart-apply-button" data-i18n="apply-indicators">Хэрэглэх</button>
+                </div>
+
+                <div class="chart-workspace">
+                    <div id="metaChartContainer" aria-label="Interactive RSI range and BOS chart"></div>
+                </div>
+            </section>
+
+            <section class="signal-guide" aria-labelledby="rangeGuideTitle">
+                <h2 id="rangeGuideTitle" data-i18n="range-guide-title">Range, Mass, BOS ашиглах заавар</h2>
+                <p class="signal-guide-intro" data-i18n="range-guide-intro">Графикийн өнгөт хэсэг нь RSI-ийн 30 ба 70-ын crossing хоорондох range-ийг харуулна.</p>
+                <div class="signal-guide-grid">
+                    <article class="signal-guide-card signal-guide-long">
+                        <h3 data-i18n="range-guide-mass-title">MASS · Лааны биеийн нийлбэр</h3>
+                        <p data-i18n="range-guide-mass-text">Range бүрийн MASS нь өссөн лааны |close − open| нийлбэрийг ногооноор, буурсан лааны нийлбэрийг улаанаар харуулна. Энэ нь volume биш, лааны үнийн хөдөлгөөний хэмжүүр юм.</p>
+                    </article>
+                    <article class="signal-guide-card signal-guide-short">
+                        <h3 data-i18n="range-guide-bos-title">HH / LL BOS</h3>
+                        <p data-i18n="range-guide-bos-text">Range-ийн хамгийн өндөр high (HH) болон хамгийн бага low (LL)-г түвшин болгоно. Дараагийн хаагдсан лааны close тухайн түвшнийг сэтлээгүй бол өнгөт BOS шугам графикийн баруун зах хүртэл үлдэнэ.</p>
+                    </article>
+                </div>
+                <aside class="signal-guide-risk">
+                    <h3 data-i18n="range-guide-trend-title">Trend ба сохор бүс</h3>
+                    <p data-i18n="range-guide-trend-text">Трендийн чиглэл, хувь нь одоо нээлттэй HH/LL BOS-ийн тоонд суурилсан дүрслэл бөгөөд баталгаатай магадлал биш. HH болон LL хоёулаа 3 буюу түүнээс олон бол график сохор бүсэд хумигдаж болзошгүй: шийдвэргүй олон trade хийх нь алдагдлыг өсгөх эрсдэлтэй.</p>
+                </aside>
+            </section>
         </div>
+    </main>
 
-        <div class="chart-tools">
-            <span id="candleCountdown" style="color: #00bcd4; font-family: monospace; font-size: 11px; margin-right: 8px;">--:--</span>
-            
-            <label for="interval" class="chart-interval-label">TIME:</label>
-            <select id="interval" class="chart-interval-select">
-                <option value="1s">1s</option>
-                <option value="1m" selected>1m</option>
-                <option value="5m">5m</option>
-                <option value="15m">15m</option>
-                <option value="1h">1h</option>
-                <option value="4h">4h</option>
-                <option value="1d">1d</option>
-            </select>
-
-            <button id="toggleChartSettings" class="chart-tool" aria-expanded="false">⚙️</button>
-        </div>
-    </div>
-
-    <!-- Индикатор тохиргооны самбар -->
-    <div id="chartSettings" class="chart-settings" style="display: none;">
-        <div class="chart-setting-group">
-            <label><input type="checkbox" id="showMACD" checked> MACD</label>
-            <label><input type="checkbox" id="showRSI" checked style="margin-left: 8px;"> RSI</label>
-        </div>
-        <div class="chart-setting-group">
-            <label>RSI:</label> <input type="number" id="rsiPeriod" value="14" style="width: 40px;">
-        </div>
-        <div class="chart-setting-group">
-            <label>MACD:</label> 
-            <input type="number" id="macdFast" value="12" style="width: 32px;">/
-            <input type="number" id="macdSlow" value="26" style="width: 32px;">/
-            <input type="number" id="macdSignal" value="9" style="width: 32px;">
-        </div>
-        <button id="applyIndicators" style="background: #00bcd4; border: none; color: #07090d; padding: 3px 8px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px;">Apply</button>
-    </div>
-
-    <!-- Чартын үндсэн контейнер -->
-    <div id="metaChartContainer"></div>
-
-    <!-- Scripts -->
+    <script src="/static/js/footer.js"></script>
+    <script src="/static/js/access_control.js"></script>
+    <script src="/static/lock.js"></script>
     <script src="/api/Metachart2.js"></script>
 </body>
 </html>

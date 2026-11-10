@@ -117,7 +117,7 @@
    FIXED TEXTS & WALL (BACKGROUND/PANEL) STYLES
 ========================================================= */
 
-html, body {
+body:not(.chart-page) {
   height: 100vh !important;
   margin: 0 !important;
   padding: 8px !important;
@@ -130,24 +130,33 @@ html, body {
 }
 
 /* Бүх текст болон label-уудыг тод харагдуулах */
-label, span, div, p {
+body:not(.chart-page) label,
+body:not(.chart-page) span,
+body:not(.chart-page) div,
+body:not(.chart-page) p {
   color: #e8edf5;
 }
 
-.label, .chart-interval-label, .chart-setting-group label {
+body:not(.chart-page) .label,
+body:not(.chart-page) .chart-interval-label,
+body:not(.chart-page) .chart-setting-group label {
   color: #9fb0c0 !important;
   font-weight: 700;
 }
 
 /* Chart container болон panel хануудад өнгө, хүрээ олгох */
-.section, .chart-title, .chart-settings, .box, .card {
+body:not(.chart-page) .section,
+body:not(.chart-page) .chart-title,
+body:not(.chart-page) .chart-settings,
+body:not(.chart-page) .box,
+body:not(.chart-page) .card {
   background: #0f141c !important;
   border: 1px solid #1f2a38 !important;
   border-radius: 8px !important;
 }
 
 /* Чартын үндсэн контейнерийг дэлгэцний үлдэх зайг бүрэн эзэлж, доторх индикаторууд шахагдахгүй байхаар тохируулав */
-#metaChartContainer {
+body:not(.chart-page) #metaChartContainer {
   flex: 1 !important;
   width: 100% !important;
   height: 0 !important;
@@ -161,13 +170,14 @@ label, span, div, p {
 }
 
 /* Input болон select dropdown хануудын өнгө */
-select, input {
+body:not(.chart-page) select,
+body:not(.chart-page) input {
   background: #161e2a !important;
   color: #e8edf5 !important;
   border: 1px solid #2b394b !important;
 }
 
-select option {
+body:not(.chart-page) select option {
   background: #10161f !important;
   color: #e8edf5 !important;
 }
@@ -177,7 +187,7 @@ select option {
 ========================================================= */
 
 /* 1. Бүх төрлийн дэлгэцэнд шахагдахгүй байх үндсэн тохиргоо */
-html, body {
+body:not(.chart-page) {
   height: 100vh !important;
   max-height: 100vh !important;
   margin: 0 !important;
@@ -190,7 +200,7 @@ html, body {
 }
 
 /* 2. Контейнер ямар ч дэлгэц дээр 100% сунаж, Canvas-ийг дотроо бүтэн багтаана */
-#metaChartContainer {
+body:not(.chart-page) #metaChartContainer {
   flex: 1 1 auto !important;
   width: 100% !important;
   height: 0 !important; /* Flexbox дээр өндөр шахагдах боломж олгоно */
@@ -202,7 +212,7 @@ html, body {
   border-radius: 8px !important;
 }
 
-#chart-wrapper {
+body:not(.chart-page) #chart-wrapper {
   width: 100% !important;
   height: 100% !important;
   min-height: 100% !important;
@@ -211,7 +221,7 @@ html, body {
   left: 0 !important;
 }
 
-#chart {
+body:not(.chart-page) #chart {
   width: 100% !important;
   height: 100% !important;
 }
@@ -235,7 +245,7 @@ html, body {
 
 /* 4. Маш нарийн эсвэл босоо/бага өндөртэй monitor дээр */
 @media screen and (max-height: 600px) {
-  #metaChartContainer {
+  body:not(.chart-page) #metaChartContainer {
     min-height: 280px !important;
   }
 }
