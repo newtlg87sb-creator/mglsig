@@ -102,52 +102,27 @@ function calculateRSI(closes, period = 14) {
     return rsi;
 }
 
-function calculateAverageStatus(klines, period) {
-    if (!Array.isArray(klines) || klines.length < period + 5) return null;
+function calculateRsiRanges(klines, period, limit = 4) {
+    if (!Array.isArray(klines) || klines.length < period + 2) return [];
 
-    const closes = klines.map(candle => Number(candle[4]));
-    const deltas = closes.slice(1).map((close, index) => close - closes[index]);
-    const gains = deltas.map(delta => delta > 0 ? delta : 0);
-    const losses = deltas.map(delta => delta < 0 ? -delta : 0);
-    let averageGain = gains.slice(0, period).reduce((sum, value) => sum + value, 0) / period;
-    let averageLoss = losses.slice(0, period).reduce((sum, value) => sum + value, 0) / period;
-    const rsi = new Array(closes.length).fill(Number.NaN);
+    const rsi = calculateRSI(klines.map(candle => Number(candle[4])), period);
+    const ranges = [];
+    let latest70DownIndex = null;
 
-    const updateRsi = index => {
-        rsi[index] = averageLoss === 0
-            ? 100
-            : 100 - 100 / (1 + averageGain / averageLoss);
-    };
-    updateRsi(period);
-
-    for (let index = period + 1; index < closes.length; index++) {
-        averageGain = (averageGain * (period - 1) + gains[index - 1]) / period;
-        averageLoss = (averageLoss * (period - 1) + losses[index - 1]) / period;
-        updateRsi(index);
-    }
-
-    let rsi30Price = null;
-    let rsi70Price = null;
-    for (let index = rsi.length - 2; index > period + 2; index--) {
+    for (let index = 1; index < rsi.length - 1; index++) {
         const previousRsi = rsi[index - 1];
         const currentRsi = rsi[index];
-        const opens = klines.slice(index - 3, index + 1).map(candle => Number(candle[1]));
-        if (opens.length < 4) continue;
+        if (!Number.isFinite(previousRsi) || !Number.isFinite(currentRsi)) continue;
 
-        if (rsi30Price === null) {
-            if (previousRsi <= 30 && currentRsi > 30) rsi30Price = Math.min(...opens);
-            else if (previousRsi >= 30 && currentRsi < 30) rsi30Price = Math.max(...opens);
+        if (previousRsi >= 70 && currentRsi < 70) {
+            latest70DownIndex = index;
+        } else if (latest70DownIndex !== null && previousRsi <= 30 && currentRsi > 30) {
+            ranges.push({ startIndex: latest70DownIndex, endIndex: index });
+            latest70DownIndex = null;
         }
-        if (rsi70Price === null) {
-            if (previousRsi <= 70 && currentRsi > 70) rsi70Price = Math.min(...opens);
-            else if (previousRsi >= 70 && currentRsi < 70) rsi70Price = Math.max(...opens);
-        }
-        if (rsi30Price !== null && rsi70Price !== null) break;
     }
 
-    return rsi30Price !== null && rsi70Price !== null
-        ? (rsi30Price + rsi70Price) / 2
-        : null;
+    return ranges.slice(-limit);
 }
 
 function calculateMACD(closes, fastPeriod = 12, slowPeriod = 26, signalPeriod = 9) {
@@ -303,23 +278,29 @@ document.addEventListener("DOMContentLoaded",()=>{
   const mainChartHeight=chartHeight*mainRatio;
   const priceToY=p=>padding+(maxPrice-p)/(maxPrice-minPrice)*mainChartHeight;
   const yToPrice=y=>maxPrice-((y-padding)/mainChartHeight)*(maxPrice-minPrice);
-  const averageStatus=calculateAverageStatus(
-   window.allData,
-   Number(document.getElementById("rsiPeriod")?.value||7)
-  );
-  const averageStatusY=Number.isFinite(averageStatus)?priceToY(averageStatus):null;
-
-  if(averageStatusY!==null&&averageStatusY>=padding&&averageStatusY<=padding+mainChartHeight){
-   ctx.save();
-   ctx.beginPath();
-   ctx.rect(padding,padding,chartWidth,mainChartHeight);
-   ctx.clip();
-   ctx.fillStyle="rgba(34,197,94,0.08)";
-   ctx.fillRect(padding,padding,chartWidth,averageStatusY-padding);
-   ctx.fillStyle="rgba(239,68,68,0.08)";
-   ctx.fillRect(padding,averageStatusY,chartWidth,padding+mainChartHeight-averageStatusY);
-   ctx.restore();
-  }
+  const rsiPeriod=Number(document.getElementById("rsiPeriod")?.value||14);
+  const rsiRanges=calculateRsiRanges(window.allData,rsiPeriod);
+  const rangeColors=[
+   "rgba(255, 61, 87, 0.13)",
+   "rgba(33, 150, 243, 0.13)",
+   "rgba(34, 197, 94, 0.13)",
+   "rgba(255, 193, 7, 0.16)"
+  ];
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(padding,padding,chartWidth,mainChartHeight);
+  ctx.clip();
+  rsiRanges.forEach((range,index)=>{
+   const left=Math.max(start,range.startIndex);
+   const right=Math.min(end-1,range.endIndex);
+   if(left>right)return;
+   const ageFromLatest=rsiRanges.length-1-index;
+   ctx.fillStyle=rangeColors[rangeColors.length-1-ageFromLatest];
+   const x=padding+(left-start)*candleWidth;
+   const width=(right-left+1)*candleWidth;
+   ctx.fillRect(x,padding,width,mainChartHeight);
+  });
+  ctx.restore();
 
   /* PRICE GRID */
   ctx.font="11px Inter, sans-serif";
@@ -373,30 +354,6 @@ document.addEventListener("DOMContentLoaded",()=>{
         Math.max(1, Math.abs(yO - yC))
    );
   });
-
-  /* --- RSI AVERAGE STATUS LEVEL --- */
-  if(averageStatusY!==null&&averageStatusY>=padding&&averageStatusY<=padding+mainChartHeight){
-      ctx.save();
-      ctx.setLineDash([4,4]);
-      ctx.strokeStyle="#ab47bc";
-      ctx.lineWidth=2;
-      ctx.beginPath();
-      ctx.moveTo(padding,averageStatusY);
-      ctx.lineTo(padding+chartWidth,averageStatusY);
-      ctx.stroke();
-      ctx.restore();
-
-      ctx.save();
-      ctx.fillStyle="#161e2a";
-      ctx.fillRect(padding+chartWidth,averageStatusY-10,priceScaleWidth,20);
-      ctx.strokeStyle="#2b394b";
-      ctx.strokeRect(padding+chartWidth,averageStatusY-10,priceScaleWidth,20);
-      ctx.fillStyle="#ab47bc";
-      ctx.font="bold 10px Inter, sans-serif";
-      ctx.textBaseline="middle";
-      ctx.fillText("AVG:"+formatPrice(averageStatus),padding+chartWidth+4,averageStatusY);
-      ctx.restore();
-  }
 
   /* LAST PRICE LINE */
   const lastClose=data[data.length-1][4],yLast=priceToY(lastClose);
