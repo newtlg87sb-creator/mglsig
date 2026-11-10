@@ -27,10 +27,12 @@ function timeLabel(ts, interval) {
     const month = months[d.getUTCMonth()];
     const hours = pad2(d.getUTCHours());
     const minutes = pad2(d.getUTCMinutes());
+    const seconds = pad2(d.getUTCSeconds());
 
     if (/[dwM]$/.test(interval)) {
         return d.toLocaleDateString("en-GB", { timeZone: "UTC", year: "numeric", month: "2-digit", day: "2-digit" });
     }
+    if (interval === "1s") return `${day}${month} ${hours}:${minutes}:${seconds}`;
     return `${day}${month} ${hours}:${minutes}`;
 }
 
@@ -198,49 +200,53 @@ document.addEventListener("DOMContentLoaded",()=>{
    return;
   }
 
-  const closedCandle=candles[candles.length-2];
-  const closedCandleKey=Number(closedCandle[0]);
   if(massSignalState.lastProcessedClosedCandle===null){
-   massSignalState.lastProcessedClosedCandle=closedCandleKey;
+   massSignalState.lastProcessedClosedCandle=Number(candles[candles.length-2][0]);
    renderMassSignal("ARMED · waiting for next candle close");
    return;
   }
-  if(closedCandleKey<=massSignalState.lastProcessedClosedCandle)return;
+  let latestUpdate=null;
+  for(let candleIndex=0;candleIndex<candles.length-1;candleIndex++){
+   const closedCandle=candles[candleIndex];
+   const closedCandleKey=Number(closedCandle[0]);
+   if(closedCandleKey<=massSignalState.lastProcessedClosedCandle)continue;
 
-  const closedCandleIndex=candles.length-2;
-  const mass=calculateRangeMass(candles,{
-   startPosition:closedCandleIndex,
-   endPosition:closedCandleIndex+1
-  });
-  const massDirection=mass.upMass>mass.downMass?"LONG":
-   mass.downMass>mass.upMass?"SHORT":null;
-  massSignalState.lastProcessedClosedCandle=closedCandleKey;
-  const candleTime=timeLabel(closedCandleKey,interval);
-
-  if(!massDirection){
-   const tieMessage=massSignalState.direction
-    ?`${massSignalState.direction} ACTIVE · ${candleTime} · doji`
-    :`WAITING · ${candleTime} · doji`;
-   renderMassSignal(tieMessage,massSignalState.direction,mass);
-   return;
-  }
-
-  if(!massSignalState.direction||massDirection!==massSignalState.direction){
-   massSignalState.direction=massDirection;
-   massSignalState.signalPeriods.push({startTime:closedCandleKey,direction:massDirection});
-   renderMassSignal(`SIGNAL: ${massDirection} · ${candleTime}`,massDirection,mass);
-   console.info(`[MASS SIGNAL] ${massDirection}`,{
-    symbol:currentSymbol(),
-    interval:currentIntervalMinutes(),
-    closedCandleTime:closedCandleKey,
-    ...mass
+   const mass=calculateRangeMass(candles,{
+    startPosition:candleIndex,
+    endPosition:candleIndex+1
    });
-  }else{
-   renderMassSignal(`${massSignalState.direction} ACTIVE · ${candleTime}`,massSignalState.direction,mass);
+   const massDirection=mass.upMass>mass.downMass?"LONG":
+    mass.downMass>mass.upMass?"SHORT":null;
+   massSignalState.lastProcessedClosedCandle=closedCandleKey;
+   const candleTime=timeLabel(closedCandleKey,interval);
+
+   if(massDirection&&massDirection!==massSignalState.direction){
+    massSignalState.direction=massDirection;
+    massSignalState.signalPeriods.push({startTime:closedCandleKey,direction:massDirection});
+    console.info(`[MASS SIGNAL] ${massDirection}`,{
+     symbol:currentSymbol(),
+     interval:currentIntervalMinutes(),
+     closedCandleTime:closedCandleKey,
+     ...mass
+    });
+    latestUpdate={status:`SIGNAL: ${massDirection} · ${candleTime}`,mass};
+   }else if(massDirection){
+    latestUpdate={status:`${massSignalState.direction} ACTIVE · ${candleTime}`,mass};
+   }else{
+    latestUpdate={
+     status:massSignalState.direction
+      ?`${massSignalState.direction} ACTIVE · ${candleTime} · doji`
+      :`WAITING · ${candleTime} · doji`,
+     mass
+    };
+   }
   }
 
+  if(!latestUpdate)return;
+  renderMassSignal(latestUpdate.status,massSignalState.direction,latestUpdate.mass);
   draw();
  }
+ window.updateMassSignal=updateMassSignal;
 
  massSignalStartButton?.addEventListener("click",()=>{
   massSignalState.started=true;
@@ -630,7 +636,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     ]);
 
     await window.refreshIndicatorArrays();
-    updateMassSignal();
+    window.updateMassSignal?.();
     draw();
     dispatchChartUpdate();
     startLivePolling(symbol, intervalVal, marketType);
