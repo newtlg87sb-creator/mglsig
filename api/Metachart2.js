@@ -170,38 +170,40 @@ function calculateRangeMass(klines, range) {
     return { upMass, downMass };
 }
 
-function findRangeBos(klines, previousRange, currentRange) {
-    let maxOpen = -Infinity;
-    let minOpen = Infinity;
-    const previousFirst = Math.max(0, Math.floor(previousRange.startPosition));
-    const previousLast = Math.min(klines.length - 1, Math.ceil(previousRange.endPosition) - 1);
+function calculateRangeExtremes(klines, range) {
+    let hh = null;
+    let ll = null;
+    const firstCandle = Math.max(0, Math.floor(range.startPosition));
+    const lastCandle = Math.min(klines.length - 1, Math.ceil(range.endPosition) - 1);
 
-    for (let index = previousFirst; index <= previousLast; index++) {
+    for (let index = firstCandle; index <= lastCandle; index++) {
         const candle = klines[index];
-        const overlap = Math.min(previousRange.endPosition, index + 1) -
-            Math.max(previousRange.startPosition, index);
-        const open = Number(candle[1]);
-        if (overlap > 0 && Number.isFinite(open)) {
-            maxOpen = Math.max(maxOpen, open);
-            minOpen = Math.min(minOpen, open);
+        const overlap = Math.min(range.endPosition, index + 1) -
+            Math.max(range.startPosition, index);
+        const high = Number(candle[2]);
+        const low = Number(candle[3]);
+        if (overlap <= 0) continue;
+
+        if (Number.isFinite(high) && (hh === null || high > hh.price)) {
+            hh = { index, price: high, type: "HH" };
+        }
+        if (Number.isFinite(low) && (ll === null || low < ll.price)) {
+            ll = { index, price: low, type: "LL" };
         }
     }
 
-    if (!Number.isFinite(maxOpen) || !Number.isFinite(minOpen)) return null;
+    return [hh, ll].filter(Boolean);
+}
 
-    const currentFirst = Math.max(0, Math.floor(currentRange.startPosition));
-    const currentLast = Math.min(klines.length - 1, Math.ceil(currentRange.endPosition) - 1);
-    for (let index = currentFirst; index <= currentLast; index++) {
-        const candle = klines[index];
-        const overlap = Math.min(currentRange.endPosition, index + 1) -
-            Math.max(currentRange.startPosition, index);
-        const open = Number(candle[1]);
-        if (overlap <= 0 || !Number.isFinite(open)) continue;
-        if (open > maxOpen) return { index, price: maxOpen, direction: "up" };
-        if (open < minOpen) return { index, price: minOpen, direction: "down" };
+function isRangeExtremeUnbroken(klines, extreme) {
+    for (let index = extreme.index + 1; index < klines.length - 1; index++) {
+        const close = Number(klines[index][4]);
+        if (!Number.isFinite(close)) continue;
+        if (extreme.type === "HH" && close > extreme.price) return false;
+        if (extreme.type === "LL" && close < extreme.price) return false;
     }
 
-    return null;
+    return true;
 }
 
 function calculateMACD(closes, fastPeriod = 12, slowPeriod = 26, signalPeriod = 9) {
@@ -358,8 +360,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   const priceToY=p=>padding+(maxPrice-p)/(maxPrice-minPrice)*mainChartHeight;
   const yToPrice=y=>maxPrice-((y-padding)/mainChartHeight)*(maxPrice-minPrice);
   const rsiPeriod=Number(document.getElementById("rsiPeriod")?.value||14);
-  const rsiRangeHistory=calculateRsiRanges(window.allData,rsiPeriod,5);
-  const rsiRanges=rsiRangeHistory.slice(-4);
+  const rsiRanges=calculateRsiRanges(window.allData,rsiPeriod,4);
   const rangeColors=[
    "rgba(255, 61, 87, 0.13)",
    "rgba(33, 150, 243, 0.13)",
@@ -436,34 +437,55 @@ document.addEventListener("DOMContentLoaded",()=>{
    );
   });
 
-  /* BOS: next range's candle open breaks the previous range's open extreme. */
-  for(let index=0;index<rsiRanges.length;index++){
-   const currentRange=rsiRanges[index];
-   const previousRange=index>0?rsiRanges[index-1]:rsiRangeHistory[rsiRangeHistory.length-5];
-   if(!previousRange)continue;
-   const bos=findRangeBos(window.allData,previousRange,currentRange);
-   if(!bos||bos.index<start||bos.index>=end)continue;
+  /* Keep each range's HH/LL BOS line until a later closed candle breaks it. */
+  const bosLevels=[];
+  rsiRanges.forEach((range,index)=>{
+   const colorIndex=rangeColors.length-rsiRanges.length+index;
+   const color=massColors[colorIndex];
+   calculateRangeExtremes(window.allData,range).forEach(extreme=>{
+    if(isRangeExtremeUnbroken(window.allData,extreme)){
+     bosLevels.push({...extreme,color});
+    }
+   });
+  });
+  bosLevels.sort((a,b)=>priceToY(a.price)-priceToY(b.price));
+  const bosLabelYs=[];
+  bosLevels.forEach(level=>{
+   const y=priceToY(level.price);
+   if(y<padding||y>padding+mainChartHeight)return;
+   const startX=Math.max(padding,padding+(level.index-start+0.5)*candleWidth);
+   const endX=padding+chartWidth;
+   if(startX>=endX)return;
 
-   const x=padding+(bos.index-start+0.5)*candleWidth;
-   const y=priceToY(bos.price);
-   if(y<padding||y>padding+mainChartHeight)continue;
-   const color=bos.direction==="up"?"#22c55e":"#ff3d57";
    ctx.save();
-   ctx.strokeStyle=color;
-   ctx.fillStyle=color;
+   ctx.strokeStyle=level.color;
+   ctx.fillStyle=level.color;
    ctx.lineWidth=1.5;
-   ctx.setLineDash([5,3]);
+   ctx.setLineDash([6,4]);
    ctx.beginPath();
-   ctx.moveTo(padding+(Math.max(start,currentRange.startPosition)-start)*candleWidth,y);
-   ctx.lineTo(x,y);
+   ctx.moveTo(startX,y);
+   ctx.lineTo(endX,y);
    ctx.stroke();
    ctx.setLineDash([]);
+
+   let labelY=y;
+   const nearestLabel=bosLabelYs.find(existingY=>Math.abs(existingY-labelY)<13);
+   if(nearestLabel!==undefined){
+    labelY=Math.max(padding+10,nearestLabel-13);
+    if(Math.abs(labelY-nearestLabel)<13)labelY=Math.min(padding+mainChartHeight-3,nearestLabel+13);
+   }
+   bosLabelYs.push(labelY);
+   const label=`${level.type} BOS`;
    ctx.font="bold 10px Inter, sans-serif";
-   ctx.textBaseline="bottom";
-   ctx.textAlign="left";
-   ctx.fillText("BOS",x+3,y-2);
+   ctx.textAlign="right";
+   ctx.textBaseline="middle";
+   const labelWidth=ctx.measureText(label).width+8;
+   ctx.fillStyle="rgba(7, 9, 13, 0.85)";
+   ctx.fillRect(endX-labelWidth-2,labelY-7,labelWidth,14);
+   ctx.fillStyle=level.color;
+   ctx.fillText(label,endX-6,labelY);
    ctx.restore();
-  }
+  });
 
   /* LAST PRICE LINE */
   const lastClose=data[data.length-1][4],yLast=priceToY(lastClose);
