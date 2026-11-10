@@ -147,6 +147,27 @@ function calculateRsiRanges(klines, period, limit = 4) {
     return ranges.slice(-limit);
 }
 
+function calculateRangeMass(klines, range) {
+    let mass = 0;
+    const firstCandle = Math.max(0, Math.floor(range.startPosition));
+    const lastCandle = Math.min(klines.length - 1, Math.ceil(range.endPosition) - 1);
+
+    for (let index = firstCandle; index <= lastCandle; index++) {
+        const candle = klines[index];
+        const overlap = Math.max(
+            0,
+            Math.min(range.endPosition, index + 1) - Math.max(range.startPosition, index)
+        );
+        const open = Number(candle[1]);
+        const close = Number(candle[4]);
+        if (overlap > 0 && Number.isFinite(open) && Number.isFinite(close)) {
+            mass += Math.abs(close - open) * overlap;
+        }
+    }
+
+    return mass;
+}
+
 function calculateMACD(closes, fastPeriod = 12, slowPeriod = 26, signalPeriod = 9) {
     const fastEMA = calculateEMA(closes, fastPeriod);
     const slowEMA = calculateEMA(closes, slowPeriod);
@@ -308,6 +329,7 @@ document.addEventListener("DOMContentLoaded",()=>{
    "rgba(34, 197, 94, 0.13)",
    "rgba(255, 193, 7, 0.16)"
   ];
+  const massColors=["#ff3d57","#2196f3","#22c55e","#ffc107"];
   ctx.save();
   ctx.beginPath();
   ctx.rect(padding,padding,chartWidth,mainChartHeight);
@@ -457,6 +479,24 @@ document.addEventListener("DOMContentLoaded",()=>{
    ["L:",formatPrice(ac[3])],
    ["C:",formatPrice(ac[4]),cc]
   ]);
+
+  if(rsiRanges.length){
+   ctx.save();
+   ctx.font="bold 11px Inter, sans-serif";
+   ctx.textBaseline="middle";
+   ctx.textAlign="center";
+   const slotWidth=chartWidth/rsiRanges.length;
+   rsiRanges.forEach((range,index)=>{
+    const colorIndex=rangeColors.length-rsiRanges.length+index;
+    const label=`MASS ${new Intl.NumberFormat("en-US",{maximumFractionDigits:2}).format(calculateRangeMass(window.allData,range))}`;
+    const centerX=padding+slotWidth*(index+0.5);
+    ctx.fillStyle="rgba(7, 9, 13, 0.78)";
+    ctx.fillRect(centerX-slotWidth/2+3,padding+19,slotWidth-6,19);
+    ctx.fillStyle=massColors[colorIndex];
+    ctx.fillText(label,centerX,padding+28,slotWidth-12);
+   });
+   ctx.restore();
+  }
 
   if(showMacd)drawMACD(ctx,data,window.macdArrayData,window.signalArrayData,window.histArrayData,padding,chartWidth,chartHeight,candleWidth,mouse,mainChartHeight,macdRatio);
   if(showRsi)drawRSI(ctx,data,window.rsiArrayData,padding,chartWidth,chartHeight,candleWidth,mouse,mainChartHeight,macdRatio,rsiRatio);
