@@ -1,61 +1,78 @@
 /**
  * Access Control Script - MGL Signal
- * Шалгаж буй хуудсанд нэвтрэх эрх байгаа эсэхийг хянана.
+ * Paid chart access is checked against the current Supabase session and profile.
  */
-(function() {
-    const userStr = localStorage.getItem('user');
-    const currentPage = window.location.pathname;
+(async function() {
+    const currentPage = window.location.pathname.split('/').pop();
+    const requiredMemberships = {
+        'paidsignal1.html': ['alpha', 'beta'],
+        'paidsignal2.html': ['gamma']
+    };
+    const allowedMemberships = requiredMemberships[currentPage];
+    if (!allowedMemberships) return;
 
-    // Заавал нэвтрэх шаардлагатай хуудсуудын жагсаалт
-    const authRequiredPages = ['paidsignal1.html'];
-    const needsAuth = authRequiredPages.some(p => currentPage.includes(p));
+    const overlay = document.createElement('div');
+    overlay.id = 'lock-overlay';
+    overlay.style.cssText = [
+        'position:fixed',
+        'inset:0',
+        'z-index:99999',
+        'display:flex',
+        'align-items:center',
+        'justify-content:center',
+        'padding:24px',
+        'background:rgba(5,7,10,.97)',
+        'color:#fff',
+        'font:600 16px sans-serif',
+        'text-align:center'
+    ].join(';');
+    overlay.textContent = 'Гишүүний эрхийг шалгаж байна...';
+    document.body.appendChild(overlay);
 
-    if (needsAuth && (!userStr || userStr === "undefined")) {
-        // Хэрэв нэвтрээгүй бол хуудсыг бүхэлд нь түгжих Overlay үүсгэнэ
-        document.addEventListener('DOMContentLoaded', () => {
-            document.body.insertAdjacentHTML('afterbegin', `
-                <div id="lock-overlay" class="fixed inset-0 bg-brand-dark/95 backdrop-blur-md z-[9999] flex items-center justify-center p-6 text-center">
-                    <div class="max-w-md w-full bg-brand-dark-blue border border-brand-border p-10 rounded-3xl shadow-2xl transform scale-110">
-                        <div class="w-20 h-20 bg-brand-gold/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-brand-gold/20">
-                            <i class="fas fa-lock text-brand-gold text-3xl"></i>
-                        </div>
-                        <h2 class="text-2xl font-black text-white mb-4 uppercase tracking-tighter">Нэвтрэх шаардлагатай</h2>
-                        <p class="text-gray-400 text-sm mb-8 leading-relaxed">Уучлаарай, энэ хуудсыг үзэхийн тулд та заавал системд нэвтэрсэн байх шаардлагатай.</p>
-                        <div class="flex flex-col gap-3">
-                            <a href="/main_login.html" class="w-full bg-brand-gold text-black font-black py-4 rounded-xl hover:bg-white transition uppercase text-xs tracking-widest shadow-lg shadow-brand-gold/20">НЭВТРЭХ</a>
-                            <a href="/index.html" class="w-full bg-white/5 text-gray-500 font-bold py-3 rounded-xl hover:text-white transition uppercase text-[10px]">Нүүр хуудас руу буцах</a>
-                        </div>
-                    </div>
-                </div>
-            `);
-            document.body.style.overflow = 'hidden'; // Скрол хийхийг зогсооно
-        });
-        return;
+    function denyAccess(destination, message) {
+        overlay.textContent = message;
+        window.setTimeout(() => window.location.replace(destination), 900);
     }
 
-    if (!currentPage.includes('paidsignal1.html')) return;
-
-    let user;
     try {
-        user = JSON.parse(userStr);
+        if (typeof sb === 'undefined' || !sb) {
+            throw new Error('Supabase authentication is unavailable');
+        }
+
+        const { data: { session }, error: sessionError } = await sb.auth.getSession();
+        if (sessionError) throw sessionError;
+        if (!session?.user?.id) {
+            denyAccess('/main_login.html', 'Энэ хуудсыг үзэхийн тулд нэвтэрнэ үү.');
+            return;
+        }
+
+        const { data: profile, error: profileError } = await sb
+            .from('User control')
+            .select('membership_type, membership_expires_at')
+            .eq('id', session.user.id)
+            .maybeSingle();
+        if (profileError) throw profileError;
+
+        const membershipType = String(profile?.membership_type || '').toLowerCase();
+        const expiration = profile?.membership_expires_at
+            ? Date.parse(profile.membership_expires_at)
+            : null;
+        const isExpired = expiration !== null &&
+            (!Number.isFinite(expiration) || expiration <= Date.now());
+
+        if (!allowedMemberships.includes(membershipType) || isExpired) {
+            denyAccess(
+                '/main_pricing.html',
+                isExpired
+                    ? 'Таны багцын эрхийн хугацаа дууссан байна.'
+                    : 'Энэ хуудсыг үзэхэд тохирох төлбөртэй багц шаардлагатай.'
+            );
+            return;
+        }
+
+        overlay.remove();
     } catch (error) {
-        console.error('Unable to read the saved user profile:', error);
-        localStorage.removeItem('user');
-        window.location.href = '/main_login.html';
-        return;
-    }
-
-    const now = new Date();
-    const expiresAt = user.membership_expires_at ? new Date(user.membership_expires_at) : null;
-    const isExpired = expiresAt && (!Number.isFinite(expiresAt.getTime()) || expiresAt <= now);
-    const membershipType = String(user.membership_type || '').toLowerCase();
-    const hasAccess = ['alpha', 'beta'].includes(membershipType);
-
-    if (!hasAccess || isExpired) {
-        const msg = isExpired
-            ? 'Таны багцын эрхийн хугацаа дууссан байна.'
-            : 'Iceberg ашиглахын тулд BETA эсвэл ALPHA багцтай байх шаардлагатай.';
-        alert(msg);
-        window.location.href = 'main_pricing.html';
+        console.error('[ACCESS CONTROL ERROR] Unable to verify paid page access:', error);
+        denyAccess('/main_login.html', 'Гишүүний эрхийг шалгаж чадсангүй. Дахин нэвтэрнэ үү.');
     }
 })();

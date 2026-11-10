@@ -16,7 +16,8 @@ export default async function handler(req, res) {
     const { plan } = req.body || {};
     const plans = {
       alpha: { price: 20, name: 'Alpha' },
-      beta: { price: 10, name: 'Beta' }
+      beta: { price: 10, name: 'Beta' },
+      gamma: { price: 10, name: 'Gamma' }
     };
     const selectedPlan = Object.hasOwn(plans, plan) ? plans[plan] : null;
     if (!selectedPlan) {

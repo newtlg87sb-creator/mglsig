@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Үнийн санал - MGL Signal</title>
-    <meta name="description" content="Choose a MGL Signal subscription plan, including Beta Iceberg access or Alpha Signals.">
+    <meta name="description" content="Choose a MGL Signal subscription plan, including Alpha Signals, Beta Iceberg, or Gamma paid-signal access.">
     <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -54,12 +54,15 @@
                 "feat-beta-free": "Үндсэн сигнал, мэдээ, шинэ төслүүд, мэдлэгийн сан",
                 "feat-beta-no-alpha": "Alpha сигналууд багтахгүй",
                 "plan-gamma-name": "Gamma Багц",
+                "plan-gamma-desc": "paidsignal2 сигналын эрх.",
+                "feat-gamma-paid-signal": "paidsignal2.html төлбөртэй сигнал",
                 "plan-delta-name": "Delta Багц",
                 "plan-epsilon-name": "Epsilon Багц",
                 "plan-coming-soon": "Тун удахгүй",
                 "plan-inactive": "Одоогоор идэвхгүй",
                 "modal-alpha-title": "Alpha эрх идэвхжүүлэх · $20",
                 "modal-beta-title": "Beta эрх идэвхжүүлэх · $10",
+                "modal-gamma-title": "Gamma эрх идэвхжүүлэх · $10",
                 "badge-popular": "Хамгийн эрэлттэй",
                 "btn-messenger": "Админтой холбогдох",
                 "payment-pending-msg": "Төлбөрийн баталгааг хүлээж байна. NOWPayments баталгаажуулсны дараа сонгосон багцын эрх идэвхжинэ."
@@ -91,12 +94,15 @@
                 "feat-beta-free": "Basic signals, news, new projects, and knowledge base",
                 "feat-beta-no-alpha": "Alpha Signals are not included",
                 "plan-gamma-name": "Gamma Plan",
+                "plan-gamma-desc": "Access to the paidsignal2 signal.",
+                "feat-gamma-paid-signal": "Paid signal at paidsignal2.html",
                 "plan-delta-name": "Delta Plan",
                 "plan-epsilon-name": "Epsilon Plan",
                 "plan-coming-soon": "Coming Soon",
                 "plan-inactive": "Not available yet",
                 "modal-alpha-title": "Activate Alpha Access · $20",
                 "modal-beta-title": "Activate Beta Access · $10",
+                "modal-gamma-title": "Activate Gamma Access · $10",
                 "badge-popular": "Most Popular",
                 "btn-messenger": "Contact via Messenger",
                 "payment-pending-msg": "Payment confirmation is pending. Your selected plan will activate after NOWPayments confirms your payment."
@@ -199,13 +205,25 @@
                     </button>
                 </div>
 
-                <div class="bg-brand-dark-blue/60 border border-brand-border rounded-2xl p-8 h-full flex flex-col relative overflow-hidden opacity-70">
-                    <div class="absolute top-0 left-0 w-full h-1 bg-gray-700"></div>
-                    <h3 data-i18n="plan-gamma-name" class="text-xl font-bold text-gray-400 uppercase tracking-wider mb-2">Gamma Багц</h3>
-                    <div class="text-4xl font-black text-gray-400 mb-6">—<span data-i18n="price-per-month" class="text-sm font-normal text-gray-600 ml-1">/ сар</span></div>
-                    <p data-i18n="plan-inactive" class="text-xs text-gray-500 flex-grow">Одоогоор идэвхгүй</p>
-                    <button type="button" disabled class="mt-8 w-full border border-gray-700 text-gray-600 font-bold py-3 rounded-lg uppercase text-xs tracking-widest cursor-not-allowed">
-                        <span data-i18n="plan-coming-soon">Тун удахгүй</span>
+                <div id="plan-gamma-card" class="bg-brand-dark-blue border border-purple-500/60 rounded-2xl p-8 h-full flex flex-col relative overflow-hidden shadow-2xl shadow-purple-500/10">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-purple-400"></div>
+                    <div class="mb-6">
+                        <h3 data-i18n="plan-gamma-name" class="text-xl font-bold text-purple-300 uppercase tracking-wider mb-2">Gamma Багц</h3>
+                        <div class="mb-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                            <del class="text-lg font-bold text-gray-500">$50<span data-i18n="price-per-month" class="text-xs font-normal ml-1">/ сар</span></del>
+                            <span class="text-4xl font-black text-white">$10<span data-i18n="price-per-month" class="text-sm font-normal text-gray-500 ml-1">/ сар</span></span>
+                        </div>
+                        <div class="mb-3 flex flex-wrap items-center gap-2">
+                            <span data-i18n="limited-time-offer" class="rounded bg-purple-400/10 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-purple-300">ХЯЗГААРТАЙ ХУГАЦААНЫ САНАЛ</span>
+                            <span data-i18n="discount-80" class="text-[10px] font-black uppercase tracking-wide text-green-400">80% ХЯМДРАЛ</span>
+                        </div>
+                        <p data-i18n="plan-gamma-desc" class="text-xs text-gray-400">paidsignal2 сигналын эрх.</p>
+                    </div>
+                    <ul class="space-y-3 text-gray-300 mb-8 flex-grow">
+                        <li class="flex items-center text-xs"><i class="fas fa-check text-purple-400 mr-3"></i><span data-i18n="feat-gamma-paid-signal">paidsignal2.html төлбөртэй сигнал</span></li>
+                    </ul>
+                    <button type="button" class="paid-plan-btn w-full block text-center bg-purple-400 text-black font-bold py-3 rounded-lg hover:bg-white transition uppercase text-xs tracking-widest" data-plan="gamma" data-i18n="btn-select-plan">
+                        Сонгох
                     </button>
                 </div>
 
@@ -277,8 +295,9 @@
             const modalTitle = document.getElementById('payment-modal-title');
             let selectedPlan = 'alpha';
             const requestedPlan = new URLSearchParams(window.location.search).get('plan');
-            if (requestedPlan === 'beta') {
-                document.getElementById('plan-beta-card')?.classList.add('ring-2', 'ring-cyan-400');
+            if (requestedPlan === 'beta' || requestedPlan === 'gamma') {
+                const ringColor = requestedPlan === 'beta' ? 'ring-cyan-400' : 'ring-purple-400';
+                document.getElementById(`plan-${requestedPlan}-card`)?.classList.add('ring-2', ringColor);
             }
 
             function updatePaymentModalTitle(language = localStorage.getItem('lang') || 'mn') {
