@@ -491,7 +491,7 @@ document.addEventListener("DOMContentLoaded",()=>{
    rsiRanges.forEach((range,index)=>{
     const colorIndex=rangeColors.length-rsiRanges.length+index;
     const mass=calculateRangeMass(window.allData,range);
-    const formatMass=value=>new Intl.NumberFormat("en-US",{maximumFractionDigits:2}).format(value);
+    const formatMass=value=>new Intl.NumberFormat("en-US",{maximumSignificantDigits:6}).format(value);
     const label="MASS:";
     const upValue=formatMass(mass.upMass);
     const downValue=formatMass(mass.downMass);
