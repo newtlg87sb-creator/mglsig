@@ -162,6 +162,7 @@ document.addEventListener("DOMContentLoaded",()=>{
  const massSignalStatus=document.getElementById("massSignalStatus");
  const massSignalMass=document.getElementById("massSignalMass");
  const massSignalNotice=document.getElementById("massSignalNotice");
+ const massSignalStorageKey="mglsignal.paidsignal3.mass.v1";
  const massSignalState={
   started:false,
   direction:null,
@@ -169,8 +170,93 @@ document.addEventListener("DOMContentLoaded",()=>{
   signalPeriods:[],
   upMass:0,
   downMass:0,
-  chartConfig:null
+  chartConfig:null,
+  startedAt:null,
+  historyRecoveryPending:false,
+  nextRecoveryAttemptAt:0
  };
+
+ function persistMassSignalState(){
+  if(!massSignalState.started)return;
+  try{
+   localStorage.setItem(massSignalStorageKey,JSON.stringify({
+    version:1,
+    started:true,
+    startedAt:massSignalState.startedAt,
+    chartConfig:massSignalState.chartConfig,
+    lastProcessedClosedCandle:massSignalState.lastProcessedClosedCandle,
+    direction:massSignalState.direction,
+    signalPeriods:massSignalState.signalPeriods,
+    upMass:massSignalState.upMass,
+    downMass:massSignalState.downMass
+   }));
+  }catch(error){
+   console.error("[MASS SIGNAL STORAGE ERROR] Failed to save state",error);
+   if(massSignalNotice){
+    massSignalNotice.textContent="Signal хадгалж чадсангүй. Browser-ийн storage тохиргоог шалгана уу.";
+    massSignalNotice.style.display="inline";
+   }
+  }
+ }
+
+ function restoreMassSignalState(){
+  let saved;
+  try{
+   const raw=localStorage.getItem(massSignalStorageKey);
+   if(!raw)return;
+   saved=JSON.parse(raw);
+  }catch(error){
+   console.error("[MASS SIGNAL STORAGE ERROR] Failed to read saved state",error);
+   if(massSignalNotice){
+    massSignalNotice.textContent="Хадгалсан signal төлөвийг уншиж чадсангүй.";
+    massSignalNotice.style.display="inline";
+   }
+   return;
+  }
+  if(saved?.version!==1||saved.started!==true||!saved.chartConfig||
+   !Number.isFinite(Number(saved.startedAt))||
+   (saved.lastProcessedClosedCandle!==null&&
+    !Number.isFinite(Number(saved.lastProcessedClosedCandle)))||
+   !["LONG","SHORT",null].includes(saved.direction)||
+   !Array.isArray(saved.signalPeriods)||
+   !Number.isFinite(Number(saved.upMass))||
+   !Number.isFinite(Number(saved.downMass))){
+   console.error("[MASS SIGNAL STORAGE ERROR] Saved state has an invalid format");
+   if(massSignalNotice){
+    massSignalNotice.textContent="Хадгалсан signal төлөв хүчингүй байна. START дарж шинээр эхлүүлнэ үү.";
+    massSignalNotice.style.display="inline";
+   }
+   return;
+  }
+  const {market,interval: savedInterval,coin}=saved.chartConfig;
+  if(!["spot","futures"].includes(market)||typeof savedInterval!=="string"||
+   typeof coin!=="string"||!coin){
+   console.error("[MASS SIGNAL STORAGE ERROR] Saved chart configuration is invalid");
+   return;
+  }
+  massSignalState.started=true;
+  massSignalState.historyRecoveryPending=true;
+  massSignalState.startedAt=Number(saved.startedAt);
+  massSignalState.chartConfig={market,interval:savedInterval,coin};
+  massSignalState.lastProcessedClosedCandle=saved.lastProcessedClosedCandle===null
+   ?null:Number(saved.lastProcessedClosedCandle);
+  massSignalState.direction=saved.direction;
+  massSignalState.signalPeriods=saved.signalPeriods.filter(period=>
+   Number.isFinite(Number(period?.startTime))&&["LONG","SHORT"].includes(period?.direction)
+  ).map(period=>({startTime:Number(period.startTime),direction:period.direction}));
+  massSignalState.upMass=Number(saved.upMass);
+  massSignalState.downMass=Number(saved.downMass);
+  if(marketEl)marketEl.value=market;
+  if(intervalEl)intervalEl.value=savedInterval;
+  if(coinEl)coinEl.value=coin;
+ }
+ restoreMassSignalState();
+ if(massSignalState.started){
+  renderMassSignal("RESTORING · loading saved signal history",massSignalState.direction,{
+   upMass:massSignalState.upMass,
+   downMass:massSignalState.downMass
+  });
+ }
 
  function renderMassSignal(status,direction=null,mass=null){
   if(massSignalStatus){
@@ -189,12 +275,20 @@ document.addEventListener("DOMContentLoaded",()=>{
 
  function stopMassSignals(message="Stopped"){
   massSignalState.started=false;
+  massSignalState.historyRecoveryPending=false;
+  massSignalState.nextRecoveryAttemptAt=0;
   massSignalState.direction=null;
   massSignalState.lastProcessedClosedCandle=null;
   massSignalState.signalPeriods=[];
   massSignalState.upMass=0;
   massSignalState.downMass=0;
   massSignalState.chartConfig=null;
+  massSignalState.startedAt=null;
+  try{
+   localStorage.removeItem(massSignalStorageKey);
+  }catch(error){
+   console.error("[MASS SIGNAL STORAGE ERROR] Failed to clear saved state",error);
+  }
   if(massSignalNotice){
    massSignalNotice.textContent="";
    massSignalNotice.style.display="none";
@@ -217,22 +311,45 @@ document.addEventListener("DOMContentLoaded",()=>{
   return true;
  }
 
- function updateMassSignal(){
+ function updateMassSignal(candles=window.allData,includeLastClosed=false){
   if(!massSignalState.started)return;
-  const candles=window.allData;
-  if(!Array.isArray(candles)||candles.length<3){
+  if(massSignalState.historyRecoveryPending&&!includeLastClosed){
+   renderMassSignal("RESTORING · waiting for missed candle history",massSignalState.direction,{
+    upMass:massSignalState.upMass,
+    downMass:massSignalState.downMass
+   });
+   return;
+  }
+  if(!Array.isArray(candles)||candles.length===0){
    renderMassSignal("ARMED · waiting for candle data");
    return;
   }
 
+  let latestClosedIndex=-1;
+  for(let candleIndex=candles.length-1;candleIndex>=0;candleIndex--){
+   const closeTime=Number(candles[candleIndex][6]);
+   if(candleIndex===candles.length-1&&!includeLastClosed)continue;
+   if(Number.isFinite(closeTime)&&closeTime>Date.now())continue;
+   latestClosedIndex=candleIndex;
+   break;
+  }
+  if(latestClosedIndex<0){
+   renderMassSignal("ARMED · waiting for candle close",massSignalState.direction);
+   return;
+  }
+
   if(massSignalState.lastProcessedClosedCandle===null){
-   massSignalState.lastProcessedClosedCandle=Number(candles[candles.length-2][0]);
+   massSignalState.lastProcessedClosedCandle=Number(candles[latestClosedIndex][0]);
    renderMassSignal("ARMED · waiting for next candle close");
+   persistMassSignalState();
    return;
   }
   let latestUpdate=null;
-  for(let candleIndex=0;candleIndex<candles.length-1;candleIndex++){
+  for(let candleIndex=0;candleIndex<candles.length;candleIndex++){
    const closedCandle=candles[candleIndex];
+   const closeTime=Number(closedCandle[6]);
+   if(!includeLastClosed&&candleIndex===candles.length-1)continue;
+   if(Number.isFinite(closeTime)&&closeTime>Date.now())continue;
    const closedCandleKey=Number(closedCandle[0]);
    if(closedCandleKey<=massSignalState.lastProcessedClosedCandle)continue;
 
@@ -275,9 +392,104 @@ document.addEventListener("DOMContentLoaded",()=>{
 
   if(!latestUpdate)return;
   renderMassSignal(latestUpdate.status,massSignalState.direction,latestUpdate.mass);
+  persistMassSignalState();
   draw();
  }
  window.updateMassSignal=updateMassSignal;
+
+ function intervalToMilliseconds(intervalValue){
+  const match=/^(\d+)([smhdw])$/.exec(intervalValue);
+  if(!match)throw new Error(`Unsupported interval for signal history recovery: ${intervalValue}`);
+  const amount=Number(match[1]);
+  const unitMilliseconds={s:1000,m:60000,h:3600000,d:86400000,w:604800000};
+  return amount*unitMilliseconds[match[2]];
+ }
+
+ async function recoverMissedMassSignalHistory(){
+  if(!massSignalState.started)return false;
+  const config=massSignalState.chartConfig;
+  if(!config)throw new Error("Saved signal chart configuration is missing");
+  const intervalMilliseconds=intervalToMilliseconds(config.interval);
+  if(massSignalState.lastProcessedClosedCandle===null){
+   massSignalState.lastProcessedClosedCandle=
+    Math.floor(massSignalState.startedAt/intervalMilliseconds)*intervalMilliseconds;
+   persistMassSignalState();
+  }
+  let nextStartTime=massSignalState.lastProcessedClosedCandle+intervalMilliseconds;
+  const endTime=Date.now();
+  const endpoint=config.market==="futures"
+   ?"https://fapi.binance.com/fapi/v1/klines"
+   :"https://api.binance.com/api/v3/klines";
+  while(nextStartTime<=endTime){
+   const params=new URLSearchParams({
+    symbol:config.coin,
+    interval:config.interval,
+    startTime:String(nextStartTime),
+    endTime:String(endTime),
+    limit:"1000"
+   });
+   const response=await fetch(`${endpoint}?${params}`);
+   if(!response.ok)throw new Error(`Signal history recovery failed: HTTP ${response.status}`);
+   const rows=await response.json();
+   if(!Array.isArray(rows))throw new Error("Signal history API returned an invalid response");
+   if(!rows.length)break;
+   if(Number(rows[0][0])!==nextStartTime){
+    throw new Error(`Signal history unavailable from ${nextStartTime}`);
+   }
+
+   const recoveredCandles=rows.map(row=>[
+    Number(row[0]),Number(row[1]),Number(row[2]),Number(row[3]),
+    Number(row[4]),Number(row[5]),Number(row[6])
+   ]);
+   const previousLastTime=Number(rows[rows.length-1][0]);
+   if(previousLastTime<nextStartTime)throw new Error("Signal history API returned candles out of order");
+   updateMassSignal(recoveredCandles,true);
+   nextStartTime=previousLastTime+intervalMilliseconds;
+   if(rows.length<1000)break;
+  }
+  const latestClosedCandle=window.allData?.[window.allData.length-2];
+  return Boolean(latestClosedCandle&&
+   massSignalState.lastProcessedClosedCandle>=Number(latestClosedCandle[0]));
+ }
+
+ async function attemptMassSignalHistoryRecovery(){
+  if(!massSignalState.started||!massSignalState.historyRecoveryPending||
+   Date.now()<massSignalState.nextRecoveryAttemptAt)return;
+  try{
+   const recovered=await recoverMissedMassSignalHistory();
+   if(!recovered){
+    massSignalState.nextRecoveryAttemptAt=Date.now()+30000;
+    if(massSignalNotice){
+     massSignalNotice.textContent="Өмнөх хугацааны candle history хараахан нөхөгдөөгүй байна. Холболт болон тухайн зах зээлийн history боломжийг шалгаж байна.";
+     massSignalNotice.style.display="inline";
+    }
+    return;
+   }
+   massSignalState.historyRecoveryPending=false;
+   massSignalState.nextRecoveryAttemptAt=0;
+   if(massSignalNotice){
+    massSignalNotice.textContent="";
+    massSignalNotice.style.display="none";
+   }
+   const currentMass={upMass:massSignalState.upMass,downMass:massSignalState.downMass};
+   renderMassSignal(
+    massSignalState.direction
+     ?`${massSignalState.direction} ACTIVE · history restored`
+     :"WAITING · history restored",
+    massSignalState.direction,
+    currentMass
+   );
+   persistMassSignalState();
+  }catch(error){
+   console.error("[MASS SIGNAL RECOVERY ERROR]",error);
+   massSignalState.nextRecoveryAttemptAt=Date.now()+30000;
+   if(massSignalNotice){
+    massSignalNotice.textContent="Хаалттай үеийн candle history татаж чадсангүй. Холболт сэргээхийг дахин оролдоно.";
+    massSignalNotice.style.display="inline";
+   }
+  }
+ }
+ window.attemptMassSignalHistoryRecovery=attemptMassSignalHistoryRecovery;
 
  massSignalStartButton?.addEventListener("click",()=>{
   massSignalState.started=true;
@@ -285,10 +497,11 @@ document.addEventListener("DOMContentLoaded",()=>{
   massSignalState.signalPeriods=[];
   massSignalState.upMass=0;
   massSignalState.downMass=0;
+  massSignalState.startedAt=Date.now();
   massSignalState.chartConfig={
-   market:marketEl?.value||"spot",
-   interval:intervalEl?.value||"1m",
-   coin:coinEl?.value||"BTCUSDT"
+   market:currentMarketType(),
+   interval:currentIntervalMinutes(),
+   coin:currentSymbol()
   };
   if(massSignalNotice){
    massSignalNotice.textContent="";
@@ -300,6 +513,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   renderMassSignal(massSignalState.lastProcessedClosedCandle===null
    ?"ARMED · waiting for candle data"
    :"ARMED · waiting for next candle close");
+  persistMassSignalState();
   draw();
  });
  massSignalStopButton?.addEventListener("click",()=>stopMassSignals("Stopped"));
@@ -674,10 +888,12 @@ document.addEventListener("DOMContentLoaded",()=>{
     if(!Array.isArray(candleData)) throw new Error("Invalid format from Binance");
     
     window.allData = candleData.map(d => [
-        Number(d[0]), Number(d[1]), Number(d[2]), Number(d[3]), Number(d[4]), Number(d[5])
+        Number(d[0]), Number(d[1]), Number(d[2]), Number(d[3]),
+        Number(d[4]), Number(d[5]), Number(d[6])
     ]);
 
     await window.refreshIndicatorArrays();
+    await attemptMassSignalHistoryRecovery();
     window.updateMassSignal?.();
     draw();
     dispatchChartUpdate();
@@ -979,9 +1195,13 @@ function startLivePolling(symbol, intervalVal, marketType) {
             const data = await res.json();
             if (!Array.isArray(data) || !data.length) return;
 
-            window.allData = data.map(d => [Number(d[0]), Number(d[1]), Number(d[2]), Number(d[3]), Number(d[4]), Number(d[5])]);
+            window.allData = data.map(d => [
+                Number(d[0]), Number(d[1]), Number(d[2]), Number(d[3]),
+                Number(d[4]), Number(d[5]), Number(d[6])
+            ]);
             await window.refreshIndicatorArrays();
-            updateMassSignal();
+            await window.attemptMassSignalHistoryRecovery?.();
+            window.updateMassSignal?.();
 
             if (typeof window.redrawChart === 'function') window.redrawChart();
             dispatchChartUpdate();
