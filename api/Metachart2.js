@@ -106,20 +106,42 @@ function calculateRsiRanges(klines, period, limit = 4) {
     if (!Array.isArray(klines) || klines.length < period + 2) return [];
 
     const rsi = calculateRSI(klines.map(candle => Number(candle[4])), period);
-    const ranges = [];
-    let latest70DownIndex = null;
+    const crossings = [];
 
     for (let index = 1; index < rsi.length - 1; index++) {
         const previousRsi = rsi[index - 1];
         const currentRsi = rsi[index];
         if (!Number.isFinite(previousRsi) || !Number.isFinite(currentRsi)) continue;
 
-        if (previousRsi >= 70 && currentRsi < 70) {
-            latest70DownIndex = index;
-        } else if (latest70DownIndex !== null && previousRsi <= 30 && currentRsi > 30) {
-            ranges.push({ startIndex: latest70DownIndex, endIndex: index });
-            latest70DownIndex = null;
+        const thresholds = currentRsi > previousRsi ? [30, 70] : [70, 30];
+        for (const threshold of thresholds) {
+            const crossedUp = previousRsi <= threshold && currentRsi > threshold;
+            const crossedDown = previousRsi >= threshold && currentRsi < threshold;
+            if (!crossedUp && !crossedDown) continue;
+
+            const fraction = (threshold - previousRsi) / (currentRsi - previousRsi);
+            const position = index - 1 + fraction;
+            const lastCrossing = crossings[crossings.length - 1];
+            if (lastCrossing?.level === threshold) lastCrossing.position = position;
+            else crossings.push({ level: threshold, position });
         }
+    }
+
+    const ranges = [];
+    for (let index = 0; index < crossings.length - 1; index++) {
+        ranges.push({
+            startPosition: crossings[index].position,
+            endPosition: crossings[index + 1].position
+        });
+    }
+
+    const lastCrossing = crossings[crossings.length - 1];
+    const lastClosedCandleEnd = rsi.length - 1;
+    if (lastCrossing && lastCrossing.position < lastClosedCandleEnd) {
+        ranges.push({
+            startPosition: lastCrossing.position,
+            endPosition: lastClosedCandleEnd
+        });
     }
 
     return ranges.slice(-limit);
@@ -291,13 +313,13 @@ document.addEventListener("DOMContentLoaded",()=>{
   ctx.rect(padding,padding,chartWidth,mainChartHeight);
   ctx.clip();
   rsiRanges.forEach((range,index)=>{
-   const left=Math.max(start,range.startIndex);
-   const right=Math.min(end-1,range.endIndex);
-   if(left>right)return;
+   const left=Math.max(start,range.startPosition);
+   const right=Math.min(end,range.endPosition);
+   if(left>=right)return;
    const ageFromLatest=rsiRanges.length-1-index;
    ctx.fillStyle=rangeColors[rangeColors.length-1-ageFromLatest];
    const x=padding+(left-start)*candleWidth;
-   const width=(right-left+1)*candleWidth;
+   const width=(right-left)*candleWidth;
    ctx.fillRect(x,padding,width,mainChartHeight);
   });
   ctx.restore();
