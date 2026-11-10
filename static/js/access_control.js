@@ -6,7 +6,7 @@
     const currentPage = window.location.pathname.split('/').pop();
     const requiredMemberships = {
         'paidsignal1.html': ['alpha', 'beta'],
-        'paidsignal2.html': ['gamma']
+        'paidsignal2.html': ['alpha', 'gamma']
     };
     const allowedMemberships = requiredMemberships[currentPage];
     if (!allowedMemberships) return;
