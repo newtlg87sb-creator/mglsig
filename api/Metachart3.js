@@ -161,13 +161,15 @@ document.addEventListener("DOMContentLoaded",()=>{
  const massSignalStopButton=document.getElementById("massSignalStop");
  const massSignalStatus=document.getElementById("massSignalStatus");
  const massSignalMass=document.getElementById("massSignalMass");
+ const massSignalNotice=document.getElementById("massSignalNotice");
  const massSignalState={
   started:false,
   direction:null,
   lastProcessedClosedCandle:null,
   signalPeriods:[],
   upMass:0,
-  downMass:0
+  downMass:0,
+  chartConfig:null
  };
 
  function renderMassSignal(status,direction=null,mass=null){
@@ -192,8 +194,27 @@ document.addEventListener("DOMContentLoaded",()=>{
   massSignalState.signalPeriods=[];
   massSignalState.upMass=0;
   massSignalState.downMass=0;
+  massSignalState.chartConfig=null;
+  if(massSignalNotice){
+   massSignalNotice.textContent="";
+   massSignalNotice.style.display="none";
+  }
   renderMassSignal(message,massSignalState.direction);
   draw();
+ }
+
+ function requireStopBeforeChartChange(){
+  if(!massSignalState.started)return false;
+  if(massSignalState.chartConfig){
+   if(marketEl)marketEl.value=massSignalState.chartConfig.market;
+   if(intervalEl)intervalEl.value=massSignalState.chartConfig.interval;
+   if(coinEl)coinEl.value=massSignalState.chartConfig.coin;
+  }
+  if(massSignalNotice){
+   massSignalNotice.textContent="Эхлээд STOP дарж signal-ээ зогсооно уу.";
+   massSignalNotice.style.display="inline";
+  }
+  return true;
  }
 
  function updateMassSignal(){
@@ -264,6 +285,15 @@ document.addEventListener("DOMContentLoaded",()=>{
   massSignalState.signalPeriods=[];
   massSignalState.upMass=0;
   massSignalState.downMass=0;
+  massSignalState.chartConfig={
+   market:marketEl?.value||"spot",
+   interval:intervalEl?.value||"1m",
+   coin:coinEl?.value||"BTCUSDT"
+  };
+  if(massSignalNotice){
+   massSignalNotice.textContent="";
+   massSignalNotice.style.display="none";
+  }
   const candles=window.allData;
   massSignalState.lastProcessedClosedCandle=
    Array.isArray(candles)&&candles.length>=2?Number(candles[candles.length-2][0]):null;
@@ -285,10 +315,10 @@ document.addEventListener("DOMContentLoaded",()=>{
  });
 
  document.getElementById("applyIndicators")?.addEventListener("click",async event=>{
+  if(requireStopBeforeChartChange())return;
   const button=event.currentTarget;
   button.disabled=true;
   try{
-   if(massSignalState.started)stopMassSignals("Stopped · Indicator settings changed");
    await window.refreshChartIndicators();
   }catch(error){
    console.error("[INDICATOR UPDATE ERROR]",error);
@@ -683,7 +713,7 @@ document.addEventListener("DOMContentLoaded",()=>{
 
  let updateTimer=null;
  const triggerAutoUpdate=()=>{
-  if(massSignalState.started)stopMassSignals("Stopped · Chart changed; press Start again");
+  if(requireStopBeforeChartChange())return;
   clearTimeout(updateTimer);
   updateTimer=setTimeout(async()=>{
    offset=0;visibleCount=500;priceScale=1;priceOffset=0;
@@ -692,13 +722,27 @@ document.addEventListener("DOMContentLoaded",()=>{
  };
 
  if(marketEl) marketEl.addEventListener("change",async ()=>{ 
+     if(requireStopBeforeChartChange())return;
      await loadExchangeSymbols(); 
      triggerAutoUpdate(); 
  });
- if(intervalEl) intervalEl.addEventListener("change",triggerAutoUpdate);
+ if(intervalEl) intervalEl.addEventListener("change",()=>{
+  if(requireStopBeforeChartChange())return;
+  triggerAutoUpdate();
+ });
  if(coinEl){
-  coinEl.addEventListener("change",triggerAutoUpdate);
-  coinEl.addEventListener("keydown",e=>{if(e.key==="Enter")triggerAutoUpdate()});
+  coinEl.addEventListener("change",()=>{
+   if(requireStopBeforeChartChange())return;
+   triggerAutoUpdate();
+  });
+  coinEl.addEventListener("keydown",e=>{
+   if(e.key!=="Enter")return;
+   if(requireStopBeforeChartChange()){
+    e.preventDefault();
+    return;
+   }
+   triggerAutoUpdate();
+  });
  }
 
  loadExchangeSymbols().then(() => {
