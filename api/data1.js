@@ -734,7 +734,7 @@ function calculateIcebergCandleStates(klines, fast, slow, signal) {
 export default async function handler(req, res) {
     res.setHeader("Cache-Control", "no-store");
 
-    if (req.method !== "POST") {
+    if (!["GET", "POST"].includes(req.method)) {
         return res.status(405).json({ error: "Method not allowed" });
     }
 
@@ -765,6 +765,73 @@ export default async function handler(req, res) {
         const user = await authResponse.json();
         if (!user.id) {
             return res.status(401).json({ error: "Unable to verify your account" });
+        }
+
+        if (req.method === "GET") {
+            const adminUserId = "21f19ae0-b35e-4984-b8dc-dc8e463b0155";
+            if (user.id !== adminUserId) {
+                return res.status(403).json({ error: "This account cannot access MyData" });
+            }
+
+            const symbol = String(req.query?.symbol || "BTCUSDT").trim().toUpperCase();
+            const interval = String(req.query?.interval || "1m").trim();
+            const market = String(req.query?.market || "spot").trim().toLowerCase();
+            const fast = Number(req.query?.fast || 12);
+            const slow = Number(req.query?.slow || 26);
+            const signal = Number(req.query?.signal || 9);
+            const rsiPeriod = Number(req.query?.rsiPeriod || 7);
+            const supportedIntervals = new Set([
+                "1s", "1m", "3m", "5m", "15m", "30m", "1h", "2h",
+                "4h", "6h", "8h", "12h", "1d", "3d", "1w", "1M"
+            ]);
+
+            if (!/^[A-Z0-9]{2,20}$/.test(symbol) ||
+                !supportedIntervals.has(interval) ||
+                !["spot", "futures"].includes(market)) {
+                return res.status(400).json({ error: "Invalid symbol, interval, or market" });
+            }
+            if (![fast, slow, signal].every(period =>
+                Number.isInteger(period) && period > 0 && period <= 500
+            ) || fast >= slow ||
+                !Number.isInteger(rsiPeriod) || rsiPeriod < 1 || rsiPeriod > 500) {
+                return res.status(400).json({ error: "Invalid indicator periods" });
+            }
+
+            try {
+                const baseUrl = market === "futures"
+                    ? "https://fapi.binance.com/fapi/v1/klines"
+                    : "https://api.binance.com/api/v3/klines";
+                const marketResponse = await fetch(
+                    `${baseUrl}?symbol=${encodeURIComponent(symbol)}&interval=${encodeURIComponent(interval)}&limit=1000`,
+                    { signal: AbortSignal.timeout(15000) }
+                );
+                if (!marketResponse.ok) {
+                    console.error("[MYDATA SOURCE ERROR] Binance request failed", marketResponse.status);
+                    return res.status(502).json({ error: "Unable to load market data" });
+                }
+                const klines = await marketResponse.json();
+                if (!Array.isArray(klines) || klines.length < Math.max(slow + signal, rsiPeriod + 5)) {
+                    return res.status(502).json({ error: "Not enough market data to calculate indicators" });
+                }
+
+                const macd = calculateAllMacdIndicators(klines, fast, slow, signal);
+                const rsi = calculateAllRsiIndicators(klines, rsiPeriod);
+                const ohlc = calculateOhlcTrackerReport(klines, symbol, {});
+                return res.status(200).json({
+                    status: "OK",
+                    data: {
+                        symbol,
+                        latest_price: Number(klines[klines.length - 1][4]),
+                        timestamp: Number(klines[klines.length - 1][0]),
+                        macd,
+                        rsi,
+                        ohlc
+                    }
+                });
+            } catch (error) {
+                console.error("[MYDATA CALCULATION ERROR]", error);
+                return res.status(502).json({ error: "Unable to calculate MyData indicators" });
+            }
         }
 
         const profileUrl = new URL("/rest/v1/User%20control", supabaseUrl);

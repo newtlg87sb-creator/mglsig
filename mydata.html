@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>MyData - MGL Signal</title>
+    <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
+    <link rel="stylesheet" href="/static/main_style.css">
+    <style>
+        .mydata-page { width: min(100% - 32px, 1100px); margin: 112px auto 48px; }
+        .mydata-controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+        .mydata-controls label { display: grid; gap: 5px; color: #a0a8b5; font-size: 12px; }
+        .mydata-controls input, .mydata-controls select {
+            min-height: 40px; padding: 8px 10px; color: #fff;
+            background: #0b1017; border: 1px solid #303846; border-radius: 6px;
+        }
+        .mydata-controls button {
+            min-height: 40px; padding: 8px 16px; color: #111;
+            background: #c5a059; border: 0; border-radius: 6px;
+            font-weight: 700; cursor: pointer;
+        }
+        #mydata-output {
+            min-height: 300px; margin-top: 20px; padding: 18px; overflow: auto;
+            color: #d7e2ef; background: #080b10; border: 1px solid #252c37;
+            border-radius: 8px; white-space: pre-wrap; overflow-wrap: anywhere;
+        }
+        #mydata-message { min-height: 20px; margin-top: 12px; color: #fbbf24; }
+    </style>
+</head>
+<body class="bg-brand-dark text-white">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/static/js/header.js"></script>
+
+    <main class="mydata-page">
+        <h1 class="text-2xl font-bold mb-3">MyData · Private indicator JSON</h1>
+        <p class="text-sm text-gray-400 mb-6">Зөвхөн зөвшөөрөгдсөн Supabase account энэ үр дүнг авах боломжтой.</p>
+        <form id="mydata-form" class="mydata-controls">
+            <label>Symbol
+                <input id="mydata-symbol" name="symbol" value="BTCUSDT" maxlength="20" required>
+            </label>
+            <label>Market
+                <select id="mydata-market" name="market">
+                    <option value="spot">Spot</option>
+                    <option value="futures">Futures</option>
+                </select>
+            </label>
+            <label>Interval
+                <select id="mydata-interval" name="interval">
+                    <option value="1m" selected>1m</option>
+                    <option value="5m">5m</option>
+                    <option value="15m">15m</option>
+                    <option value="1h">1h</option>
+                    <option value="4h">4h</option>
+                    <option value="1d">1d</option>
+                </select>
+            </label>
+            <button type="submit">JSON авах</button>
+        </form>
+        <div id="mydata-message" role="status" aria-live="polite"></div>
+        <pre id="mydata-output">{}</pre>
+    </main>
+
+    <script>
+        const mydataForm = document.getElementById("mydata-form");
+        const mydataOutput = document.getElementById("mydata-output");
+        const mydataMessage = document.getElementById("mydata-message");
+
+        mydataForm.addEventListener("submit", async event => {
+            event.preventDefault();
+            mydataMessage.textContent = "Ачаалж байна...";
+            mydataForm.querySelector("button").disabled = true;
+
+            try {
+                if (typeof sb === "undefined" || !sb || !window.SUPABASE_API_KEY) {
+                    throw new Error("Supabase нэвтрэлт боломжгүй байна.");
+                }
+                const { data: { session }, error: sessionError } = await sb.auth.getSession();
+                if (sessionError) throw sessionError;
+                if (!session?.access_token) {
+                    throw new Error("Эхлээд нэвтэрнэ үү.");
+                }
+
+                const params = new URLSearchParams({
+                    symbol: document.getElementById("mydata-symbol").value.trim().toUpperCase(),
+                    market: document.getElementById("mydata-market").value,
+                    interval: document.getElementById("mydata-interval").value
+                });
+                const response = await fetch(`/api/data1?${params}`, {
+                    headers: {
+                        apikey: window.SUPABASE_API_KEY,
+                        Authorization: `Bearer ${session.access_token}`
+                    },
+                    cache: "no-store"
+                });
+                const result = await response.json();
+                mydataOutput.textContent = JSON.stringify(result, null, 2);
+                if (!response.ok) throw new Error(result.error || `HTTP ${response.status}`);
+                mydataMessage.textContent = "Амжилттай.";
+            } catch (error) {
+                mydataMessage.textContent = error.message || "JSON авахад алдаа гарлаа.";
+            } finally {
+                mydataForm.querySelector("button").disabled = false;
+            }
+        });
+    </script>
+    <script src="/static/js/footer.js"></script>
+</body>
+</html>

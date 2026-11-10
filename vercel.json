@@ -1,5 +1,11 @@
 {
   "regions": [
     "sin1"
+  ],
+  "rewrites": [
+    {
+      "source": "/mydata",
+      "destination": "/mydata.html"
+    }
   ]
 }
