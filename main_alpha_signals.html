@@ -69,7 +69,24 @@
                 if(!container) return;
 
                 const alphaSignals = [
-                    { title: 'Iceberg', description: lang === 'mn' ? 'Зах зээлийн график, лаа болон RSI/MACD индикаторуудтай интерактив шинжилгээний хэрэгсэл.' : 'Interactive market chart with candlesticks and RSI/MACD indicators.', link: '/paidsignal1.html' }
+                    {
+                        title: 'Iceberg',
+                        description: lang === 'mn'
+                            ? 'Зах зээлийн график, лаа болон RSI/MACD индикаторуудтай интерактив шинжилгээний хэрэгсэл.'
+                            : 'Interactive market chart with candlesticks and RSI/MACD indicators.',
+                        link: '/paidsignal1.html',
+                        image: '/static/images/iceberg1.jpg',
+                        imageAlt: 'Iceberg trading signal chart'
+                    },
+                    {
+                        title: 'RSI Range + BOS Trend',
+                        description: lang === 'mn'
+                            ? 'RSI-ийн сүүлийн 4 range, range бүрийн өсөлт/уналтын mass, HH/LL BOS түвшин болон BOS-д суурилсан трендийг харуулна. Хувь нь баталгаатай үр дүн биш.'
+                            : 'Shows the latest four RSI ranges, each range’s bullish/bearish mass, HH/LL BOS levels, and a BOS-based trend. Percentages do not guarantee results.',
+                        link: '/paidsignal2.html',
+                        image: null,
+                        imageAlt: ''
+                    }
                 ];
 
                 subtitle.textContent = lang === 'mn' 
@@ -78,7 +95,10 @@
 
                 container.innerHTML = alphaSignals.map(item => `
                     <a href="${item.link}" class="group block bg-brand-dark-blue border border-brand-border rounded-xl overflow-hidden hover:border-brand-gold/50 transition duration-300 shadow-lg">
-                        <img src="/static/images/iceberg1.jpg" alt="Iceberg trading signal chart" class="block w-full h-auto max-h-[520px] object-contain bg-[#07090d] border-b border-brand-border">
+                        ${item.image
+                            ? `<img src="${item.image}" alt="${item.imageAlt}" class="block w-full h-auto max-h-[520px] object-contain bg-[#07090d] border-b border-brand-border">`
+                            : `<div class="flex min-h-48 items-center justify-center bg-[#07090d] border-b border-brand-border text-gray-600"><div class="text-center"><i class="fas fa-image text-3xl mb-3"></i><p class="text-xs uppercase tracking-widest">${lang === 'mn' ? 'Зураг дараа нэмнэ' : 'Image to be added'}</p></div></div>`
+                        }
                         <div class="flex items-center justify-between p-5">
                             <div class="flex items-center space-x-4">
                                 <div class="w-10 h-10 rounded-lg bg-brand-gold/10 flex items-center justify-center border border-brand-gold/20 group-hover:bg-brand-gold/20 transition">
