@@ -102,51 +102,6 @@ function calculateRSI(closes, period = 14) {
     return rsi;
 }
 
-function calculateRsiRanges(klines, period, limit = 4) {
-    if (!Array.isArray(klines) || klines.length < period + 2) return [];
-
-    const rsi = calculateRSI(klines.map(candle => Number(candle[4])), period);
-    const crossings = [];
-
-    for (let index = 1; index < rsi.length - 1; index++) {
-        const previousRsi = rsi[index - 1];
-        const currentRsi = rsi[index];
-        if (!Number.isFinite(previousRsi) || !Number.isFinite(currentRsi)) continue;
-
-        const thresholds = currentRsi > previousRsi ? [30, 70] : [70, 30];
-        for (const threshold of thresholds) {
-            const crossedUp = previousRsi <= threshold && currentRsi > threshold;
-            const crossedDown = previousRsi >= threshold && currentRsi < threshold;
-            if (!crossedUp && !crossedDown) continue;
-
-            const fraction = (threshold - previousRsi) / (currentRsi - previousRsi);
-            const position = index - 1 + fraction;
-            const lastCrossing = crossings[crossings.length - 1];
-            if (lastCrossing?.level === threshold) lastCrossing.position = position;
-            else crossings.push({ level: threshold, position });
-        }
-    }
-
-    const ranges = [];
-    for (let index = 0; index < crossings.length - 1; index++) {
-        ranges.push({
-            startPosition: crossings[index].position,
-            endPosition: crossings[index + 1].position
-        });
-    }
-
-    const lastCrossing = crossings[crossings.length - 1];
-    const lastClosedCandleEnd = rsi.length - 1;
-    if (lastCrossing && lastCrossing.position < lastClosedCandleEnd) {
-        ranges.push({
-            startPosition: lastCrossing.position,
-            endPosition: lastClosedCandleEnd
-        });
-    }
-
-    return ranges.slice(-limit);
-}
-
 function calculateRangeMass(klines, range) {
     let upMass = 0;
     let downMass = 0;
@@ -207,7 +162,8 @@ document.addEventListener("DOMContentLoaded",()=>{
  const massSignalState={
   started:false,
   direction:null,
-  lastProcessedClosedCandle:null
+  lastProcessedClosedCandle:null,
+  signalPeriods:[]
  };
 
  function renderMassSignal(status,direction=null,mass=null){
@@ -218,8 +174,8 @@ document.addEventListener("DOMContentLoaded",()=>{
   }
   if(massSignalMass){
    massSignalMass.textContent=mass
-    ?`UP ${formatPrice(mass.upMass)} / DOWN ${formatPrice(mass.downMass)}`
-    :"Mass: --";
+    ?`CANDLE MASS · UP ${formatPrice(mass.upMass)} / DOWN ${formatPrice(mass.downMass)}`
+    :"CANDLE MASS · --";
   }
   if(massSignalStartButton)massSignalStartButton.disabled=massSignalState.started;
   if(massSignalStopButton)massSignalStopButton.disabled=!massSignalState.started;
@@ -227,63 +183,76 @@ document.addEventListener("DOMContentLoaded",()=>{
 
  function stopMassSignals(message="Stopped"){
   massSignalState.started=false;
+  massSignalState.direction=null;
+  massSignalState.lastProcessedClosedCandle=null;
+  massSignalState.signalPeriods=[];
   renderMassSignal(message,massSignalState.direction);
+  draw();
  }
 
- function updateMassSignal(force=false){
+ function updateMassSignal(){
   if(!massSignalState.started)return;
   const candles=window.allData;
   if(!Array.isArray(candles)||candles.length<3){
-   renderMassSignal("Waiting for candle data",massSignalState.direction);
+   renderMassSignal("ARMED · waiting for candle data");
    return;
   }
 
   const closedCandle=candles[candles.length-2];
   const closedCandleKey=Number(closedCandle[0]);
-  if(!force&&closedCandleKey===massSignalState.lastProcessedClosedCandle)return;
-
-  const period=Math.max(1,Number.parseInt(document.getElementById("rsiPeriod")?.value||"14",10));
-  const range=calculateRsiRanges(candles,period,1)[0];
-  if(!range){
+  if(massSignalState.lastProcessedClosedCandle===null){
    massSignalState.lastProcessedClosedCandle=closedCandleKey;
-   renderMassSignal("Waiting for an RSI 30/70 range",massSignalState.direction);
+   renderMassSignal("ARMED · waiting for next candle close");
    return;
   }
+  if(closedCandleKey<=massSignalState.lastProcessedClosedCandle)return;
 
-  const mass=calculateRangeMass(candles,range);
+  const closedCandleIndex=candles.length-2;
+  const mass=calculateRangeMass(candles,{
+   startPosition:closedCandleIndex,
+   endPosition:closedCandleIndex+1
+  });
   const massDirection=mass.upMass>mass.downMass?"LONG":
    mass.downMass>mass.upMass?"SHORT":null;
   massSignalState.lastProcessedClosedCandle=closedCandleKey;
+  const candleTime=timeLabel(closedCandleKey,interval);
 
   if(!massDirection){
    const tieMessage=massSignalState.direction
-    ?`HOLD ${massSignalState.direction} · Mass tied`
-    :"Waiting · Up/down mass tied";
+    ?`${massSignalState.direction} ACTIVE · ${candleTime} · doji`
+    :`WAITING · ${candleTime} · doji`;
    renderMassSignal(tieMessage,massSignalState.direction,mass);
    return;
   }
 
   if(!massSignalState.direction||massDirection!==massSignalState.direction){
    massSignalState.direction=massDirection;
-   renderMassSignal(`SIGNAL: ${massDirection}`,massDirection,mass);
+   massSignalState.signalPeriods.push({startTime:closedCandleKey,direction:massDirection});
+   renderMassSignal(`SIGNAL: ${massDirection} · ${candleTime}`,massDirection,mass);
    console.info(`[MASS SIGNAL] ${massDirection}`,{
     symbol:currentSymbol(),
     interval:currentIntervalMinutes(),
     closedCandleTime:closedCandleKey,
     ...mass
    });
-   return;
+  }else{
+   renderMassSignal(`${massSignalState.direction} ACTIVE · ${candleTime}`,massSignalState.direction,mass);
   }
 
-  renderMassSignal(`HOLD ${massSignalState.direction}`,massSignalState.direction,mass);
+  draw();
  }
 
  massSignalStartButton?.addEventListener("click",()=>{
   massSignalState.started=true;
   massSignalState.direction=null;
-  massSignalState.lastProcessedClosedCandle=null;
-  renderMassSignal("Started · Calculating signal");
-  updateMassSignal(true);
+  massSignalState.signalPeriods=[];
+  const candles=window.allData;
+  massSignalState.lastProcessedClosedCandle=
+   Array.isArray(candles)&&candles.length>=2?Number(candles[candles.length-2][0]):null;
+  renderMassSignal(massSignalState.lastProcessedClosedCandle===null
+   ?"ARMED · waiting for candle data"
+   :"ARMED · waiting for next candle close");
+  draw();
  });
  massSignalStopButton?.addEventListener("click",()=>stopMassSignals("Stopped"));
  
@@ -353,6 +322,9 @@ document.addEventListener("DOMContentLoaded",()=>{
   if(!data.length)return;
 
   const candleWidth=chartWidth/data.length;
+  const signalPeriods=massSignalState.started?massSignalState.signalPeriods:[];
+  let signalPeriodIndex=0;
+  let chartSignalDirection=null;
 
   let maxPrice=-Infinity,minPrice=Infinity;
   data.forEach(d=>{if(d[2]>maxPrice)maxPrice=d[2];if(d[3]<minPrice)minPrice=d[3]});
@@ -443,9 +415,16 @@ document.addEventListener("DOMContentLoaded",()=>{
    const yO=priceToY(open),yC=priceToY(close),yH=priceToY(high),yL=priceToY(low);
    if(!Number.isFinite(yO) || !Number.isFinite(yC) || !Number.isFinite(yH) || !Number.isFinite(yL)) return;
 
-   const bull=close>=open;
-   const candleColor = bull ? "#00bcd4" : "#ff3d57"; 
-   const wickColor = bull ? "#00e5ff" : "#ff1744";
+   const candleTime=Number(d[0]);
+   while(signalPeriodIndex<signalPeriods.length&&
+    signalPeriods[signalPeriodIndex].startTime<=candleTime){
+    chartSignalDirection=signalPeriods[signalPeriodIndex].direction;
+    signalPeriodIndex++;
+   }
+   const candleColor = chartSignalDirection==="LONG"?"#22c55e":
+    chartSignalDirection==="SHORT"?"#ff3d57":"#596273";
+   const wickColor = chartSignalDirection==="LONG"?"#4ade80":
+    chartSignalDirection==="SHORT"?"#ff667a":"#798397";
 
    ctx.strokeStyle = wickColor;
    ctx.lineWidth = 1;
