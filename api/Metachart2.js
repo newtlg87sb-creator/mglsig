@@ -516,7 +516,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   ctx.textAlign="left";
   ctx.textBaseline="middle";
   const trendX=padding+10;
-  const trendY=padding+chartHeight-10;
+  const trendY=padding+mainChartHeight-12;
   const trendWidth=ctx.measureText(trendText).width+14;
   ctx.fillStyle="rgba(7, 9, 13, 0.88)";
   ctx.fillRect(trendX-5,trendY-11,trendWidth,22);
