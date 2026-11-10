@@ -165,7 +165,9 @@ document.addEventListener("DOMContentLoaded",()=>{
   started:false,
   direction:null,
   lastProcessedClosedCandle:null,
-  signalPeriods:[]
+  signalPeriods:[],
+  upMass:0,
+  downMass:0
  };
 
  function renderMassSignal(status,direction=null,mass=null){
@@ -176,8 +178,8 @@ document.addEventListener("DOMContentLoaded",()=>{
   }
   if(massSignalMass){
    massSignalMass.textContent=mass
-    ?`CANDLE MASS · UP ${formatPrice(mass.upMass)} / DOWN ${formatPrice(mass.downMass)}`
-    :"CANDLE MASS · --";
+    ?`SINCE START · UP ${formatPrice(mass.upMass)} / DOWN ${formatPrice(mass.downMass)}`
+    :"SINCE START · --";
   }
   if(massSignalStartButton)massSignalStartButton.disabled=massSignalState.started;
   if(massSignalStopButton)massSignalStopButton.disabled=!massSignalState.started;
@@ -188,6 +190,8 @@ document.addEventListener("DOMContentLoaded",()=>{
   massSignalState.direction=null;
   massSignalState.lastProcessedClosedCandle=null;
   massSignalState.signalPeriods=[];
+  massSignalState.upMass=0;
+  massSignalState.downMass=0;
   renderMassSignal(message,massSignalState.direction);
   draw();
  }
@@ -215,8 +219,14 @@ document.addEventListener("DOMContentLoaded",()=>{
     startPosition:candleIndex,
     endPosition:candleIndex+1
    });
-   const massDirection=mass.upMass>mass.downMass?"LONG":
-    mass.downMass>mass.upMass?"SHORT":null;
+   massSignalState.upMass+=mass.upMass;
+   massSignalState.downMass+=mass.downMass;
+   const totalMass={
+    upMass:massSignalState.upMass,
+    downMass:massSignalState.downMass
+   };
+   const massDirection=totalMass.upMass>totalMass.downMass?"LONG":
+    totalMass.downMass>totalMass.upMass?"SHORT":null;
    massSignalState.lastProcessedClosedCandle=closedCandleKey;
    const candleTime=timeLabel(closedCandleKey,interval);
 
@@ -227,17 +237,17 @@ document.addEventListener("DOMContentLoaded",()=>{
      symbol:currentSymbol(),
      interval:currentIntervalMinutes(),
      closedCandleTime:closedCandleKey,
-     ...mass
+     ...totalMass
     });
-    latestUpdate={status:`SIGNAL: ${massDirection} · ${candleTime}`,mass};
+    latestUpdate={status:`SIGNAL: ${massDirection} · ${candleTime}`,mass:totalMass};
    }else if(massDirection){
-    latestUpdate={status:`${massSignalState.direction} ACTIVE · ${candleTime}`,mass};
+    latestUpdate={status:`${massSignalState.direction} ACTIVE · ${candleTime}`,mass:totalMass};
    }else{
     latestUpdate={
      status:massSignalState.direction
-      ?`${massSignalState.direction} ACTIVE · ${candleTime} · doji`
+      ?`${massSignalState.direction} ACTIVE · ${candleTime} · mass tied`
       :`WAITING · ${candleTime} · doji`,
-     mass
+     mass:totalMass
     };
    }
   }
@@ -252,6 +262,8 @@ document.addEventListener("DOMContentLoaded",()=>{
   massSignalState.started=true;
   massSignalState.direction=null;
   massSignalState.signalPeriods=[];
+  massSignalState.upMass=0;
+  massSignalState.downMass=0;
   const candles=window.allData;
   massSignalState.lastProcessedClosedCandle=
    Array.isArray(candles)&&candles.length>=2?Number(candles[candles.length-2][0]):null;
