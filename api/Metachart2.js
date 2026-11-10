@@ -206,6 +206,24 @@ function isRangeExtremeUnbroken(klines, extreme) {
     return true;
 }
 
+function calculateBosTrend(bosLevels) {
+    const hhCount = bosLevels.filter(level => level.type === "HH").length;
+    const llCount = bosLevels.filter(level => level.type === "LL").length;
+    const total = hhCount + llCount;
+
+    if (total === 0) return { direction: "NEUTRAL", confidence: 0, hhCount, llCount };
+    if (hhCount === llCount) return { direction: "NEUTRAL", confidence: 50, hhCount, llCount };
+
+    const direction = hhCount > llCount ? "SHORT" : "LONG";
+    const dominantCount = Math.max(hhCount, llCount);
+    const opposingCount = Math.min(hhCount, llCount);
+    const confidence = (dominantCount >= 2 && opposingCount === 1)
+        ? 100
+        : Math.round(50 + 50 * (dominantCount - opposingCount) / total * Math.min(total / 3, 1));
+
+    return { direction, confidence, hhCount, llCount };
+}
+
 function calculateMACD(closes, fastPeriod = 12, slowPeriod = 26, signalPeriod = 9) {
     const fastEMA = calculateEMA(closes, fastPeriod);
     const slowEMA = calculateEMA(closes, slowPeriod);
@@ -486,6 +504,25 @@ document.addEventListener("DOMContentLoaded",()=>{
    ctx.fillText(label,endX-6,labelY);
    ctx.restore();
   });
+
+  const bosTrend=calculateBosTrend(bosLevels);
+  const trendColor=bosTrend.direction==="SHORT"?"#ff3d57":
+   bosTrend.direction==="LONG"?"#22c55e":"#f7d56b";
+  const trendText=bosTrend.hhCount+bosTrend.llCount===0
+   ?"TREND: NEUTRAL · BOS 0"
+   :`TREND: ${bosTrend.direction} ${bosTrend.confidence}% · HH ${bosTrend.hhCount} / LL ${bosTrend.llCount}`;
+  ctx.save();
+  ctx.font="bold 11px Inter, sans-serif";
+  ctx.textAlign="left";
+  ctx.textBaseline="middle";
+  const trendX=padding+10;
+  const trendY=padding+chartHeight-10;
+  const trendWidth=ctx.measureText(trendText).width+14;
+  ctx.fillStyle="rgba(7, 9, 13, 0.88)";
+  ctx.fillRect(trendX-5,trendY-11,trendWidth,22);
+  ctx.fillStyle=trendColor;
+  ctx.fillText(trendText,trendX+2,trendY);
+  ctx.restore();
 
   /* LAST PRICE LINE */
   const lastClose=data[data.length-1][4],yLast=priceToY(lastClose);
