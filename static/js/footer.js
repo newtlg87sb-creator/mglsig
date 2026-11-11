@@ -38,13 +38,26 @@ Object.keys(footerTranslations).forEach(lang => {
 });
 
 const footerHTML = `
-<footer class="bg-brand-dark-blue border-t border-brand-border pt-8 pb-1">
-    <div class="max-w-7xl mx-auto px-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-8">
-            
+<footer class="bg-brand-dark-blue border-t border-brand-border">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 py-4 md:py-5">
+            <div class="col-span-2 md:col-span-1">
+                <div class="flex items-center justify-between md:block">
+                    <span class="text-lg font-black tracking-tighter text-white md:mb-2">MGL<span class="text-brand-gold font-normal">Signal</span></span>
+                    <div class="flex items-center gap-3 text-gray-400">
+                        <a href="https://www.facebook.com/share/1Dg7fcoaMu/" target="_blank" rel="noopener noreferrer" aria-label="Facebook" class="hover:text-brand-gold transition text-sm"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://t.me/Crypto_sharing_world" target="_blank" rel="noopener noreferrer" aria-label="Telegram" class="hover:text-brand-gold transition text-sm"><i class="fab fa-telegram-plane"></i></a>
+                        <a href="https://www.youtube.com/@mglsignal" target="_blank" rel="noopener noreferrer" aria-label="YouTube" class="hover:text-brand-gold transition text-sm"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <p data-i18n="foot-tagline" class="text-gray-500 text-[11px] leading-relaxed mt-1">
+                    Дэлхийн зах зээлийн хөдөлгөөнийг <br> дата шинжилгээгээр түрүүлж мэдэр.
+                </p>
+            </div>
+
             <div>
-                <h3 data-i18n="foot-links-title" class="text-brand-gold text-xs font-black uppercase tracking-[0.2em] mb-6">Хурдан холбоос</h3>
-                <ul class="space-y-4 text-sm font-medium">
+                <h3 data-i18n="foot-links-title" class="text-brand-gold text-[10px] font-bold uppercase tracking-[0.16em] mb-2">Хурдан холбоос</h3>
+                <ul class="grid grid-cols-2 gap-x-3 gap-y-1 text-xs font-medium md:grid-cols-1 md:gap-y-0 md:space-y-1">
                     <li><a href="/index.html" data-i18n="nav-home" class="mgl-spotlight-text text-gray-400 hover:text-white transition">Нүүр</a></li>
                     <li><a href="#" data-i18n="nav-forex" class="mgl-spotlight-text text-gray-400 hover:text-white transition">Forex</a></li>
                     <li><a href="#" data-i18n="nav-crypto" class="mgl-spotlight-text text-gray-400 hover:text-white transition">Crypto</a></li>
@@ -53,40 +66,20 @@ const footerHTML = `
             </div>
 
             <div>
-                <h3 data-i18n="foot-about-title" class="text-brand-gold text-xs font-black uppercase tracking-[0.2em] mb-6">Бидний тухай</h3>
-                <ul class="space-y-4 text-sm font-medium">
+                <h3 data-i18n="foot-about-title" class="text-brand-gold text-[10px] font-bold uppercase tracking-[0.16em] mb-2">Бидний тухай</h3>
+                <ul class="space-y-1 text-xs font-medium">
                     <li><a href="/main_about.html" data-i18n="foot-about" class="mgl-spotlight-text text-gray-400 hover:text-white transition">Танилцуулга</a></li>
                     <li><a href="/main_contact.html" data-i18n="foot-contact" class="mgl-spotlight-text text-gray-400 hover:text-white transition">Холбоо барих</a></li>
                 </ul>
             </div>
-
-            <div>
-                <h3 data-i18n="foot-social-title" class="text-brand-gold text-xs font-black uppercase tracking-[0.2em] mb-6">Сошиал сувгууд</h3>
-                <div class="flex space-x-5 text-gray-400">
-                    <a href="https://www.facebook.com/share/1Dg7fcoaMu/" target="_blank" class="hover:text-brand-gold transition text-xl"><i class="fab fa-facebook-f"></i></a>
-                    <a href="https://t.me/Crypto_sharing_world" target="_blank" class="hover:text-brand-gold transition text-xl"><i class="fab fa-telegram-plane"></i></a>
-                    <a href="https://www.youtube.com/@mglsignal" target="_blank" class="hover:text-brand-gold transition text-xl"><i class="fab fa-youtube"></i></a>
-                </div>
-            </div>
-
-            <div class="flex flex-col items-start md:items-end">
-                <span class="text-2xl font-black tracking-tighter text-white mb-4 italic">MGL<span class="text-brand-gold font-normal">Signal</span></span>
-                <p data-i18n="foot-tagline" class="text-gray-500 text-xs leading-relaxed md:text-right">
-                    Дэлхийн зах зээлийн хөдөлгөөнийг <br> дата шинжилгээгээр түрүүлж мэдэр.
-                </p>
-            </div>
         </div>
-    </div>
-</footer>
 
-<footer class="bg-brand-dark-blue border-t border-brand-border py-2 mt-auto">
-    <div class="max-w-7xl mx-auto px-6">
-        <div class="flex flex-col md:flex-row justify-between items-center gap-2">
-            <p class="mgl-spotlight-text text-[10px] text-gray-500 font-medium tracking-wider uppercase" data-text="&copy; 2026 MGLSIGNAL.COM. ALL RIGHTS RESERVED.">
+        <div class="border-t border-brand-border/70 py-3 flex flex-col sm:flex-row justify-between items-center gap-2">
+            <p class="mgl-spotlight-text text-[9px] text-gray-500 font-medium tracking-wider uppercase" data-text="&copy; 2026 MGLSIGNAL.COM. ALL RIGHTS RESERVED.">
                 &copy; 2026 MGLSIGNAL.COM. ALL RIGHTS RESERVED.
             </p>
             
-            <div class="flex space-x-6 text-[9px] font-bold uppercase tracking-widest">
+            <div class="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[9px] font-bold uppercase tracking-wider">
                 <a href="main_privacy.html" data-i18n="privacy-page-title" class="mgl-spotlight-text text-gray-600 hover:text-brand-gold transition">Privacy Policy</a>
                 <a href="main_terms.html" data-i18n="terms-page-title" class="mgl-spotlight-text text-gray-600 hover:text-brand-gold transition">Terms of Service</a>
                 <a href="main_risk.html" data-i18n="risk-page-title" class="mgl-spotlight-text text-gray-600 hover:text-brand-gold transition">Risk Warning</a>

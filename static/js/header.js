@@ -41,15 +41,10 @@ Object.keys(sharedTranslations).forEach(lang => {
 });
 
 const headerHTML = `    <style>
-        nav {
-            top: 28px !important; /* Donate bar-ийн өндөртэй тааруулж доошлуулна */
-        }
-        @media (max-width: 640px) {
-            nav { top: 28px !important; }
-        }
+        #site-primary-nav { top: 26px !important; }
     </style>
 
-    <div class="fixed top-0 w-full z-[60] bg-brand-gold py-1.5 px-6 border-b border-black/10">
+    <div class="fixed top-0 w-full z-[60] bg-brand-gold py-1 px-4 sm:px-6 border-b border-black/10">
         <div class="max-w-7xl mx-auto flex justify-between items-center relative">
             <div class="flex items-center space-x-2">
                 <span class="flex h-2 w-2 relative">
@@ -62,7 +57,7 @@ const headerHTML = `    <style>
             </div>
 
             <!-- CENTER: UPDATE ALERT -->
-            <div class="fixed left-1/2 transform -translate-x-1/2 cursor-pointer group" onclick="document.getElementById('update-modal').classList.remove('hidden')">
+            <div class="hidden sm:block fixed left-1/2 transform -translate-x-1/2 cursor-pointer group" onclick="document.getElementById('update-modal').classList.remove('hidden')">
                 <div class="flex items-center space-x-1.5 bg-black/5 px-3 py-0.5 rounded-full hover:bg-black/10 transition border border-black/5">
                     <i class="fas fa-info-circle text-[9px] text-black"></i>
                     <span data-i18n="update-info-btn" class="text-[9px] font-black text-black uppercase tracking-tight">About Update</span>
@@ -111,11 +106,11 @@ const headerHTML = `    <style>
         </div>
     </div>
 
-    <nav class="bg-black/90 backdrop-blur-md fixed w-full z-50 border-b border-brand-border">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="flex justify-between items-center h-14">
+    <nav id="site-primary-nav" class="bg-black/90 backdrop-blur-md fixed w-full z-50 border-b border-brand-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <div class="flex justify-between items-center h-12">
                 <a href="/index.html" class="flex items-center">
-                    <span class="text-xl md:text-2xl font-black tracking-tighter text-white">MGL<span class="text-brand-gold">Signal</span></span>
+                    <span class="text-lg md:text-xl font-black tracking-tighter text-white">MGL<span class="text-brand-gold">Signal</span></span>
                 </a>
 
                 <!-- DESKTOP MENU: ДАВХАРДАЛГҮЙ ТӨГС ГЭРЭЛТЭХ ХЭСЭГ -->
@@ -198,7 +193,7 @@ const headerHTML = `    <style>
         </div>
 
         <!-- Mobile Menu -->
-        <div class="mobile-menu hidden md:hidden bg-brand-dark-blue border-b border-brand-border px-6 py-6 space-y-4">
+        <div class="mobile-menu hidden md:hidden bg-brand-dark-blue border-b border-brand-border px-6 py-4 space-y-3">
             <a href="/index.html" class="block font-bold uppercase text-xs"><span data-i18n="nav-home" class="mgl-spotlight-text text-gray-400">Нүүр</span></a>
             
             <!-- Forex Section -->
@@ -229,7 +224,7 @@ const headerHTML = `    <style>
                 <a href="/main_about.html" class="font-bold uppercase text-[10px]"><span data-i18n="foot-about" class="mgl-spotlight-text text-gray-400">Бидний тухай</span></a>
             </div>
 
-            <div class="pt-4 border-t border-brand-border flex flex-col space-y-4">
+            <div class="pt-3 border-t border-brand-border flex flex-col space-y-3">
                 <!-- Guest View (Mobile) -->
                 <div id="mobile-guest" class="grid grid-cols-2 gap-4">
                     <a href="main_login.html" class="text-center py-2 border border-brand-border rounded text-xs font-bold uppercase hover:border-brand-gold transition"><span data-i18n="btn-login" class="mgl-spotlight-text text-gray-400">Нэвтрэх</span></a>
