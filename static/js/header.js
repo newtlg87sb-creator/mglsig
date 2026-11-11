@@ -136,10 +136,11 @@ const headerHTML = `    <style>
                             <span data-i18n="nav-crypto" class="mgl-spotlight-text">Crypto</span>
                             <svg class="w-3 h-3 ml-1 text-gray-500 group-hover:text-white transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-width="3"></path></svg>
                         </button>
-                        <div class="hidden dropdown-menu absolute left-0 mt-0 pt-4 w-44 z-50">
+                        <div class="hidden dropdown-menu absolute left-0 mt-0 pt-4 w-52 z-50">
                             <div class="bg-brand-dark-blue border border-brand-border shadow-2xl overflow-hidden">
                                 <a href="/main_altcoin_tools.html" data-i18n="drop-alt" class="block px-4 py-2.5 hover:bg-brand-gold hover:text-black transition">Market Tools</a>
-                                <a href="/main_live_tools.html" data-i18n="drop-live" class="block px-4 py-2.5 hover:bg-brand-gold hover:text-black transition border-t border-brand-border/50">Live Tools</a>
+                                <a href="/main_signals.html" data-i18n="sig-title" class="block px-4 py-2.5 hover:bg-brand-gold hover:text-black transition border-t border-brand-border/50">Сигналууд</a>
+                                <a href="/main_alpha_signals.html" data-i18n="nav-alpha" class="block px-4 py-2.5 hover:bg-brand-gold hover:text-black transition border-t border-brand-border/50">Alpha Signals</a>
                             </div>
                         </div>
                     </div>
@@ -153,8 +154,6 @@ const headerHTML = `    <style>
                         </button>
                         <div class="hidden dropdown-menu absolute right-0 mt-0 pt-4 w-56 z-[100]">
                             <div class="bg-brand-dark-blue border border-brand-border shadow-2xl overflow-hidden backdrop-blur-xl">
-                                <a href="/main_signals.html" data-i18n="sig-title" class="block px-5 py-3 text-[10px] hover:bg-brand-gold hover:text-black transition border-b border-brand-border/50 font-bold">Сигналууд</a>
-                                <a href="/main_alpha_signals.html" data-i18n="nav-alpha" class="block px-5 py-3 text-[10px] hover:bg-brand-gold hover:text-black transition border-b border-brand-border/50 font-bold">Alpha Signals</a>
                                 <a href="/main_about.html" data-i18n="foot-about" class="block px-5 py-3 text-[10px] bg-brand-gold text-black border-b border-brand-border/50 font-bold">Бидний тухай</a>
                                 <a href="/main_contact.html" data-i18n="foot-contact" class="block px-5 py-3 text-[10px] hover:bg-brand-gold hover:text-black transition border-b border-brand-border/50 font-bold">Холбоо барих</a>
                                 <a href="/main_New_projects.html" data-i18n="nav-projects" class="block px-5 py-3 text-[10px] hover:bg-brand-gold hover:text-black transition border-b border-brand-border/50 font-bold">Шинэ төслүүд</a>
@@ -210,13 +209,12 @@ const headerHTML = `    <style>
                 <p data-i18n="nav-crypto" class="text-[10px] text-gray-500 font-black uppercase tracking-widest">Crypto</p>
                 <div class="pl-4 space-y-2 border-l border-brand-border">
                     <a href="/main_altcoin_tools.html" class="block text-xs font-bold uppercase"><span data-i18n="drop-alt" class="mgl-spotlight-text text-brand-gold">Market Tools</span></a>
-                    <a href="/main_live_tools.html" class="block text-xs font-bold uppercase"><span data-i18n="drop-live" class="mgl-spotlight-text text-brand-gold">Live Tools</span></a> 
+                    <a href="/main_signals.html" class="block text-xs font-bold uppercase"><span data-i18n="sig-title" class="mgl-spotlight-text text-gray-400">Сигналууд</span></a>
+                    <a href="/main_alpha_signals.html" data-i18n="nav-alpha" class="block text-brand-gold font-bold uppercase text-xs italic">Alpha Signals</a>
                 </div>
             </div>
 
             <a href="/main_news.html" class="block font-bold uppercase text-xs"><span data-i18n="nav-news" class="mgl-spotlight-text text-gray-400">Мэдээ</span></a>
-            <a href="/main_signals.html" class="block font-bold uppercase text-xs"><span data-i18n="sig-title" class="mgl-spotlight-text text-gray-400">Сигналууд</span></a>
-            <a href="/main_alpha_signals.html" data-i18n="nav-alpha" class="block text-brand-gold font-bold uppercase text-xs italic">Alpha Signals</a>
             <a href="/main_New_projects.html" class="block font-bold uppercase text-xs"><span data-i18n="nav-projects" class="mgl-spotlight-text text-gray-400">Шинэ төслүүд</span></a>
             
             <div class="grid grid-cols-2 gap-4">
