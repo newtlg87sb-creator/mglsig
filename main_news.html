@@ -172,6 +172,7 @@
     <script>
         const newsTranslationCache = new Map();
         const maxTranslationChunkLength = 1200;
+        const newsPreviewLength = 500;
 
         function escapeNewsHtml(value) {
             return String(value ?? '').replace(/[&<>"']/g, char => ({
@@ -222,6 +223,7 @@
 
         let cryptoNewsItems = null;
         let newsRenderVersion = 0;
+        let renderedNewsItems = [];
 
         async function renderCryptoNews() {
             if (!cryptoNewsItems) return;
@@ -229,16 +231,22 @@
             const lang = localStorage.getItem('lang') || 'mn';
             const renderVersion = ++newsRenderVersion;
             const readMoreBtnText = lang === 'mn' ? 'Дэлгэрэнгүй' : 'Read More';
+            const sourceText = lang === 'mn' ? 'Эх сурвалж' : 'Source';
 
-            const translatedItems = await Promise.all(cryptoNewsItems.map(async news => {
-                const title = lang === 'mn' ? await translateText(news.title || '', 'mn') : (news.title || '');
-                const body = lang === 'mn' ? await translateText(news.body || '', 'mn') : (news.body || '');
-                return { ...news, displayTitle: title, displayBody: body };
-            }));
+            renderedNewsItems = cryptoNewsItems.map(news => {
+                const previewSource = (news.body || '').slice(0, newsPreviewLength);
+                return {
+                    news,
+                    displayTitle: news.title || '',
+                    displayPreview: `${previewSource}${(news.body || '').length > newsPreviewLength ? '…' : ''}`,
+                    fullBody: null,
+                    expanded: false
+                };
+            });
 
-            if (renderVersion !== newsRenderVersion) return;
             container.innerHTML = '';
-            translatedItems.forEach(news => {
+            renderedNewsItems.forEach((item, index) => {
+                const news = item.news;
                 const date = new Date(news.published_on * 1000).toLocaleDateString(lang === 'mn' ? 'mn-MN' : 'en-US');
                 const category = escapeNewsHtml((news.categories || '').split('|')[0]);
                 const articleUrl = /^https:\/\/[^\s]+$/i.test(news.url || '') ? news.url : 'main_news.html';
@@ -246,27 +254,96 @@
                     ? news.imageurl
                     : 'https://via.placeholder.com/300x170?text=No+Image';
                 const html = `
-                    <a href="${escapeNewsHtml(articleUrl)}" target="_blank" rel="noopener noreferrer" class="bg-brand-dark-blue border border-brand-border rounded-xl overflow-hidden hover:border-brand-gold/50 transition duration-300 group flex flex-col h-full relative">
+                    <article class="bg-brand-dark-blue border border-brand-border rounded-xl overflow-hidden hover:border-brand-gold/50 transition duration-300 group flex flex-col h-full relative">
                         <div class="aspect-video w-full overflow-hidden relative bg-gray-800">
                             <img src="${escapeNewsHtml(imageUrl)}" alt="News Image" class="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-80 group-hover:opacity-100" onerror="this.src='https://via.placeholder.com/300x170?text=No+Image'">
                         </div>
                         <div class="p-5 flex-grow flex flex-col">
-                            <div class="flex items-center space-x-2 mb-3">
-                                <span class="text-[10px] text-brand-gold font-bold uppercase tracking-wider">${category}</span>
+                            <div class="flex items-center space-x-2 mb-3 h-4 min-h-4 overflow-hidden">
+                                <span class="text-[10px] text-brand-gold font-bold uppercase tracking-wider truncate">${category}</span>
                                 <span class="text-[10px] text-gray-600">•</span>
-                                <span class="text-[10px] text-gray-500 font-mono">${escapeNewsHtml(date)}</span>
+                                <span class="text-[10px] text-gray-500 font-mono whitespace-nowrap">${escapeNewsHtml(date)}</span>
                             </div>
-                            <h3 class="text-white font-bold text-sm mb-3 leading-relaxed group-hover:text-brand-gold transition">${escapeNewsHtml(news.displayTitle)}</h3>
-                            <p class="text-gray-400 text-xs mb-4 flex-grow leading-relaxed whitespace-pre-line">${escapeNewsHtml(news.displayBody)}</p>
-                            <div class="text-brand-gold text-[10px] font-black uppercase tracking-widest flex items-center">
-                                ${readMoreBtnText} <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition"></i>
+                            <h3 data-news-title="${index}" class="text-white font-bold text-sm mb-3 h-10 line-clamp-2 leading-relaxed group-hover:text-brand-gold transition">${escapeNewsHtml(item.displayTitle)}</h3>
+                            <p id="news-body-${index}" data-news-body="${index}" class="text-gray-400 text-xs mb-4 h-52 overflow-hidden flex-grow-0 leading-relaxed whitespace-pre-line">${escapeNewsHtml(item.displayPreview)}</p>
+                            <div class="mt-auto flex items-center justify-between gap-3">
+                                <button type="button" data-news-index="${index}" aria-expanded="false" aria-controls="news-body-${index}" class="text-brand-gold text-[10px] font-black uppercase tracking-widest hover:text-white transition">
+                                    ${readMoreBtnText} <i class="fas fa-chevron-down ml-1"></i>
+                                </button>
+                                <a href="${escapeNewsHtml(articleUrl)}" target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-white text-[10px] uppercase tracking-wider">${sourceText}</a>
                             </div>
                         </div>
-                    </a>
+                    </article>
                 `;
                 container.insertAdjacentHTML('beforeend', html);
             });
+
+            if (lang !== 'mn') return;
+            const translatedItems = await mapWithConcurrency(renderedNewsItems, 3, async item => {
+                const title = await translateText(item.news.title || '', 'mn');
+                const previewSource = (item.news.body || '').slice(0, newsPreviewLength);
+                const preview = await translateText(previewSource, 'mn');
+                return {
+                    title,
+                    preview: `${preview}${(item.news.body || '').length > newsPreviewLength ? '…' : ''}`
+                };
+            });
+
+            if (renderVersion !== newsRenderVersion) return;
+            translatedItems.forEach((translation, index) => {
+                const item = renderedNewsItems[index];
+                item.displayTitle = translation.title;
+                item.displayPreview = translation.preview;
+                const title = container.querySelector(`[data-news-title="${index}"]`);
+                const body = container.querySelector(`[data-news-body="${index}"]`);
+                if (title) title.textContent = translation.title;
+                if (body && !item.expanded) body.textContent = translation.preview;
+            });
         }
+
+        async function mapWithConcurrency(items, limit, mapper) {
+            const results = new Array(items.length);
+            let nextIndex = 0;
+            const workerCount = Math.min(limit, items.length);
+            await Promise.all(Array.from({ length: workerCount }, async () => {
+                while (nextIndex < items.length) {
+                    const index = nextIndex++;
+                    results[index] = await mapper(items[index], index);
+                }
+            }));
+            return results;
+        }
+
+        document.getElementById('crypto-news-container').addEventListener('click', async event => {
+            const button = event.target.closest('button[data-news-index]');
+            if (!button) return;
+
+            const index = Number(button.dataset.newsIndex);
+            const item = renderedNewsItems[index];
+            const body = document.querySelector(`[data-news-body="${index}"]`);
+            if (!item || !body) return;
+
+            const lang = localStorage.getItem('lang') || 'mn';
+            if (item.expanded) {
+                item.expanded = false;
+                body.textContent = item.displayPreview;
+                body.classList.add('h-52', 'overflow-hidden');
+                button.setAttribute('aria-expanded', 'false');
+                button.innerHTML = `${lang === 'mn' ? 'Дэлгэрэнгүй' : 'Read More'} <i class="fas fa-chevron-down ml-1"></i>`;
+                return;
+            }
+
+            button.disabled = true;
+            button.textContent = lang === 'mn' ? 'Орчуулж байна...' : 'Translating...';
+            const sourceBody = item.news.body || '';
+            item.fullBody = lang === 'mn' ? await translateText(sourceBody, 'mn') : sourceBody;
+            item.expanded = true;
+            body.textContent = item.fullBody;
+            body.classList.remove('h-52', 'overflow-hidden');
+            button.disabled = false;
+            button.setAttribute('aria-expanded', 'true');
+            button.innerHTML = `${lang === 'mn' ? 'Хураах' : 'Show Less'} <i class="fas fa-chevron-up ml-1"></i>`;
+        });
 
         // Custom Script to fetch Crypto News
         async function fetchCryptoNews() {
@@ -284,7 +361,7 @@
                     return;
                 }
 
-                cryptoNewsItems = data.Data.slice(0, 6);
+                cryptoNewsItems = data.Data.slice(0, 30);
                 await renderCryptoNews();
 
             } catch (error) {

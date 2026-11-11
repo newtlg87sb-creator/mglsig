@@ -1,9 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 
 const CACHE_KEY = 'cryptocompare_latest';
-const REFRESH_INTERVAL_SECONDS = 12 * 60 * 60;
+const REFRESH_INTERVAL_SECONDS = 24 * 60 * 60;
 const REFRESH_INTERVAL_MS = REFRESH_INTERVAL_SECONDS * 1000;
-const CACHE_CONTROL = 'public, max-age=300, s-maxage=43200, stale-while-revalidate=86400';
+const CACHE_CONTROL = 'public, max-age=300, s-maxage=86400, stale-while-revalidate=86400';
 const STALE_CACHE_CONTROL = 'public, max-age=60, s-maxage=300, stale-while-revalidate=86400';
 
 const supabaseUrl = process.env.SUPABASE_URL;
