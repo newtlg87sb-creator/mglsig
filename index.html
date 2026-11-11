@@ -100,10 +100,6 @@
     <script>
         window.translations = {
             mn: {
-                "exchanges-data-msg": "Биржүүдийн дата:",
-                "exchanges-data-live": "ШУУД",
-                "trade-status-msg": "Нээлттэй арилжаа явагдаж байна:",
-                "trade-status-opened": "НЭЭЛТТЭЙ",
                 "admin-notif-title": "Админы мэдэгдэл",
                 "admin-notif-msg": "MGL Signal-н хөгжүүлэлт 80%-тай үргэлжилж байна. Шинэ хэрэгслүүд удахгүй нэмэгдэнэ! 🚀",
                 "hero-title1": "ИТГЭЛТЭЙГЭЭР",
@@ -165,18 +161,10 @@
                 "feat-cta-t": "Арилжааны аялалаа эхлүүлэхэд бэлэн үү?",
                 "feat-cta-btn": "СИГНАЛРУУ ОРОХ",
                 "react-text": "Сэтгэгдэл",
-                "gold-price-msg": "Алтны үнэ:",
-                "gold-price-live": "ШУУД",
-                "wodl-puzzle-link": "WODL Таавар",
-                "wodl-puzzle-today": "Өнөөдөр",
                 "latest-news-title": "Сүүлийн үеийн мэдээ",
                 "all-news-link": "Бүх мэдээ"
             },
             en: {
-                "exchanges-data-msg": "Exchanges Data:",
-                "exchanges-data-live": "LIVE",
-                "trade-status-msg": "Live Trade:",
-                "trade-status-opened": "OPENED",
                 "admin-notif-title": "Admin Message",
                 "admin-notif-msg": "MGL Signal development is 80% complete. New tools coming soon! 🚀",
                 "hero-title1": "TRADE WITH",
@@ -233,10 +221,6 @@
                 "feat-cta-t": "Ready to start your trading journey?", "feat-cta-btn": "GO TO SIGNALS",
                 "react-text": "Reactions",
                 "nav-home": "Home", "nav-forex": "Forex", "nav-crypto": "Crypto", "nav-news": "News", "nav-more": "MENU",
-                "gold-price-msg": "GOLD Price:",
-                "wodl-puzzle-link": "WODL Puzzle",
-                "wodl-puzzle-today": "Today",
-                "gold-price-live": "LIVE",
                 "drop-alt": "Market Tools", "drop-live": "Live Tools", "sig-title": "Signals", "nav-alpha": "Alpha Signals",
                 "latest-news-title": "Latest News",
                 "all-news-link": "All News",
@@ -249,54 +233,6 @@
     </script>
 
     <script src="/static/js/header.js"></script>
-
-    <!-- Exchanges Live Data Indicator -->
-    <div class="fixed top-[88px] left-4 sm:left-6 sm:top-[92px] z-40">
-        <a href="main_exchanges.html" class="flex items-center space-x-2 sm:space-x-3 bg-brand-dark-blue/80 backdrop-blur-md border border-brand-border hover:border-brand-gold transition-all px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-xl group shadow-2xl">
-            <span class="flex h-1.5 w-1.5 sm:h-2 sm:w-2 relative">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 bg-green-500"></span>
-            </span>
-            <span data-i18n="exchanges-data-msg" class="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-white transition-colors">Exchanges Data:</span>
-            <span data-i18n="exchanges-data-live" class="text-[7px] sm:text-[9px] font-black bg-green-500 text-black px-1.5 py-0.5 rounded uppercase tracking-tighter shadow-lg shadow-green-500/20">LIVE</span>
-        </a>
-    </div>
-
-    <!-- GOLD Price Live Indicator -->
-    <div class="fixed top-[160px] left-4 sm:left-6 sm:top-[132px] z-40">
-        <a href="mainlive_gold.html" class="flex items-center space-x-2 sm:space-x-3 bg-brand-dark-blue/80 backdrop-blur-md border border-brand-border hover:border-brand-gold transition-all px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-xl group shadow-2xl">
-            <span class="flex h-1.5 w-1.5 sm:h-2 sm:w-2 relative">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 bg-amber-500"></span>
-            </span>
-            <span data-i18n="gold-price-msg" class="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-white transition-colors">GOLD Price:</span>
-            <span data-i18n="gold-price-live" class="text-[7px] sm:text-[9px] font-black bg-amber-500 text-black px-1.5 py-0.5 rounded uppercase tracking-tighter shadow-lg shadow-amber-500/20">LIVE</span>
-        </a>
-    </div>
-
-    <!-- Live Trade Status Indicator -->
-    <div class="fixed top-[124px] left-4 sm:top-[92px] sm:left-auto sm:right-6 sm:w-auto z-40">
-        <a href="mainlive_kucointrade.html" class="flex items-center space-x-2 sm:space-x-3 bg-brand-dark-blue/80 backdrop-blur-md border border-brand-border hover:border-brand-gold transition-all px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-xl group shadow-2xl">
-            <span class="flex h-1.5 w-1.5 sm:h-2 sm:w-2 relative">
-                <span id="trade-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                <span id="trade-dot" class="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 bg-green-500"></span>
-            </span>
-            <span data-i18n="trade-status-msg" class="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-white transition-colors text-ellipsis overflow-hidden whitespace-nowrap max-w-[120px] sm:max-w-none">Live Trade:</span>
-            <span id="trade-status-badge" data-i18n="trade-status-opened" class="text-[7px] sm:text-[9px] font-black bg-green-500 text-black px-1.5 py-0.5 rounded uppercase tracking-tighter shadow-lg shadow-green-500/20">OPENED</span>
-        </a>
-    </div>
-
-    <!-- WODL Link Indicator -->
-    <div class="fixed top-[160px] left-auto right-4 sm:top-[132px] sm:right-6 z-40">
-        <a href="maintool_binance_wodl.html" class="flex items-center space-x-2 sm:space-x-3 bg-brand-dark-blue/80 backdrop-blur-md border border-brand-border hover:border-brand-gold transition-all px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-xl group shadow-2xl">
-            <span class="flex h-1.5 w-1.5 sm:h-2 sm:w-2 relative">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 bg-yellow-500"></span>
-            </span>
-            <span data-i18n="wodl-puzzle-link" class="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-white transition-colors">WODL Таавар</span>
-            <span data-i18n="wodl-puzzle-today" class="text-[7px] sm:text-[9px] font-black bg-yellow-500 text-black px-1.5 py-0.5 rounded uppercase tracking-tighter shadow-lg shadow-yellow-500/20">Өнөөдөр</span>
-        </a>
-    </div>
 
     <!-- Admin Announcement Widget -->
     <div id="admin-notif-container" class="fixed bottom-6 right-6 z-50">
@@ -697,11 +633,6 @@
 
     <script>
 
-        // checkLiveTradeStatus функц байхгүй үед алдаа заахаас сэргийлж хоосон функц үүсгэв
-        if (typeof checkLiveTradeStatus === 'undefined') {
-            window.checkLiveTradeStatus = function() { console.log("Live Trade monitor active."); };
-        }
-
         function escapeNewsHtml(value) {
             return String(value ?? '').replace(/[&<>"']/g, char => ({
                 '&': '&amp;',
@@ -887,7 +818,6 @@
 
         fetchMarketData();
         fetchLatestNews();
-        checkLiveTradeStatus();
         setInterval(fetchMarketData, 30000);
     </script>
     <script src="/static/js/footer.js"></script>
