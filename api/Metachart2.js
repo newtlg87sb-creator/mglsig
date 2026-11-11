@@ -511,29 +511,17 @@ document.addEventListener("DOMContentLoaded",()=>{
   const trendText=bosTrend.hhCount+bosTrend.llCount===0
    ?"TREND: NEUTRAL · BOS 0"
    :`TREND: ${bosTrend.direction} ${bosTrend.confidence}% · HH ${bosTrend.hhCount} / LL ${bosTrend.llCount}`;
-  const showBlindAreaWarning=bosTrend.hhCount>=3&&bosTrend.llCount>=3;
-  const warningText="АНХААР: Chart сохор бүс рүү хумигдаж байна. Шийдвэргүй олон trade алдагдал ихэсгэнэ.";
   ctx.save();
   ctx.font="bold 11px Inter, sans-serif";
   ctx.textAlign="left";
   ctx.textBaseline="middle";
   const trendX=padding+10;
-  const trendY=padding+mainChartHeight-(showBlindAreaWarning?23:12);
-  const warningY=trendY+14;
+  const trendY=padding+mainChartHeight-12;
   const trendWidth=ctx.measureText(trendText).width+14;
-  const warningWidth=showBlindAreaWarning
-   ?Math.min(chartWidth-10,ctx.measureText(warningText).width+14)
-   :0;
-  const labelWidth=Math.max(trendWidth,warningWidth);
   ctx.fillStyle="rgba(7, 9, 13, 0.88)";
-  ctx.fillRect(trendX-5,trendY-11,labelWidth,showBlindAreaWarning?34:22);
+  ctx.fillRect(trendX-5,trendY-11,trendWidth,22);
   ctx.fillStyle=trendColor;
   ctx.fillText(trendText,trendX+2,trendY);
-  if(showBlindAreaWarning){
-   ctx.font="bold 10px Inter, sans-serif";
-   ctx.fillStyle="#f7d56b";
-   ctx.fillText(warningText,trendX+2,warningY,chartWidth-20);
-  }
   ctx.restore();
 
   /* LAST PRICE LINE */

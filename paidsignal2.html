@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RSI Range + BOS Trend - MGL Signal</title>
+    <title>Trendcatcher - MGL Signal</title>
     <meta name="description" content="RSI range, candle body mass, HH/LL BOS levels, and trend analysis chart.">
     <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
 
@@ -34,7 +34,7 @@
     <script>
         const pageTranslations = {
             mn: {
-                "range-page-title": "RSI Range + BOS Trend",
+                "range-page-title": "Trendcatcher",
                 "range-page-subtitle": "Сүүлийн RSI range, лааны mass болон HH/LL BOS түвшнээр трендийн бүтцийг ажиглаарай.",
                 "chart-label": "ГРАФИК",
                 "market-spot": "СПОТ",
@@ -56,11 +56,11 @@
                 "range-guide-mass-text": "Range бүрийн MASS нь өссөн лааны |close − open| нийлбэрийг ногооноор, буурсан лааны нийлбэрийг улаанаар харуулна. Энэ нь volume биш, лааны үнийн хөдөлгөөний хэмжүүр юм.",
                 "range-guide-bos-title": "HH / LL BOS",
                 "range-guide-bos-text": "Range-ийн хамгийн өндөр high (HH) болон хамгийн бага low (LL)-г түвшин болгоно. Дараагийн хаагдсан лааны close тухайн түвшнийг сэтлээгүй бол өнгөт BOS шугам графикийн баруун зах хүртэл үлдэнэ.",
-                "range-guide-trend-title": "Trend ба сохор бүс",
-                "range-guide-trend-text": "Трендийн чиглэл, хувь нь одоо нээлттэй HH/LL BOS-ийн тоонд суурилсан дүрслэл бөгөөд баталгаатай магадлал биш. HH болон LL хоёулаа 3 буюу түүнээс олон бол график сохор бүсэд хумигдаж болзошгүй: шийдвэргүй олон trade хийх нь алдагдлыг өсгөх эрсдэлтэй."
+                "range-guide-trend-title": "Trend тооцоолол",
+                "range-guide-trend-text": "Трендийн чиглэл, хувийг одоо нээлттэй HH/LL BOS түвшний тоонд үндэслэн тооцно."
             },
             en: {
-                "range-page-title": "RSI Range + BOS Trend",
+                "range-page-title": "Trendcatcher",
                 "range-page-subtitle": "Review recent RSI ranges, candle-body mass, and trend structure from HH/LL BOS levels.",
                 "chart-label": "CHART",
                 "market-spot": "SPOT",
@@ -82,8 +82,8 @@
                 "range-guide-mass-text": "For each range, MASS shows the sum of |close − open| for rising candles in green and falling candles in red. This measures price movement, not traded volume.",
                 "range-guide-bos-title": "HH / LL BOS",
                 "range-guide-bos-text": "The highest high (HH) and lowest low (LL) in a range become levels. If a later closed candle does not break a level by its close, its colored BOS line remains extended to the right edge of the chart.",
-                "range-guide-trend-title": "Trend and blind area",
-                "range-guide-trend-text": "Trend direction and percentage are visual estimates based on currently unbroken HH/LL BOS counts, not guaranteed probabilities. If both HH and LL counts reach 3 or more, the chart may be compressing into a blind area; repeated indecisive trades can increase losses."
+                "range-guide-trend-title": "Trend calculation",
+                "range-guide-trend-text": "Trend direction and percentage are calculated from the count of currently unbroken HH/LL BOS levels."
             }
         };
         if (!window.translations) window.translations = {};
@@ -166,9 +166,9 @@
                         <p data-i18n="range-guide-bos-text">Range-ийн хамгийн өндөр high (HH) болон хамгийн бага low (LL)-г түвшин болгоно. Дараагийн хаагдсан лааны close тухайн түвшнийг сэтлээгүй бол өнгөт BOS шугам графикийн баруун зах хүртэл үлдэнэ.</p>
                     </article>
                 </div>
-                <aside class="signal-guide-risk">
-                    <h3 data-i18n="range-guide-trend-title">Trend ба сохор бүс</h3>
-                    <p data-i18n="range-guide-trend-text">Трендийн чиглэл, хувь нь одоо нээлттэй HH/LL BOS-ийн тоонд суурилсан дүрслэл бөгөөд баталгаатай магадлал биш. HH болон LL хоёулаа 3 буюу түүнээс олон бол график сохор бүсэд хумигдаж болзошгүй: шийдвэргүй олон trade хийх нь алдагдлыг өсгөх эрсдэлтэй.</p>
+                <aside class="signal-guide-info">
+                    <h3 data-i18n="range-guide-trend-title">Trend тооцоолол</h3>
+                    <p data-i18n="range-guide-trend-text">Трендийн чиглэл, хувийг одоо нээлттэй HH/LL BOS түвшний тоонд үндэслэн тооцно.</p>
                 </aside>
             </section>
         </div>
