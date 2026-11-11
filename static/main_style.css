@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 body { font-family: 'Inter', sans-serif; background-color: #05070a; color: #ffffff; }
 .hero-bg {
-    background: linear-gradient(rgba(5, 7, 10, 0.3), rgba(5, 7, 10, 0.95)), url('/static/images/bull1.jpg');
+    background: linear-gradient(rgba(5, 7, 10, 0.3), rgba(5, 7, 10, 0.95)), url('/static/images/bull2.jpg');
     background-size: cover; background-position: center; background-repeat: no-repeat;
 }
 @media (min-width: 768px) { .dropdown:hover .dropdown-menu { display: block; animation: fadeIn 0.2s ease-out; } }
