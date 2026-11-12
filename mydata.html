@@ -37,7 +37,16 @@
         <p class="text-sm text-gray-400 mb-6">Зөвхөн зөвшөөрөгдсөн Supabase account энэ үр дүнг авах боломжтой.</p>
         <form id="mydata-form" class="mydata-controls">
             <label>Symbol
-                <input id="mydata-symbol" name="symbol" value="BTCUSDT" maxlength="20" required>
+                <input
+                    id="mydata-symbol"
+                    name="symbol"
+                    value="BTCUSDT"
+                    maxlength="20"
+                    list="coinList"
+                    autocomplete="off"
+                    required
+                >
+                <datalist id="coinList"></datalist>
             </label>
             <label>Market
                 <select id="mydata-market" name="market">
@@ -68,14 +77,19 @@
             <span id="monitor-status" class="monitor-status">● Monitoring</span>
         </div>
 
+        <div class="rate-progress">
+            <div id="rate-progress-bar"></div>
+        </div>
+
         <div class="rate-grid">
             <div class="rate-card">
-                <span>Requests / Min</span>
+                <span>MyData Calls / Min</span>
                 <strong id="rate-requests">0</strong>
             </div>
             <div class="rate-card">
                 <span>Request Weight</span>
-                <strong id="rate-weight">N/A</strong>
+                <strong id="rate-weight">0 / 0</strong>
+                <small id="rate-weight-percent">0%</small>
             </div>
             <div class="rate-card">
                 <span>HTTP 429</span>
@@ -108,20 +122,111 @@
         const mydataMessage = document.getElementById("mydata-message");
 
         const ADMIN_USER_ID = "21f19ae0-b35e-4984-b8dc-dc8e463b0155";
-        const REFRESH_INTERVAL = 5000;
+        const REFRESH_INTERVAL = 1000;
 
         let autoRefresh = true;
         let refreshTimer = null;
         let isLoading = false;
+
+        const marketInfoCache = new Map();
 
         const rateMonitor = {
             requests: [],
             errors429: 0,
             errors418: 0,
             weight: null,
+            weightLimit: null,
             cache: "--",
             lastRequest: "--"
         };
+
+        async function loadMarketInfo(market) {
+            const cached = marketInfoCache.get(market);
+
+            if (cached && Date.now() - cached.time < 3600000) {
+                applyMarketInfo(cached.data);
+                return;
+            }
+
+            const endpoint = market === "futures"
+                ? "https://fapi.binance.com/fapi/v1/exchangeInfo"
+                : "https://api.binance.com/api/v3/exchangeInfo";
+
+            try {
+                document.getElementById("rate-note").textContent =
+                    `${market.toUpperCase()} мэдээлэл татаж байна...`;
+
+                const response = await fetch(endpoint);
+
+                if (!response.ok) {
+                    throw new Error("ExchangeInfo татахад алдаа гарлаа.");
+                }
+
+                const data = await response.json();
+
+                marketInfoCache.set(market, {
+                    time: Date.now(),
+                    data
+                });
+
+                applyMarketInfo(data);
+
+            } catch (error) {
+                document.getElementById("rate-note").textContent =
+                    error.message;
+            }
+        }
+
+        function applyMarketInfo(data) {
+            const symbolInput = document.getElementById("mydata-symbol");
+            const datalist = document.getElementById("coinList");
+
+            const market = document.getElementById("mydata-market").value;
+
+            const limits = (data.rateLimits || []).find(item =>
+                item.rateLimitType === "REQUEST_WEIGHT" &&
+                item.interval === "MINUTE" &&
+                item.intervalNum === 1
+            );
+
+            rateMonitor.weightLimit = limits?.limit ?? null;
+
+            const symbols = (data.symbols || []).filter(item =>
+                item.status === "TRADING" &&
+                item.quoteAsset === "USDT" &&
+                (market !== "futures" ||
+                    item.contractType === "PERPETUAL" ||
+                    !item.contractType)
+            );
+
+            datalist.replaceChildren();
+
+            for (const item of symbols) {
+                const option = document.createElement("option");
+                option.value = item.symbol;
+                option.label = `${item.baseAsset} / ${item.quoteAsset}`;
+                datalist.appendChild(option);
+            }
+
+            document.getElementById("rate-note").textContent =
+                `${market.toUpperCase()} · ${symbols.length} trading pairs loaded`;
+
+            updateRateMonitor();
+        }
+
+        document.getElementById("mydata-market")
+            .addEventListener("change", async () => {
+                rateMonitor.weight = null;
+                rateMonitor.weightLimit = null;
+
+                updateRateMonitor();
+
+                await loadMarketInfo(
+                    document.getElementById("mydata-market").value
+                );
+
+                fetchMyData();
+            });
 
         function updateRateMonitor() {
             const now = Date.now();
@@ -129,6 +234,11 @@
             rateMonitor.requests = rateMonitor.requests.filter(
                 time => now - time < 60000
             );
+
+            const percent = rateMonitor.weightLimit && rateMonitor.weight !== null
+                ? Number(rateMonitor.weight) /
+                rateMonitor.weightLimit * 100
+                : 0;
 
             document.getElementById("rate-requests").textContent =
                 rateMonitor.requests.length;
@@ -140,7 +250,19 @@
                 rateMonitor.errors418;
 
             document.getElementById("rate-weight").textContent =
-                rateMonitor.weight ?? "N/A";
+                rateMonitor.weightLimit
+                    ? `${rateMonitor.weight ?? 0} / ${rateMonitor.weightLimit}`
+                    : "N/A";
+
+            document.getElementById("rate-weight-percent").textContent =
+                `${percent.toFixed(2)}%`;
+
+            document.getElementById("rate-progress-bar").style.width =
+                `${Math.min(percent, 100)}%`;
+
+            document.getElementById("rate-progress-bar").style.background =
+                percent >= 80 ? "#ef4444" :
+                percent >= 70 ? "#f59e0b" : "#4ade80";
 
             document.getElementById("rate-cache").textContent =
                 rateMonitor.cache;
@@ -150,9 +272,6 @@
 
             document.getElementById("monitor-status").textContent =
                 autoRefresh ? "● Monitoring" : "● Paused";
-
-            document.getElementById("monitor-status").style.color =
-                autoRefresh ? "#4ade80" : "#fbbf24";
         }
 
         async function fetchMyData() {
@@ -291,6 +410,10 @@
                     "Auto Refresh унтарлаа.";
 
             } else {
+                await loadMarketInfo(
+                    document.getElementById("mydata-market").value
+                );
+
                 await fetchMyData();
                 startAutoRefresh();
             }

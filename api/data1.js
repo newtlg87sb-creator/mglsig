@@ -4,7 +4,7 @@
  */
 
 // ================= MYDATA CACHE =================
-const MYDATA_CACHE_TTL = 5000;
+const MYDATA_CACHE_TTL = 1000;
 const myDataCache = new Map();
 
 // --- GMT+8 Цагийн форматлагч ---
@@ -831,9 +831,44 @@ export default async function handler(req, res) {
                     `${baseUrl}?symbol=${encodeURIComponent(symbol)}&interval=${encodeURIComponent(interval)}&limit=1000`,
                     { signal: AbortSignal.timeout(15000) }
                 );
+                // Binance-ийн бодит IP weight
+                const usedWeight = marketResponse.headers.get(
+                    "X-MBX-USED-WEIGHT-1M"
+                );
+
+                if (usedWeight !== null) {
+                    res.setHeader(
+                        "X-Binance-Used-Weight-1m",
+                        usedWeight
+                    );
+                }
+
+                // Binance 429 / 418 алдааг frontend-д дамжуулах
                 if (!marketResponse.ok) {
-                    console.error("[MYDATA SOURCE ERROR] Binance request failed", marketResponse.status);
-                    return res.status(502).json({ error: "Unable to load market data" });
+                    const status = marketResponse.status;
+
+                    if (status === 429 || status === 418) {
+                        const retryAfter = marketResponse.headers.get("Retry-After");
+
+                        if (retryAfter) {
+                            res.setHeader("Retry-After", retryAfter);
+                        }
+
+                        return res.status(status).json({
+                            error: status === 429
+                                ? "Binance rate limit exceeded"
+                                : "Binance IP temporarily banned"
+                        });
+                    }
+
+                    console.error(
+                        "[MYDATA SOURCE ERROR]",
+                        status
+                    );
+
+                    return res.status(502).json({
+                        error: "Unable to load market data"
+                    });
                 }
                 const klines = await marketResponse.json();
                 if (!Array.isArray(klines) || klines.length < Math.max(slow + signal, rsiPeriod + 5)) {
