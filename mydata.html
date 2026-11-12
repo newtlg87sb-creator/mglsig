@@ -63,7 +63,7 @@
                     <option value="15m">15m</option>
                     <option value="1h">1h</option>
                     <option value="4h">4h</option>
-                    <option value="1d">1dd</option>
+                    <option value="1d">1d</option>
                 </select>
             </label>
             <button type="submit">JSON авах</button>
@@ -72,7 +72,6 @@
         <pre id="mydata-output">{}</pre>
     </main>
 
-    
     <section id="rate-monitor" class="rate-monitor">
         <div class="rate-monitor-heading">
             <h2>Binance API Monitor</h2>
@@ -115,10 +114,7 @@
         </div>
     </section>
 
-
     <script>
-        
-                
         const mydataForm = document.getElementById("mydata-form");
         const mydataOutput = document.getElementById("mydata-output");
         const mydataMessage = document.getElementById("mydata-message");
@@ -174,15 +170,13 @@
                 applyMarketInfo(data);
 
             } catch (error) {
-                document.getElementById("rate-note").textContent =
-                    error.message;
+                document.getElementById("rate-note").textContent = error.message;
             }
         }
 
         function applyMarketInfo(data) {
             const symbolInput = document.getElementById("mydata-symbol");
             const datalist = document.getElementById("coinList");
-
             const market = document.getElementById("mydata-market").value;
 
             const limits = (data.rateLimits || []).find(item =>
@@ -216,19 +210,18 @@
             updateRateMonitor();
         }
 
-        document.getElementById("mydata-market")
-            .addEventListener("change", async () => {
-                rateMonitor.weight = null;
-                rateMonitor.weightLimit = null;
+        document.getElementById("mydata-market").addEventListener("change", async () => {
+            rateMonitor.weight = null;
+            rateMonitor.weightLimit = null;
 
-                updateRateMonitor();
+            updateRateMonitor();
 
-                await loadMarketInfo(
-                    document.getElementById("mydata-market").value
-                );
+            await loadMarketInfo(
+                document.getElementById("mydata-market").value
+            );
 
-                fetchMyData();
-            });
+            fetchMyData();
+        });
 
         function updateRateMonitor() {
             const now = Date.now();
@@ -238,42 +231,29 @@
             );
 
             const percent = rateMonitor.weightLimit && rateMonitor.weight !== null
-                ? Number(rateMonitor.weight) /
-                rateMonitor.weightLimit * 100
+                ? Number(rateMonitor.weight) / rateMonitor.weightLimit * 100
                 : 0;
 
-            document.getElementById("rate-requests").textContent =
-                rateMonitor.requests.length;
-
-            document.getElementById("rate-429").textContent =
-                rateMonitor.errors429;
-
-            document.getElementById("rate-418").textContent =
-                rateMonitor.errors418;
+            document.getElementById("rate-requests").textContent = rateMonitor.requests.length;
+            document.getElementById("rate-429").textContent = rateMonitor.errors429;
+            document.getElementById("rate-418").textContent = rateMonitor.errors418;
 
             document.getElementById("rate-weight").textContent =
                 rateMonitor.weightLimit
                     ? `${rateMonitor.weight ?? 0} / ${rateMonitor.weightLimit}`
                     : "N/A";
 
-            document.getElementById("rate-weight-percent").textContent =
-                `${percent.toFixed(2)}%`;
+            document.getElementById("rate-weight-percent").textContent = `${percent.toFixed(2)}%`;
 
-            document.getElementById("rate-progress-bar").style.width =
-                `${Math.min(percent, 100)}%`;
-
-            document.getElementById("rate-progress-bar").style.background =
+            const progressBar = document.getElementById("rate-progress-bar");
+            progressBar.style.width = `${Math.min(percent, 100)}%`;
+            progressBar.style.background =
                 percent >= 80 ? "#ef4444" :
                 percent >= 70 ? "#f59e0b" : "#4ade80";
 
-            document.getElementById("rate-cache").textContent =
-                rateMonitor.cache;
-
-            document.getElementById("rate-last").textContent =
-                rateMonitor.lastRequest;
-
-            document.getElementById("monitor-status").textContent =
-                autoRefresh ? "● Monitoring" : "● Paused";
+            document.getElementById("rate-cache").textContent = rateMonitor.cache;
+            document.getElementById("rate-last").textContent = rateMonitor.lastRequest;
+            document.getElementById("monitor-status").textContent = autoRefresh ? "● Monitoring" : "● Paused";
         }
 
         async function fetchMyData() {
@@ -300,9 +280,7 @@
                     throw new Error("MyData эрхгүй account.");
                 }
 
-                const symbol = document.getElementById("mydata-symbol")
-                    .value.trim().toUpperCase();
-
+                const symbol = document.getElementById("mydata-symbol").value.trim().toUpperCase();
                 const market = document.getElementById("mydata-market").value;
                 const interval = document.getElementById("mydata-interval").value;
 
@@ -327,52 +305,36 @@
                     }
                 });
 
-                // Binance monitor headers
-                const weight = response.headers.get(
-                    "X-Binance-Used-Weight-1m"
-                );
-
+                const weight = response.headers.get("X-Binance-Used-Weight-1m");
                 if (weight !== null) {
                     rateMonitor.weight = weight;
                 }
 
-                rateMonitor.cache =
-                    response.headers.get("X-MyData-Cache") || "--";
+                rateMonitor.cache = response.headers.get("X-MyData-Cache") || "--";
 
                 if (response.status === 429) {
                     rateMonitor.errors429++;
-                    mydataMessage.textContent =
-                        "Rate Limit! Хүсэлт түр зогсоох шаардлагатай.";
+                    mydataMessage.textContent = "Rate Limit! Хүсэлт түр зогсоох шаардлагатай.";
                     throw new Error("HTTP 429: Too many requests");
                 }
 
                 if (response.status === 418) {
                     rateMonitor.errors418++;
-                    mydataMessage.textContent =
-                        "Binance IP Ban илэрлээ.";
+                    mydataMessage.textContent = "Binance IP Ban илэрлээ.";
                     throw new Error("HTTP 418: IP banned");
                 }
 
                 const result = await response.json();
 
                 if (!response.ok) {
-                    throw new Error(
-                        result.error || "Өгөгдөл авахад алдаа гарлаа."
-                    );
+                    throw new Error(result.error || "Өгөгдөл авахад алдаа гарлаа.");
                 }
 
-                mydataOutput.textContent = JSON.stringify(
-                    result,
-                    null,
-                    2
-                );
-
-                mydataMessage.textContent =
-                    "Indicator амжилттай шинэчлэгдлээ.";
+                mydataOutput.textContent = JSON.stringify(result, null, 2);
+                mydataMessage.textContent = "Indicator амжилттай шинэчлэгдлээ.";
 
             } catch (error) {
                 mydataMessage.textContent = error.message;
-
             } finally {
                 isLoading = false;
                 updateRateMonitor();
@@ -381,14 +343,8 @@
 
         function startAutoRefresh() {
             stopAutoRefresh();
-
             autoRefresh = true;
-
-            refreshTimer = setInterval(
-                fetchMyData,
-                REFRESH_INTERVAL
-            );
-
+            refreshTimer = setInterval(fetchMyData, REFRESH_INTERVAL);
             updateRateMonitor();
         }
 
@@ -397,7 +353,6 @@
                 clearInterval(refreshTimer);
                 refreshTimer = null;
             }
-
             autoRefresh = false;
             updateRateMonitor();
         }
@@ -407,65 +362,45 @@
 
             if (autoRefresh) {
                 stopAutoRefresh();
-
-                mydataMessage.textContent =
-                    "Auto Refresh унтарлаа.";
-
+                mydataMessage.textContent = "Auto Refresh унтарлаа.";
             } else {
-                await loadMarketInfo(
-                    document.getElementById("mydata-market").value
-                );
-
+                await loadMarketInfo(document.getElementById("mydata-market").value);
                 await fetchMyData();
                 startAutoRefresh();
             }
 
-            mydataForm.querySelector(
-                "button[type='submit']"
-            ).textContent = autoRefresh
-                ? "Auto Refresh унтраах"
-                : "Auto Refresh асаах";
+            mydataForm.querySelector("button[type='submit']").textContent =
+                autoRefresh ? "Auto Refresh унтраах" : "Auto Refresh асаах";
         });
 
         window.addEventListener("beforeunload", stopAutoRefresh);
 
         (async function initializeMyData() {
             try {
-                const {
-                    data: { session }
-                } = await window.supabaseClient.auth.getSession();
+                const { data: { session } } = await window.supabaseClient.auth.getSession();
 
                 if (!session) {
-                    mydataMessage.textContent =
-                        "Эхлээд нэвтэрнэ үү.";
+                    mydataMessage.textContent = "Эхлээд нэвтэрнэ үү.";
                     return;
                 }
 
                 if (session.user.id !== ADMIN_USER_ID) {
-                    mydataMessage.textContent =
-                        "MyData эрхгүй account.";
+                    mydataMessage.textContent = "MyData эрхгүй account.";
                     return;
                 }
 
+                await loadMarketInfo(document.getElementById("mydata-market").value);
                 await fetchMyData();
-
                 startAutoRefresh();
 
-                mydataForm.querySelector(
-                    "button[type='submit']"
-                ).textContent = "Auto Refresh унтраах";
+                mydataForm.querySelector("button[type='submit']").textContent = "Auto Refresh унтраах";
 
             } catch (error) {
                 mydataMessage.textContent = error.message;
             }
         })();
 
-        // Request counter-ийг минут тутам шинэчилнэ.
         setInterval(updateRateMonitor, 1000);
-
-
-
-
     </script>
     <script src="/static/js/footer.js"></script>
 </body>
