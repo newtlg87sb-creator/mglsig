@@ -889,11 +889,11 @@ export default async function handler(req, res) {
         }
 
         if (req.method === "GET") {
-            // 1. Cron-job.org-оос ирж байгаа эсэхийг Header дээрх нууц үгээр шалгах
-            const authHeader = req.headers['authorization'];
-            const cronSecret = '21f19ae0-b35e-4984-b8dc-dc8e463b0155'; // Энд өөрийнхөө дурын нууц үгийг бичнэ
+            // 1. URL доторх query parameter-ээр нууц үгээ шалгах (жишээ нь: /api/data1?secret=...")
+            const secretKey = req.query.secret;
+            const cronSecret = '21f19ae0-b35e-4984-b8dc-dc8e463b0155';
 
-            const isCronJob = authHeader === cronSecret;
+            const isCronJob = secretKey === cronSecret;
 
             // 2. Хэрэв Cron биш бөгөөд хүн орж ирж байгаа бол админ user ID-г шалгана
             if (!isCronJob) {
