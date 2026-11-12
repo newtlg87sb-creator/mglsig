@@ -37,11 +37,5 @@
         }
       ]
     }
-  ],
-  "crons": [
-    {
-      "path": "/api/data1",
-      "schedule": "* * * * *"
-    }
   ]
 }
