@@ -889,19 +889,14 @@ export default async function handler(req, res) {
         }
 
         if (req.method === "GET") {
-            // 1. URL доторх query parameter-ээр нууц үгээ шалгах (жишээ нь: /api/data1?secret=...")
-            const secretKey = req.query.secret;
-            const cronSecret = '21f19ae0-b35e-4984-b8dc-dc8e463b0155';
-
-            const isCronJob = secretKey === cronSecret;
-
-            // 2. Хэрэв Cron биш бөгөөд хүн орж ирж байгаа бол админ user ID-г шалгана
-            if (!isCronJob) {
-                const adminUserId = "21f19ae0-b35e-4984-b8dc-dc8e463b0155";
-                if (!user || user.id !== adminUserId) {
-                    return res.status(403).json({ error: "This account cannot access MyData" });
-                }
+            const adminUserId = "21f19ae0-b35e-4984-b8dc-dc8e463b0155";
+            
+            // Хэрэглэгч нэвтэрсэн эсэх болон админ мөн эсэхийг шалгах үндсэн логик
+            if (!user || user.id !== adminUserId) {
+                return res.status(403).json({ error: "This account cannot access MyData" });
             }
+
+            // --- Энд хуучны хэвээрээ зөвхөн хэрэглэгчийн browser-оор ороход ажилладаг дата татах логик үргэлжилнэ ---
 
             const symbol = String(req.query?.symbol || "BTCUSDT").trim().toUpperCase();
             const interval = String(req.query?.interval || "1m").trim();
