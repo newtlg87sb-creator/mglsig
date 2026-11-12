@@ -5,30 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <title>MyData - MGL Signal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 'dark': '#05070a', 'dark-blue': '#0f1217', 'gold': '#c5a059', 'border': '#1f242d' }
+                    },
+                    fontFamily: { 'inter': ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+
     <link rel="stylesheet" href="/static/main_style.css">
-    <style>
-        .mydata-page { width: min(100% - 32px, 1100px); margin: 112px auto 48px; }
-        .mydata-controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
-        .mydata-controls label { display: grid; gap: 5px; color: #a0a8b5; font-size: 12px; }
-        .mydata-controls input, .mydata-controls select {
-            min-height: 40px; padding: 8px 10px; color: #fff;
-            background: #0b1017; border: 1px solid #303846; border-radius: 6px;
-        }
-        .mydata-controls button {
-            min-height: 40px; padding: 8px 16px; color: #111;
-            background: #c5a059; border: 0; border-radius: 6px;
-            font-weight: 700; cursor: pointer;
-        }
-        #mydata-output {
-            min-height: 300px; margin-top: 20px; padding: 18px; overflow: auto;
-            color: #d7e2ef; background: #080b10; border: 1px solid #252c37;
-            border-radius: 8px; white-space: pre-wrap; overflow-wrap: anywhere;
-        }
-        #mydata-message { min-height: 20px; margin-top: 12px; color: #fbbf24; }
-    </style>
+    <link rel="stylesheet" href="/static/data_style.css">
 </head>
-<body class="bg-brand-dark text-white">
+<body class="bg-brand-dark text-white font-inter">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/static/js/header.js"></script>
 

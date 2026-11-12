@@ -1,0 +1,267 @@
+
+
+/* MYDATA RESPONSIVE FIX */
+.mydata-page {
+    width: calc(100% - 32px);
+    max-width: 1100px;
+    margin: 100px auto 48px;
+    box-sizing: border-box;
+}
+
+.mydata-page * {
+    box-sizing: border-box;
+}
+
+.mydata-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+}
+
+.mydata-controls label {
+    display: grid;
+    gap: 5px;
+    flex: 1 1 150px;
+    min-width: 0;
+    color: #a0a8b5;
+    font-size: 12px;
+}
+
+.mydata-controls input,
+.mydata-controls select {
+    width: 100%;
+    min-width: 0;
+    min-height: 40px;
+    padding: 8px 10px;
+    color: #fff;
+    font-size: 14px;
+    background: #0b1017;
+    border: 1px solid #303846;
+    border-radius: 6px;
+}
+
+.mydata-controls button {
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 8px 16px;
+    color: #111;
+    background: #c5a059;
+    border: 0;
+    border-radius: 6px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+#mydata-output {
+    width: 100%;
+    max-width: 100%;
+    min-height: 300px;
+    margin-top: 20px;
+    padding: 18px;
+    overflow: auto;
+    color: #d7e2ef;
+    font-size: 12px;
+    line-height: 1.6;
+    background: #080b10;
+    border: 1px solid #252c37;
+    border-radius: 8px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    box-sizing: border-box;
+}
+
+#mydata-message {
+    min-height: 20px;
+    margin-top: 12px;
+    color: #fbbf24;
+}
+
+/* RATE MONITOR */
+.rate-monitor {
+    margin-top: 20px;
+    padding: 16px;
+    background: #0b111a;
+    border: 1px solid #303846;
+    border-radius: 10px;
+    color: #d7e2ef;
+}
+
+.rate-monitor-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+
+.rate-monitor-heading h2 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.monitor-status {
+    color: #4ade80;
+    font-size: 12px;
+}
+
+.rate-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.rate-card {
+    min-width: 0;
+    padding: 13px;
+    background: #111a26;
+    border: 1px solid #273447;
+    border-radius: 7px;
+}
+
+.rate-card span {
+    display: block;
+    color: #94a3b8;
+    font-size: 11px;
+    margin-bottom: 8px;
+}
+
+.rate-card strong {
+    display: block;
+    color: #f8fafc;
+    font-size: 21px;
+    overflow-wrap: anywhere;
+}
+
+.rate-note {
+    margin-top: 12px;
+    color: #94a3b8;
+    font-size: 11px;
+}
+
+@media (max-width: 600px) {
+    .mydata-page {
+        width: calc(100% - 24px);
+        margin-top: 85px;
+    }
+
+    .rate-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .mydata-controls button {
+        width: 100%;
+    }
+
+    #mydata-output {
+        padding: 12px;
+        font-size: 11px;
+    }
+}
+
+.rate-monitor {
+    width: min(100% - 32px, 1100px);
+    margin: 24px auto 40px;
+    padding: 20px;
+    background: #0b1017;
+    border: 1px solid #263241;
+    border-radius: 12px;
+    color: #e5edf7;
+}
+
+.rate-monitor-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.rate-monitor-heading h2 {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.monitor-status {
+    color: #4ade80;
+    font-size: 12px;
+}
+
+.rate-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.rate-card {
+    min-width: 0;
+    padding: 14px;
+    background: #111923;
+    border: 1px solid #263241;
+    border-radius: 8px;
+}
+
+.rate-card span,
+.rate-card small {
+    display: block;
+    color: #94a3b8;
+    font-size: 11px;
+}
+
+.rate-card strong {
+    display: block;
+    margin-top: 7px;
+    font-size: 21px;
+    color: #f1f5f9;
+    overflow-wrap: anywhere;
+}
+
+.rate-card small {
+    margin-top: 5px;
+    color: #c5a059;
+}
+
+.rate-progress {
+    height: 7px;
+    margin-top: 16px;
+    overflow: hidden;
+    background: #263241;
+    border-radius: 10px;
+}
+
+#rate-progress-bar {
+    width: 0%;
+    height: 100%;
+    background: #4ade80;
+    border-radius: inherit;
+    transition: width .3s ease, background .3s ease;
+}
+
+.rate-note {
+    margin-top: 12px;
+    color: #94a3b8;
+    font-size: 11px;
+}
+
+@media(max-width: 600px) {
+    .rate-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .rate-monitor {
+        padding: 14px;
+    }
+
+    .rate-card {
+        padding: 11px;
+    }
+
+    .rate-card strong {
+        font-size: 17px;
+    }
+}
