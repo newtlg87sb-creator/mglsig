@@ -135,7 +135,7 @@
 
         function startAutoRefresh() {
             stopAutoRefresh();
-            refreshTimer = setInterval(fetchMyData, 5000);
+            refreshTimer = setInterval(fetchMyData, 1000);
         }
 
         function stopAutoRefresh() {
@@ -171,6 +171,10 @@
             if (session) {
                 await fetchMyData();
                 startAutoRefresh();
+
+                mydataForm.querySelector(
+                    "button[type='submit']"
+                ).textContent = "Auto Refresh унтраах";
             } else {
                 mydataMessage.textContent = "Эхлээд нэвтэрнэ үү.";
             }

@@ -3,6 +3,10 @@
  * Python data.py файлын логикийг бүрэн орлох JavaScript сан.
  */
 
+// ================= MYDATA CACHE =================
+const MYDATA_CACHE_TTL = 5000;
+const myDataCache = new Map();
+
 // --- GMT+8 Цагийн форматлагч ---
 function _formatTimeGmt8(timestamp) {
     if (timestamp === null || timestamp === undefined) return null;
@@ -797,6 +801,28 @@ export default async function handler(req, res) {
                 return res.status(400).json({ error: "Invalid indicator periods" });
             }
 
+            // ================= MYDATA CACHE CHECK =================
+
+            const cacheKey = [
+                user.id,
+                symbol,
+                market,
+                interval,
+                fast,
+                slow,
+                signal,
+                rsiPeriod
+            ].join(":");
+
+            const cached = myDataCache.get(cacheKey);
+
+            if (cached && Date.now() - cached.timestamp < MYDATA_CACHE_TTL) {
+                res.setHeader("X-MyData-Cache", "HIT");
+                return res.status(200).json(cached.data);
+            }
+
+            res.setHeader("X-MyData-Cache", "MISS");
+
             try {
                 const baseUrl = market === "futures"
                     ? "https://fapi.binance.com/fapi/v1/klines"
@@ -817,7 +843,7 @@ export default async function handler(req, res) {
                 const macd = calculateAllMacdIndicators(klines, fast, slow, signal);
                 const rsi = calculateAllRsiIndicators(klines, rsiPeriod);
                 const ohlc = calculateOhlcTrackerReport(klines, symbol, {});
-                return res.status(200).json({
+                const responseData = {
                     status: "OK",
                     data: {
                         symbol,
@@ -827,7 +853,15 @@ export default async function handler(req, res) {
                         rsi,
                         ohlc
                     }
+                };
+
+                // Cache-д хадгалах
+                myDataCache.set(cacheKey, {
+                    timestamp: Date.now(),
+                    data: responseData
                 });
+
+                return res.status(200).json(responseData);
             } catch (error) {
                 console.error("[MYDATA CALCULATION ERROR]", error);
                 return res.status(502).json({ error: "Unable to calculate MyData indicators" });
