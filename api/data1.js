@@ -859,88 +859,102 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: "Method not allowed" });
     }
 
-    const authHeader = req.headers.authorization || "";
-    const accessToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseApiKey = req.headers.apikey;
-    if (!accessToken || !supabaseApiKey) {
-        return res.status(401).json({ error: "Sign in to use Iceberg" });
-    }
-    if (!supabaseUrl) {
-        console.error("[ICEBERG ACCESS ERROR] Supabase configuration is incomplete");
-        return res.status(503).json({ error: "Iceberg access is temporarily unavailable" });
-    }
+    // --- CRON-JOB.ORG ШАЛГАЛТ (Хамгийн эхэнд байрлана) ---
+    const secretKey = req.query?.secret;
+    const cronSecret = "21f19ae0-b35e-4984-b8dc-dc8e463b0155";
+    const isCronJob = secretKey === cronSecret;
 
-    try {
-        const authResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
-            headers: {
-                apikey: supabaseApiKey,
-                Authorization: `Bearer ${accessToken}`
-            },
-            signal: AbortSignal.timeout(10000)
-        });
-        if (!authResponse.ok) {
-            return res.status(401).json({ error: "Your session has expired. Please sign in again." });
+    let user = null;
+
+    if (!isCronJob) {
+        // Хэрэв cron робот биш бол энгийн хэрэглэгчийн auth шалгалтыг хийнэ
+        const authHeader = req.headers.authorization || "";
+        const accessToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+        const supabaseUrl = process.env.SUPABASE_URL;
+        const supabaseApiKey = req.headers.apikey;
+
+        if (!accessToken || !supabaseApiKey) {
+            return res.status(401).json({ error: "Sign in to use Iceberg" });
+        }
+        if (!supabaseUrl) {
+            console.error("[ICEBERG ACCESS ERROR] Supabase configuration is incomplete");
+            return res.status(503).json({ error: "Iceberg access is temporarily unavailable" });
         }
 
-        const user = await authResponse.json();
-        if (!user.id) {
-            return res.status(401).json({ error: "Unable to verify your account" });
+        try {
+            const authResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
+                headers: {
+                    apikey: supabaseApiKey,
+                    Authorization: `Bearer ${accessToken}`
+                },
+                signal: AbortSignal.timeout(10000)
+            });
+            if (!authResponse.ok) {
+                return res.status(401).json({ error: "Your session has expired. Please sign in again." });
+            }
+
+            user = await authResponse.json();
+            if (!user.id) {
+                return res.status(401).json({ error: "Unable to verify your account" });
+            }
+        } catch (error) {
+            return res.status(401).json({ error: "Authentication failed" });
+        }
+    }
+
+    if (req.method === "GET") {
+        const adminUserId = "21f19ae0-b35e-4984-b8dc-dc8e463b0155";
+        
+        // Хэрэв cron робот биш БӨГӨӨД админ биш бол хаана
+        if (!isCronJob && (!user || user.id !== adminUserId)) {
+            return res.status(403).json({ error: "This account cannot access MyData" });
         }
 
-        if (req.method === "GET") {
-            const adminUserId = "21f19ae0-b35e-4984-b8dc-dc8e463b0155";
-            
-            // Хэрэглэгч нэвтэрсэн эсэх болон админ мөн эсэхийг шалгах үндсэн логик
-            if (!user || user.id !== adminUserId) {
-                return res.status(403).json({ error: "This account cannot access MyData" });
-            }
+        // --- Энд хуучны хэвээрээ зөвхөн хэрэглэгчийн browser-оор ороход болон cron-оор ажилладаг дата татах логик үргэлжилнэ ---
 
-            // --- Энд хуучны хэвээрээ зөвхөн хэрэглэгчийн browser-оор ороход ажилладаг дата татах логик үргэлжилнэ ---
+        const symbol = String(req.query?.symbol || "BTCUSDT").trim().toUpperCase();
+        const interval = String(req.query?.interval || "1m").trim();
+        const market = String(req.query?.market || "spot").trim().toLowerCase();
+        const fast = Number(req.query?.fast || 12);
+        const slow = Number(req.query?.slow || 26);
+        const signal = Number(req.query?.signal || 9);
+        const rsiPeriod = Number(req.query?.rsiPeriod || 7);
+        const supportedIntervals = new Set([
+            "1s", "1m", "3m", "5m", "15m", "30m", "1h", "2h",
+            "4h", "6h", "8h", "12h", "1d", "3d", "1w", "1M"
+        ]);
 
-            const symbol = String(req.query?.symbol || "BTCUSDT").trim().toUpperCase();
-            const interval = String(req.query?.interval || "1m").trim();
-            const market = String(req.query?.market || "spot").trim().toLowerCase();
-            const fast = Number(req.query?.fast || 12);
-            const slow = Number(req.query?.slow || 26);
-            const signal = Number(req.query?.signal || 9);
-            const rsiPeriod = Number(req.query?.rsiPeriod || 7);
-            const supportedIntervals = new Set([
-                "1s", "1m", "3m", "5m", "15m", "30m", "1h", "2h",
-                "4h", "6h", "8h", "12h", "1d", "3d", "1w", "1M"
-            ]);
+        if (!["spot", "futures"].includes(market)) {
+            return res.status(400).json({ error: "Invalid symbol, interval, or market" });
+        }
 
-            if (!["spot", "futures"].includes(market)) {
-                return res.status(400).json({ error: "Invalid symbol, interval, or market" });
+        if (String(req.query?.catalog || "") === "1") {
+            const ledger = [];
+            try {
+                const entry = await ensureExchangeInfo(market, ledger);
+                applyUsageHeaders(res, market, ledger);
+                return res.status(200).json({
+                    status: "OK",
+                    market,
+                    weight_limit: entry.limit,
+                    symbols: entry.symbols
+                });
+            } catch (error) {
+                applyUsageHeaders(res, market, ledger);
+                const status = error.status === 429 || error.status === 418 ? error.status : 502;
+                return res.status(status).json({ error: "Unable to load exchange info" });
             }
+        }
 
-            if (String(req.query?.catalog || "") === "1") {
-                const ledger = [];
-                try {
-                    const entry = await ensureExchangeInfo(market, ledger);
-                    applyUsageHeaders(res, market, ledger);
-                    return res.status(200).json({
-                        status: "OK",
-                        market,
-                        weight_limit: entry.limit,
-                        symbols: entry.symbols
-                    });
-                } catch (error) {
-                    applyUsageHeaders(res, market, ledger);
-                    const status = error.status === 429 || error.status === 418 ? error.status : 502;
-                    return res.status(status).json({ error: "Unable to load exchange info" });
-                }
-            }
-
-            if (!/^[A-Z0-9]{2,20}$/.test(symbol) || !supportedIntervals.has(interval)) {
-                return res.status(400).json({ error: "Invalid symbol, interval, or market" });
-            }
-            if (![fast, slow, signal].every(period =>
-                Number.isInteger(period) && period > 0 && period <= 500
-            ) || fast >= slow ||
-                !Number.isInteger(rsiPeriod) || rsiPeriod < 1 || rsiPeriod > 500) {
-                return res.status(400).json({ error: "Invalid indicator periods" });
-            }
+        if (!/^[A-Z0-9]{2,20}$/.test(symbol) || !supportedIntervals.has(interval)) {
+            return res.status(400).json({ error: "Invalid symbol, interval, or market" });
+        }
+        if (![fast, slow, signal].every(period =>
+            Number.isInteger(period) && period > 0 && period <= 500
+        ) || fast >= slow ||
+            !Number.isInteger(rsiPeriod) || rsiPeriod < 1 || rsiPeriod > 500) {
+            return res.status(400).json({ error: "Invalid indicator periods" });
+        }
 
             // ================= MYDATA CACHE CHECK =================
 
