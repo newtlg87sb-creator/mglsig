@@ -6,6 +6,123 @@
 // ================= MYDATA CACHE =================
 const MYDATA_CACHE_TTL = 1000;
 const myDataCache = new Map();
+const EXCHANGE_INFO_TTL = 60 * 60 * 1000;
+const exchangeInfoCache = new Map();
+const lastBinanceWeight = { spot: null, futures: null };
+const fallbackWeightWindow = { spot: null, futures: null };
+
+function readUsedWeight(response) {
+    const minuteWeight = response.headers.get("x-mbx-used-weight-1m");
+    if (minuteWeight !== null && minuteWeight !== "" && Number.isFinite(Number(minuteWeight))) {
+        return Number(minuteWeight);
+    }
+
+    let found = null;
+    response.headers.forEach((value, key) => {
+        if (found === null && key.toLowerCase().includes("used-weight") && Number.isFinite(Number(value))) {
+            found = Number(value);
+        }
+    });
+    return found;
+}
+
+function fallbackRequestWeight(market, endpoint) {
+    if (endpoint === "exchangeInfo") return market === "futures" ? 1 : 20;
+    if (endpoint === "klines") return market === "futures" ? 5 : 2;
+    return 1;
+}
+
+function rememberBinanceWeight(market, usedWeight, endpoint) {
+    if (usedWeight !== null) {
+        lastBinanceWeight[market] = usedWeight;
+        return;
+    }
+
+    const now = Date.now();
+    const windowState = fallbackWeightWindow[market];
+    if (!windowState || now - windowState.start >= 60000) {
+        fallbackWeightWindow[market] = { start: now, total: 0 };
+    }
+    fallbackWeightWindow[market].total += fallbackRequestWeight(market, endpoint);
+    lastBinanceWeight[market] = fallbackWeightWindow[market].total;
+}
+
+async function binanceFetch(market, url, endpoint, ledger) {
+    let response;
+    try {
+        response = await fetch(url, { signal: AbortSignal.timeout(15000) });
+    } catch (error) {
+        ledger.push({ endpoint, status: 0, weight: null });
+        rememberBinanceWeight(market, null, endpoint);
+        throw error;
+    }
+
+    const usedWeight = readUsedWeight(response);
+    rememberBinanceWeight(market, usedWeight, endpoint);
+    ledger.push({ endpoint, status: response.status, weight: usedWeight });
+    return response;
+}
+
+function readWeightLimit(info, market) {
+    const found = (info.rateLimits || []).find(item =>
+        item.rateLimitType === "REQUEST_WEIGHT" &&
+        item.interval === "MINUTE" &&
+        Number(item.intervalNum) === 1
+    );
+    if (found && Number(found.limit) > 0) return Number(found.limit);
+    return market === "futures" ? 2400 : 6000;
+}
+
+function filterTradingPairs(info, market) {
+    return (info.symbols || []).filter(item =>
+        item.status === "TRADING" &&
+        item.quoteAsset === "USDT" &&
+        (market !== "futures" || item.contractType === "PERPETUAL" || !item.contractType)
+    ).map(item => ({
+        symbol: item.symbol,
+        baseAsset: item.baseAsset,
+        quoteAsset: item.quoteAsset
+    }));
+}
+
+async function ensureExchangeInfo(market, ledger) {
+    const cached = exchangeInfoCache.get(market);
+    if (cached && Date.now() - cached.time < EXCHANGE_INFO_TTL) return cached;
+
+    const url = market === "futures"
+        ? "https://fapi.binance.com/fapi/v1/exchangeInfo"
+        : "https://api.binance.com/api/v3/exchangeInfo";
+    const response = await binanceFetch(market, url, "exchangeInfo", ledger);
+    if (!response.ok) {
+        const error = new Error("exchangeInfo failed");
+        error.status = response.status;
+        throw error;
+    }
+
+    const info = await response.json();
+    const entry = {
+        time: Date.now(),
+        limit: readWeightLimit(info, market),
+        symbols: filterTradingPairs(info, market)
+    };
+    exchangeInfoCache.set(market, entry);
+    return entry;
+}
+
+function applyUsageHeaders(res, market, ledger) {
+    const endpoints = ledger.map(item => item.endpoint);
+    res.setHeader("X-MyData-Binance-Calls", String(ledger.length));
+    res.setHeader("X-MyData-Endpoints", endpoints.join(",") || "-");
+    res.setHeader("X-Binance-Market", market);
+
+    const limit = exchangeInfoCache.get(market)?.limit;
+    if (limit) res.setHeader("X-Binance-Weight-Limit", String(limit));
+
+    const weight = lastBinanceWeight[market];
+    if (weight !== null && Number.isFinite(weight)) {
+        res.setHeader("X-Binance-Used-Weight-1m", String(weight));
+    }
+}
 
 // --- GMT+8 Цагийн форматлагч ---
 function _formatTimeGmt8(timestamp) {
@@ -789,9 +906,29 @@ export default async function handler(req, res) {
                 "4h", "6h", "8h", "12h", "1d", "3d", "1w", "1M"
             ]);
 
-            if (!/^[A-Z0-9]{2,20}$/.test(symbol) ||
-                !supportedIntervals.has(interval) ||
-                !["spot", "futures"].includes(market)) {
+            if (!["spot", "futures"].includes(market)) {
+                return res.status(400).json({ error: "Invalid symbol, interval, or market" });
+            }
+
+            if (String(req.query?.catalog || "") === "1") {
+                const ledger = [];
+                try {
+                    const entry = await ensureExchangeInfo(market, ledger);
+                    applyUsageHeaders(res, market, ledger);
+                    return res.status(200).json({
+                        status: "OK",
+                        market,
+                        weight_limit: entry.limit,
+                        symbols: entry.symbols
+                    });
+                } catch (error) {
+                    applyUsageHeaders(res, market, ledger);
+                    const status = error.status === 429 || error.status === 418 ? error.status : 502;
+                    return res.status(status).json({ error: "Unable to load exchange info" });
+                }
+            }
+
+            if (!/^[A-Z0-9]{2,20}$/.test(symbol) || !supportedIntervals.has(interval)) {
                 return res.status(400).json({ error: "Invalid symbol, interval, or market" });
             }
             if (![fast, slow, signal].every(period =>
@@ -818,30 +955,28 @@ export default async function handler(req, res) {
 
             if (cached && Date.now() - cached.timestamp < MYDATA_CACHE_TTL) {
                 res.setHeader("X-MyData-Cache", "HIT");
+                applyUsageHeaders(res, market, []);
                 return res.status(200).json(cached.data);
             }
 
             res.setHeader("X-MyData-Cache", "MISS");
 
+            const ledger = [];
             try {
+                if (!exchangeInfoCache.get(market)?.limit) {
+                    await ensureExchangeInfo(market, ledger);
+                }
+
                 const baseUrl = market === "futures"
                     ? "https://fapi.binance.com/fapi/v1/klines"
                     : "https://api.binance.com/api/v3/klines";
-                const marketResponse = await fetch(
+                const marketResponse = await binanceFetch(
+                    market,
                     `${baseUrl}?symbol=${encodeURIComponent(symbol)}&interval=${encodeURIComponent(interval)}&limit=1000`,
-                    { signal: AbortSignal.timeout(15000) }
+                    "klines",
+                    ledger
                 );
-                // Binance-ийн бодит IP weight
-                const usedWeight = marketResponse.headers.get(
-                    "X-MBX-USED-WEIGHT-1M"
-                );
-
-                if (usedWeight !== null) {
-                    res.setHeader(
-                        "X-Binance-Used-Weight-1m",
-                        usedWeight
-                    );
-                }
+                applyUsageHeaders(res, market, ledger);
 
                 // Binance 429 / 418 алдааг frontend-д дамжуулах
                 if (!marketResponse.ok) {
