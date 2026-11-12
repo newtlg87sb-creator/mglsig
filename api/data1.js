@@ -889,9 +889,18 @@ export default async function handler(req, res) {
         }
 
         if (req.method === "GET") {
-            const adminUserId = "21f19ae0-b35e-4984-b8dc-dc8e463b0155";
-            if (user.id !== adminUserId) {
-                return res.status(403).json({ error: "This account cannot access MyData" });
+            // 1. Cron-job.org-оос ирж байгаа эсэхийг Header дээрх нууц үгээр шалгах
+            const authHeader = req.headers['authorization'];
+            const cronSecret = '21f19ae0-b35e-4984-b8dc-dc8e463b0155'; // Энд өөрийнхөө дурын нууц үгийг бичнэ
+
+            const isCronJob = authHeader === cronSecret;
+
+            // 2. Хэрэв Cron биш бөгөөд хүн орж ирж байгаа бол админ user ID-г шалгана
+            if (!isCronJob) {
+                const adminUserId = "21f19ae0-b35e-4984-b8dc-dc8e463b0155";
+                if (!user || user.id !== adminUserId) {
+                    return res.status(403).json({ error: "This account cannot access MyData" });
+                }
             }
 
             const symbol = String(req.query?.symbol || "BTCUSDT").trim().toUpperCase();
