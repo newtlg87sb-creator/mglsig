@@ -247,6 +247,8 @@ const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 window.SUPABASE_API_KEY = SB_KEY;
 const sb = (typeof supabase !== 'undefined') ? supabase.createClient(SB_URL, SB_KEY) : null;
 
+window.supabaseClient = sb;
+
 if (document.currentScript) {
     document.currentScript.insertAdjacentHTML('beforebegin', headerHTML);
 }

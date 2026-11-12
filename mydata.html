@@ -62,65 +62,80 @@
     </main>
 
     <script>
+        
         const mydataForm = document.getElementById("mydata-form");
         const mydataOutput = document.getElementById("mydata-output");
         const mydataMessage = document.getElementById("mydata-message");
 
+        const ADMIN_USER_ID = "21f19ae0-b35e-4984-b8dc-dc8e463b0155";
+
         let autoRefresh = true;
         let refreshTimer = null;
-
-        function updateControls() {
-            const btn = mydataForm.querySelector("button[type='submit']");
-            btn.textContent = autoRefresh ? "Auto Refresh унтраах" : "Auto Refresh асаах";
-        }
+        let isLoading = false;
 
         async function fetchMyData() {
-            const symbol = document.getElementById("mydata-symbol").value.trim().toUpperCase();
-            const market = document.getElementById("mydata-market").value;
-            const interval = document.getElementById("mydata-interval").value;
+            if (isLoading) return;
 
-            if (!symbol) {
-                mydataMessage.textContent = "Symbol оруулна уу.";
-                return;
-            }
-
-            const params = new URLSearchParams({ symbol, market, interval });
+            isLoading = true;
 
             try {
-                mydataMessage.textContent = "Ачаалж байна...";
-                const response = await fetch(`/api/mydata-live?${params}`, {
-                    cache: "no-store"
-                });
+                const { data: { session }, error } =
+                    await window.supabaseClient.auth.getSession();
 
-                // JSON parse үгүйгээр raw text аваж өгөгдлийг шивчлэж өгнө
-                const text = await response.text();
-
-                if (!response.ok) {
-                    throw new Error(text || `HTTP ${response.status}`);
+                if (error || !session) {
+                    throw new Error("Supabase нэвтрэх session олдсонгүй.");
                 }
 
-                mydataOutput.textContent = text;
-                mydataMessage.textContent = "Амжилттай.";
+                if (session.user.id !== ADMIN_USER_ID) {
+                    throw new Error("MyData эрхгүй account.");
+                }
+
+                const symbol = document.getElementById("mydata-symbol")
+                    .value.trim().toUpperCase();
+
+                const market = document.getElementById("mydata-market").value;
+                const interval = document.getElementById("mydata-interval").value;
+
+                const params = new URLSearchParams({
+                    symbol,
+                    market,
+                    interval,
+                    fast: 12,
+                    slow: 26,
+                    signal: 9,
+                    rsiPeriod: 7
+                });
+
+                mydataMessage.textContent = "Өөрийн indicator өгөгдлийг татаж байна...";
+
+                const response = await fetch(`/api/data1?${params}`, {
+                    method: "GET",
+                    cache: "no-store",
+                    headers: {
+                        "Authorization": `Bearer ${session.access_token}`,
+                        "apikey": window.SUPABASE_API_KEY
+                    }
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || "Өгөгдөл авахад алдаа гарлаа.");
+                }
+
+                mydataOutput.textContent = JSON.stringify(result, null, 2);
+                mydataMessage.textContent = "Бүх indicator өгөгдөл амжилттай шинэчлэгдлээ.";
+
             } catch (error) {
-                mydataMessage.textContent = error.message || "Өгөгдөл авахад алдаа гарлаа.";
+                mydataMessage.textContent = error.message;
+            } finally {
+                isLoading = false;
             }
         }
-
-        mydataForm.addEventListener("submit", event => {
-            event.preventDefault();
-            autoRefresh = !autoRefresh;
-            updateControls();
-            if (autoRefresh) {
-                fetchMyData();
-                startAutoRefresh();
-            } else {
-                stopAutoRefresh();
-            }
-        });
 
         function startAutoRefresh() {
             stopAutoRefresh();
-            refreshTimer = setInterval(fetchMyData, 1000);
+            refreshTimer = setInterval(fetchMyData, 5000);
         }
 
         function stopAutoRefresh() {
@@ -130,10 +145,37 @@
             }
         }
 
-        updateControls();
-        startAutoRefresh();
+        mydataForm.addEventListener("submit", async event => {
+            event.preventDefault();
+
+            if (autoRefresh) {
+                autoRefresh = false;
+                stopAutoRefresh();
+                mydataMessage.textContent = "Auto Refresh унтарлаа.";
+            } else {
+                autoRefresh = true;
+                await fetchMyData();
+                startAutoRefresh();
+            }
+
+            mydataForm.querySelector("button[type='submit']").textContent =
+                autoRefresh ? "Auto Refresh унтраах" : "Auto Refresh асаах";
+        });
 
         window.addEventListener("beforeunload", stopAutoRefresh);
+
+        (async () => {
+            const { data: { session } } =
+                await window.supabaseClient.auth.getSession();
+
+            if (session) {
+                await fetchMyData();
+                startAutoRefresh();
+            } else {
+                mydataMessage.textContent = "Эхлээд нэвтэрнэ үү.";
+            }
+        })();
+
     </script>
     <script src="/static/js/footer.js"></script>
 </body>
