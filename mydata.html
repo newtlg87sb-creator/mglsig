@@ -66,43 +66,74 @@
         const mydataOutput = document.getElementById("mydata-output");
         const mydataMessage = document.getElementById("mydata-message");
 
-        mydataForm.addEventListener("submit", async event => {
-            event.preventDefault();
-            mydataMessage.textContent = "Ачаалж байна...";
-            mydataForm.querySelector("button").disabled = true;
+        let autoRefresh = true;
+        let refreshTimer = null;
+
+        function updateControls() {
+            const btn = mydataForm.querySelector("button[type='submit']");
+            btn.textContent = autoRefresh ? "Auto Refresh унтраах" : "Auto Refresh асаах";
+        }
+
+        async function fetchMyData() {
+            const symbol = document.getElementById("mydata-symbol").value.trim().toUpperCase();
+            const market = document.getElementById("mydata-market").value;
+            const interval = document.getElementById("mydata-interval").value;
+
+            if (!symbol) {
+                mydataMessage.textContent = "Symbol оруулна уу.";
+                return;
+            }
+
+            const params = new URLSearchParams({ symbol, market, interval });
 
             try {
-                if (typeof sb === "undefined" || !sb || !window.SUPABASE_API_KEY) {
-                    throw new Error("Supabase нэвтрэлт боломжгүй байна.");
-                }
-                const { data: { session }, error: sessionError } = await sb.auth.getSession();
-                if (sessionError) throw sessionError;
-                if (!session?.access_token) {
-                    throw new Error("Эхлээд нэвтэрнэ үү.");
-                }
-
-                const params = new URLSearchParams({
-                    symbol: document.getElementById("mydata-symbol").value.trim().toUpperCase(),
-                    market: document.getElementById("mydata-market").value,
-                    interval: document.getElementById("mydata-interval").value
-                });
-                const response = await fetch(`/api/data1?${params}`, {
-                    headers: {
-                        apikey: window.SUPABASE_API_KEY,
-                        Authorization: `Bearer ${session.access_token}`
-                    },
+                mydataMessage.textContent = "Ачаалж байна...";
+                const response = await fetch(`/api/mydata-live?${params}`, {
                     cache: "no-store"
                 });
-                const result = await response.json();
-                mydataOutput.textContent = JSON.stringify(result, null, 2);
-                if (!response.ok) throw new Error(result.error || `HTTP ${response.status}`);
+
+                // JSON parse үгүйгээр raw text аваж өгөгдлийг шивчлэж өгнө
+                const text = await response.text();
+
+                if (!response.ok) {
+                    throw new Error(text || `HTTP ${response.status}`);
+                }
+
+                mydataOutput.textContent = text;
                 mydataMessage.textContent = "Амжилттай.";
             } catch (error) {
-                mydataMessage.textContent = error.message || "JSON авахад алдаа гарлаа.";
-            } finally {
-                mydataForm.querySelector("button").disabled = false;
+                mydataMessage.textContent = error.message || "Өгөгдөл авахад алдаа гарлаа.";
+            }
+        }
+
+        mydataForm.addEventListener("submit", event => {
+            event.preventDefault();
+            autoRefresh = !autoRefresh;
+            updateControls();
+            if (autoRefresh) {
+                fetchMyData();
+                startAutoRefresh();
+            } else {
+                stopAutoRefresh();
             }
         });
+
+        function startAutoRefresh() {
+            stopAutoRefresh();
+            refreshTimer = setInterval(fetchMyData, 1000);
+        }
+
+        function stopAutoRefresh() {
+            if (refreshTimer) {
+                clearInterval(refreshTimer);
+                refreshTimer = null;
+            }
+        }
+
+        updateControls();
+        startAutoRefresh();
+
+        window.addEventListener("beforeunload", stopAutoRefresh);
     </script>
     <script src="/static/js/footer.js"></script>
 </body>
