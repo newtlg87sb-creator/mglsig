@@ -896,6 +896,17 @@ export default async function handler(req, res) {
         return res.status(503).json({ error: "Unable to verify Iceberg access" });
     }
 
+    const usedWeight = marketResponse.headers.get(
+        "X-MBX-USED-WEIGHT-1M"
+    );
+
+    if (usedWeight !== null) {
+        res.setHeader(
+            "X-Binance-Used-Weight-1m",
+            usedWeight
+        );
+    }
+
     const { klines, fast = 12, slow = 26, signal = 9 } = req.body || {};
     if (!Array.isArray(klines) || klines.length < 5 || klines.length > 2000 ||
         klines.some(kline => !Array.isArray(kline) || kline.length < 6 ||

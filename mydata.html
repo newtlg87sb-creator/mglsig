@@ -61,29 +61,118 @@
         <pre id="mydata-output">{}</pre>
     </main>
 
+    
+    <section id="rate-monitor" class="rate-monitor">
+        <div class="rate-monitor-heading">
+            <h2>Binance API Monitor</h2>
+            <span id="monitor-status" class="monitor-status">● Monitoring</span>
+        </div>
+
+        <div class="rate-grid">
+            <div class="rate-card">
+                <span>Requests / Min</span>
+                <strong id="rate-requests">0</strong>
+            </div>
+            <div class="rate-card">
+                <span>Request Weight</span>
+                <strong id="rate-weight">N/A</strong>
+            </div>
+            <div class="rate-card">
+                <span>HTTP 429</span>
+                <strong id="rate-429">0</strong>
+            </div>
+            <div class="rate-card">
+                <span>HTTP 418</span>
+                <strong id="rate-418">0</strong>
+            </div>
+            <div class="rate-card">
+                <span>Cache</span>
+                <strong id="rate-cache">--</strong>
+            </div>
+            <div class="rate-card">
+                <span>Last Request</span>
+                <strong id="rate-last">--</strong>
+            </div>
+        </div>
+        <div class="rate-note" id="rate-note">
+            Binance API usage monitoring
+        </div>
+    </section>
+
+
     <script>
         
+                
         const mydataForm = document.getElementById("mydata-form");
         const mydataOutput = document.getElementById("mydata-output");
         const mydataMessage = document.getElementById("mydata-message");
 
         const ADMIN_USER_ID = "21f19ae0-b35e-4984-b8dc-dc8e463b0155";
+        const REFRESH_INTERVAL = 5000;
 
         let autoRefresh = true;
         let refreshTimer = null;
         let isLoading = false;
+
+        const rateMonitor = {
+            requests: [],
+            errors429: 0,
+            errors418: 0,
+            weight: null,
+            cache: "--",
+            lastRequest: "--"
+        };
+
+        function updateRateMonitor() {
+            const now = Date.now();
+
+            rateMonitor.requests = rateMonitor.requests.filter(
+                time => now - time < 60000
+            );
+
+            document.getElementById("rate-requests").textContent =
+                rateMonitor.requests.length;
+
+            document.getElementById("rate-429").textContent =
+                rateMonitor.errors429;
+
+            document.getElementById("rate-418").textContent =
+                rateMonitor.errors418;
+
+            document.getElementById("rate-weight").textContent =
+                rateMonitor.weight ?? "N/A";
+
+            document.getElementById("rate-cache").textContent =
+                rateMonitor.cache;
+
+            document.getElementById("rate-last").textContent =
+                rateMonitor.lastRequest;
+
+            document.getElementById("monitor-status").textContent =
+                autoRefresh ? "● Monitoring" : "● Paused";
+
+            document.getElementById("monitor-status").style.color =
+                autoRefresh ? "#4ade80" : "#fbbf24";
+        }
 
         async function fetchMyData() {
             if (isLoading) return;
 
             isLoading = true;
 
+            rateMonitor.requests.push(Date.now());
+            rateMonitor.lastRequest = new Date().toLocaleTimeString();
+
+            updateRateMonitor();
+
             try {
-                const { data: { session }, error } =
-                    await window.supabaseClient.auth.getSession();
+                const {
+                    data: { session },
+                    error
+                } = await window.supabaseClient.auth.getSession();
 
                 if (error || !session) {
-                    throw new Error("Supabase нэвтрэх session олдсонгүй.");
+                    throw new Error("Supabase session олдсонгүй.");
                 }
 
                 if (session.user.id !== ADMIN_USER_ID) {
@@ -106,79 +195,151 @@
                     rsiPeriod: 7
                 });
 
-                mydataMessage.textContent = "Өөрийн indicator өгөгдлийг татаж байна...";
+                mydataMessage.textContent = "Indicator татаж байна...";
 
                 const response = await fetch(`/api/data1?${params}`, {
                     method: "GET",
                     cache: "no-store",
                     headers: {
-                        "Authorization": `Bearer ${session.access_token}`,
-                        "apikey": window.SUPABASE_API_KEY
+                        Authorization: `Bearer ${session.access_token}`,
+                        apikey: window.SUPABASE_API_KEY
                     }
                 });
+
+                // Binance monitor headers
+                const weight = response.headers.get(
+                    "X-Binance-Used-Weight-1m"
+                );
+
+                if (weight !== null) {
+                    rateMonitor.weight = weight;
+                }
+
+                rateMonitor.cache =
+                    response.headers.get("X-MyData-Cache") || "--";
+
+                if (response.status === 429) {
+                    rateMonitor.errors429++;
+                    mydataMessage.textContent =
+                        "Rate Limit! Хүсэлт түр зогсоох шаардлагатай.";
+                    throw new Error("HTTP 429: Too many requests");
+                }
+
+                if (response.status === 418) {
+                    rateMonitor.errors418++;
+                    mydataMessage.textContent =
+                        "Binance IP Ban илэрлээ.";
+                    throw new Error("HTTP 418: IP banned");
+                }
 
                 const result = await response.json();
 
                 if (!response.ok) {
-                    throw new Error(result.error || "Өгөгдөл авахад алдаа гарлаа.");
+                    throw new Error(
+                        result.error || "Өгөгдөл авахад алдаа гарлаа."
+                    );
                 }
 
-                mydataOutput.textContent = JSON.stringify(result, null, 2);
-                mydataMessage.textContent = "Бүх indicator өгөгдөл амжилттай шинэчлэгдлээ.";
+                mydataOutput.textContent = JSON.stringify(
+                    result,
+                    null,
+                    2
+                );
+
+                mydataMessage.textContent =
+                    "Indicator амжилттай шинэчлэгдлээ.";
 
             } catch (error) {
                 mydataMessage.textContent = error.message;
+
             } finally {
                 isLoading = false;
+                updateRateMonitor();
             }
         }
 
         function startAutoRefresh() {
             stopAutoRefresh();
-            refreshTimer = setInterval(fetchMyData, 1000);
+
+            autoRefresh = true;
+
+            refreshTimer = setInterval(
+                fetchMyData,
+                REFRESH_INTERVAL
+            );
+
+            updateRateMonitor();
         }
 
         function stopAutoRefresh() {
-            if (refreshTimer) {
+            if (refreshTimer !== null) {
                 clearInterval(refreshTimer);
                 refreshTimer = null;
             }
+
+            autoRefresh = false;
+            updateRateMonitor();
         }
 
         mydataForm.addEventListener("submit", async event => {
             event.preventDefault();
 
             if (autoRefresh) {
-                autoRefresh = false;
                 stopAutoRefresh();
-                mydataMessage.textContent = "Auto Refresh унтарлаа.";
+
+                mydataMessage.textContent =
+                    "Auto Refresh унтарлаа.";
+
             } else {
-                autoRefresh = true;
                 await fetchMyData();
                 startAutoRefresh();
             }
 
-            mydataForm.querySelector("button[type='submit']").textContent =
-                autoRefresh ? "Auto Refresh унтраах" : "Auto Refresh асаах";
+            mydataForm.querySelector(
+                "button[type='submit']"
+            ).textContent = autoRefresh
+                ? "Auto Refresh унтраах"
+                : "Auto Refresh асаах";
         });
 
         window.addEventListener("beforeunload", stopAutoRefresh);
 
-        (async () => {
-            const { data: { session } } =
-                await window.supabaseClient.auth.getSession();
+        (async function initializeMyData() {
+            try {
+                const {
+                    data: { session }
+                } = await window.supabaseClient.auth.getSession();
 
-            if (session) {
+                if (!session) {
+                    mydataMessage.textContent =
+                        "Эхлээд нэвтэрнэ үү.";
+                    return;
+                }
+
+                if (session.user.id !== ADMIN_USER_ID) {
+                    mydataMessage.textContent =
+                        "MyData эрхгүй account.";
+                    return;
+                }
+
                 await fetchMyData();
+
                 startAutoRefresh();
 
                 mydataForm.querySelector(
                     "button[type='submit']"
                 ).textContent = "Auto Refresh унтраах";
-            } else {
-                mydataMessage.textContent = "Эхлээд нэвтэрнэ үү.";
+
+            } catch (error) {
+                mydataMessage.textContent = error.message;
             }
         })();
+
+        // Request counter-ийг минут тутам шинэчилнэ.
+        setInterval(updateRateMonitor, 1000);
+
+
+
 
     </script>
     <script src="/static/js/footer.js"></script>
