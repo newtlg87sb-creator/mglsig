@@ -309,10 +309,16 @@ function calculateMacdPeaks(klines, fast = 12, slow = 26, signal = 9) {
     }
 
     return {
-        "macd_peak": macd_peak,
-        "macd_trough": macd_trough,
-        "last_peak": last_peak,
-        "last_trough": last_trough,
+        "macd_peak_value": macd_peak.macd_value,
+        "macd_peak_price": macd_peak.price,
+        "macd_trough_value": macd_trough.macd_value,
+        "macd_trough_price": macd_trough.price,
+        "last_peak_value": last_peak ? last_peak.macd_value : null,
+        "last_peak_price": last_peak ? last_peak.price : null,
+        "last_peak_time": last_peak ? last_peak.time : null,
+        "last_trough_value": last_trough ? last_trough.macd_value : null,
+        "last_trough_price": last_trough ? last_trough.price : null,
+        "last_trough_time": last_trough ? last_trough.time : null,
     };
 }
 
@@ -324,8 +330,8 @@ function calculateMacdAverage(klines, fast = 12, slow = 26, signal = 9) {
     }
     let values = macdLine.slice(Math.max(0, macdLine.length - 5), macdLine.length - 1).map(Number);
     let peaks = calculateMacdPeaks(klines, fast, slow, signal);
-    let peak_value = peaks.macd_peak.macd_value;
-    let trough_value = peaks.macd_trough.macd_value;
+    let peak_value = peaks.macd_peak_value;
+    let trough_value = peaks.macd_trough_value;
     let minVal = Math.min(...values);
     let maxVal = Math.max(...values);
     return {
