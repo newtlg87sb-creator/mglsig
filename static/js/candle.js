@@ -182,16 +182,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    window.draw = draw;
+
     function startWebSocket() {
         if (socket) { socket.onclose = null; socket.close(); }
         let currentCoin = coinEl.value.toUpperCase().replace(/[^A-Z0-9]/g, '') || "BTCUSDT";
-        const wsUrl = `wss://stream.binance.com/ws/${currentCoin.toLowerCase()}@kline_${interval}`;
+        const wsHost = marketEl.value === "futures" ? "wss://fstream.binance.com/ws" : "wss://stream.binance.com/ws";
+        const wsUrl = `${wsHost}/${currentCoin.toLowerCase()}@kline_${interval}`;
         socket = new WebSocket(wsUrl);
         const dot = document.getElementById('ws-dot'), text = document.getElementById('ws-text');
 
         socket.onopen = () => {
             if (dot) dot.className = "w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse";
             if (text) { text.innerText = `${marketEl.value.toUpperCase()} LIVE`; text.className = "text-[9px] font-black uppercase text-green-500"; }
+        };
+        socket.onerror = () => {
+            if (text) { text.innerText = "CONNECTION ERROR"; text.className = "text-[9px] font-black uppercase text-red-500"; }
+            if (dot) dot.className = "w-1.5 h-1.5 rounded-full bg-red-500";
+        };
+        socket.onclose = () => {
+            if (text) { text.innerText = "DISCONNECTED"; text.className = "text-[9px] font-black uppercase text-gray-500"; }
+            if (dot) dot.className = "w-1.5 h-1.5 rounded-full bg-red-500";
         };
         socket.onmessage = e => {
             const res = JSON.parse(e.data);

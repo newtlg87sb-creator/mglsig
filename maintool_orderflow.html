@@ -25,7 +25,7 @@
 
         .orderflow-page {
             width: 100%;
-            padding: 96px 16px 20px;
+            padding: 72px 16px 20px;
         }
 
         .orderflow-shell {
@@ -39,15 +39,6 @@
         .orderflow-topbar {
             display: flex;
             flex-direction: column;
-            gap: 8px;
-        }
-
-        .orderflow-back {
-            width: fit-content;
-            color: #8290a3;
-            font-size: 10px;
-            font-weight: 600;
-            letter-spacing: .02em;
         }
 
         .orderflow-heading h1 {
@@ -294,7 +285,7 @@
 
         @media (max-width: 760px) {
             .orderflow-page {
-                padding: 86px 8px 14px;
+                padding: 66px 8px 14px;
             }
 
             .orderflow-shell {
@@ -370,7 +361,6 @@
     <script>
         const pageTranslations = {
             mn: {
-                "orderflow-back": "Шууд хэрэгслүүд рүү буцах",
                 "orderflow-title": "Захиалгын урсгал",
                 "orderflow-subtitle": "Үнэ бүр дээр бодитоор биелсэн худалдан авалт, борлуулалтын хэмжээг харьцуулж харна.",
                 "orderflow-guide-title": "Footprint-ийг хэрхэн унших вэ?",
@@ -407,7 +397,6 @@
                 "orderflow-stats-total": "НИЙТ VOL"
             },
             en: {
-                "orderflow-back": "Back to Live Tools",
                 "orderflow-title": "Order flow",
                 "orderflow-subtitle": "Compare executed buyer- and seller-initiated volume at each price level.",
                 "orderflow-guide-title": "How to read the footprint",
@@ -454,9 +443,6 @@
     <main class="orderflow-page flex-grow">
         <div class="orderflow-shell">
             <div class="orderflow-topbar">
-                <a href="/main_live_tools.html" data-i18n="orderflow-back" class="orderflow-back">
-                    <i class="fas fa-arrow-left mr-2"></i> Шууд хэрэгслүүд рүү буцах
-                </a>
                 <div class="orderflow-heading">
                     <h1><span data-i18n="orderflow-title">Захиалгын урсгал</span> <span>Footprint</span></h1>
                     <p data-i18n="orderflow-subtitle">Үнэ бүр дээр бодитоор биелсэн худалдан авалт, борлуулалтын хэмжээг харьцуулж харна.</p>

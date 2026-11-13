@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pattern Identifier - MGL Signal</title>
+    <title>Candlestick Pattern Scanner - MGL Signal</title>
     <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -18,50 +18,69 @@
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/main_style.css">
+    <style>
+        .pattern-page #chart-wrapper {
+            height: clamp(360px, 62vh, 520px) !important;
+            border: 1px solid #1f242d;
+            border-radius: 12px;
+        }
+
+        .pattern-filter {
+            display: flex;
+            min-height: 42px;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #1f242d;
+            border-radius: 9px;
+            background: rgba(255, 255, 255, .025);
+            padding: 8px 10px;
+            color: #cbd5e1;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .pattern-filter input {
+            accent-color: #c5a059;
+            flex: 0 0 auto;
+        }
+    </style>
 </head>
 <body class="bg-brand-dark text-white font-inter flex flex-col min-h-screen">
     <script src="/static/js/header.js"></script>
 
-    <main class="flex-grow pt-32 pb-12 px-4 md:px-6">
-        <div class="max-w-7xl mx-auto flex flex-col gap-6">
-            <div class="mb-4">
-                <a href="/main_live_tools.html" class="inline-flex items-center text-gray-500 hover:text-brand-gold transition text-[10px] font-black uppercase tracking-widest">
-                    <i class="fas fa-arrow-left mr-2"></i> Back to Live Tools
-                </a>
+    <main class="pattern-page flex-grow pt-16 pb-8 px-3 md:px-6">
+        <div class="max-w-7xl mx-auto flex flex-col gap-3">
+            <div class="flex flex-col gap-1">
+                <p class="text-[9px] font-bold uppercase tracking-[.18em] text-brand-gold">MGL SIGNAL · TECHNICAL TOOL</p>
+                <div class="flex flex-wrap items-end justify-between gap-2">
+                    <h1 class="text-xl md:text-2xl font-bold tracking-tight text-white">Лааны хээний сканнер <span class="text-sm font-medium text-gray-500">· Candlestick Patterns</span></h1>
+                    <p id="pattern-summary" class="text-[10px] font-semibold text-gray-400" aria-live="polite">Лаа ачаалж байна…</p>
+                </div>
+                <p class="text-[11px] leading-relaxed text-gray-500">Хээ нь өмнөх үнийн чиглэл болон лааны харьцааг хамтад нь шалгана. 24/7 крипто захад gap шаардахгүй. Зөвхөн хаагдсан лааг тэмдэглэнэ; дангаараа арилжааны дохио биш.</p>
             </div>
 
-            <script src="/static/js/control.js"></script>
+            <script src="/static/js/control.js" data-hide="rsi,ema,ma,leverage,balance,side"></script>
 
-            <!-- Pattern Toggles Grid -->
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                <div class="data-card !min-h-[60px] flex-row items-center justify-between px-4">
-                    <span class="label !mb-0">Doji</span>
-                    <input type="checkbox" id="toggle-doji" class="w-3 h-3 accent-brand-gold" checked>
-                </div>
-                <div class="data-card !min-h-[60px] flex-row items-center justify-between px-4">
-                    <span class="label !mb-0">Hammer</span>
-                    <input type="checkbox" id="toggle-hammer" class="w-3 h-3 accent-brand-gold" checked>
-                </div>
-                <div class="data-card !min-h-[60px] flex-row items-center justify-between px-4">
-                    <span class="label !mb-0">Engulfing</span>
-                    <input type="checkbox" id="toggle-engulfing" class="w-3 h-3 accent-brand-gold" checked>
-                </div>
-                <div class="data-card !min-h-[60px] flex-row items-center justify-between px-4">
-                    <span class="label !mb-0">3 Soldiers</span>
-                    <input type="checkbox" id="toggle-soldiers" class="w-3 h-3 accent-brand-gold" checked>
-                </div>
-                <div class="data-card !min-h-[60px] flex-row items-center justify-between px-4">
-                    <span class="label !mb-0">Stars</span>
-                    <input type="checkbox" id="toggle-stars" class="w-3 h-3 accent-brand-gold" checked>
-                </div>
-                <div class="data-card !min-h-[60px] flex-row items-center justify-between px-4">
-                    <span class="label !mb-0">Harami</span>
-                    <input type="checkbox" id="toggle-harami" class="w-3 h-3 accent-brand-gold" checked>
-                </div>
+            <section class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2" aria-label="Pattern filters">
+                <label class="pattern-filter"><input type="checkbox" id="toggle-doji" checked><span>Doji · indecision</span></label>
+                <label class="pattern-filter"><input type="checkbox" id="toggle-hammer" checked><span>Hammer / Shooting Star</span></label>
+                <label class="pattern-filter"><input type="checkbox" id="toggle-engulfing" checked><span>Engulfing</span></label>
+                <label class="pattern-filter"><input type="checkbox" id="toggle-soldiers" checked><span>3 Soldiers / Crows</span></label>
+                <label class="pattern-filter"><input type="checkbox" id="toggle-stars" checked><span>Morning / Evening Star</span></label>
+                <label class="pattern-filter"><input type="checkbox" id="toggle-harami" checked><span>Harami</span></label>
             </div>
 
-            <script src="/static/js/data.js"></script>
             <script src="/static/js/candle.js"></script>
+
+            <section class="rounded-xl border border-brand-border bg-brand-dark-blue/70 p-3 md:p-4">
+                <div class="mb-2 flex items-center justify-between gap-3">
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-gray-300">Сүүлд батлагдсан хээнүүд</h2>
+                    <span class="text-[9px] text-gray-600">Recent confirmed patterns</span>
+                </div>
+                <div id="pattern-list" class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4" aria-live="polite">
+                    <p class="text-[11px] text-gray-500">Хээ илрүүлж байна…</p>
+                </div>
+            </section>
         </div>
     </main>
 
@@ -69,24 +88,124 @@
     <script src="/static/lock.js"></script>
 
     <script>
-    /**
-     * PATTERN IDENTIFIER PLUGIN
-     */
     (function() {
-        const isLong = (k) => { const body = Math.abs(k.o - k.c); const range = k.h - k.l; return range > 0 && body / range > 0.5; };
-        const isDoji = (k) => { const body = Math.abs(k.o - k.c); const range = k.h - k.l; return range > 0 && body / range < 0.1; };
-        const isHammer = (k) => { const body = Math.abs(k.o - k.c); const r = k.h - k.l; if(r===0) return false; return (Math.min(k.o,k.c)-k.l) >= body*2 && (k.h-Math.max(k.o,k.c))/r < 0.1; };
-        const isShootingStar = (k) => { const body = Math.abs(k.o - k.c); const r = k.h - k.l; if(r===0) return false; return (k.h-Math.max(k.o,k.c)) >= body*2 && (Math.min(k.o,k.c)-k.l)/r < 0.1; };
-        const isBullishEngulfing = (k, p) => p && k.c > k.o && p.c < p.o && k.c > p.o && k.o < p.c;
-        const isBearishEngulfing = (k, p) => p && k.c < k.o && p.c > p.o && k.o > p.c && k.c < p.o;
-        const isBullishHarami = (k, p) => p && p.c < p.o && k.c > k.o && k.o > p.c && k.c < p.o && Math.abs(k.o-k.c) < Math.abs(p.o-p.c);
-        const isBearishHarami = (k, p) => p && p.c > p.o && k.c < k.o && k.o < p.c && k.c > p.o && Math.abs(k.o-k.c) < Math.abs(p.o-p.c);
+        let lastResultSignature = null;
 
-        const getC = (arr, i) => { if(!arr[i]) return null; return { o: arr[i][1], h: arr[i][2], l: arr[i][3], c: arr[i][4] }; };
+        const getCandle = (rows, index) => {
+            const row = rows[index];
+            if (!row) return null;
+            const [, o, h, l, c] = row.map(Number);
+            if (![o, h, l, c].every(Number.isFinite) || h <= l || h < Math.max(o, c) || l > Math.min(o, c)) return null;
+            return {
+                o, h, l, c,
+                range: h - l,
+                body: Math.abs(c - o),
+                upper: h - Math.max(o, c),
+                lower: Math.min(o, c) - l
+            };
+        };
+        const isBullish = k => k.c > k.o;
+        const isBearish = k => k.c < k.o;
+        const hasLongBody = k => k.body / k.range >= 0.55;
+        const hasSmallBody = k => k.body / k.range <= 0.3;
+
+        const hasTrend = (rows, endIndex, direction) => {
+            const start = endIndex - 4;
+            if (start < 0) return false;
+            const candles = Array.from({ length: 4 }, (_, i) => getCandle(rows, start + i));
+            if (candles.some(c => !c)) return false;
+            const moves = candles.slice(1).map((c, i) => c.c - candles[i].c);
+            const directionalMoves = moves.filter(move => direction === 'up' ? move > 0 : move < 0).length;
+            const averageRange = candles.reduce((sum, c) => sum + c.range, 0) / candles.length;
+            const netMove = candles[3].c - candles[0].c;
+            return directionalMoves >= 2 && (direction === 'up'
+                ? netMove > averageRange * 0.25
+                : netMove < -averageRange * 0.25);
+        };
+
+        const getPattern = (rows, index, show) => {
+            const k = getCandle(rows, index);
+            const p = getCandle(rows, index - 1);
+            const pp = getCandle(rows, index - 2);
+            if (!k || index === rows.length - 1) return null;
+
+            if (show.soldiers && index >= 2) {
+                const first = getCandle(rows, index - 2);
+                const second = p;
+                const third = k;
+                if (first && second && third) {
+                    const soldiers = [first, second, third].every((c, i, bars) =>
+                        isBullish(c) && hasLongBody(c) && c.upper / c.range <= 0.25 &&
+                        (i === 0 || (c.o >= bars[i - 1].o && c.o <= bars[i - 1].c && c.c > bars[i - 1].c))
+                    );
+                    if (soldiers && hasTrend(rows, index - 2, 'down')) {
+                        return { text: '3 WHITE SOLDIERS', direction: 'bullish', price: k.l };
+                    }
+
+                    const crows = [first, second, third].every((c, i, bars) =>
+                        isBearish(c) && hasLongBody(c) && c.lower / c.range <= 0.25 &&
+                        (i === 0 || (c.o <= bars[i - 1].o && c.o >= bars[i - 1].c && c.c < bars[i - 1].c))
+                    );
+                    if (crows && hasTrend(rows, index - 2, 'up')) {
+                        return { text: '3 BLACK CROWS', direction: 'bearish', price: k.h };
+                    }
+                }
+            }
+
+            if (show.stars && p && pp && hasLongBody(pp) && hasTrend(rows, index - 2, isBearish(pp) ? 'down' : 'up')) {
+                const midpoint = (pp.o + pp.c) / 2;
+                const smallStar = p.body <= pp.body * 0.3 && hasSmallBody(p);
+                if (isBearish(pp) && smallStar && Math.max(p.o, p.c) <= midpoint &&
+                    isBullish(k) && hasLongBody(k) && k.c > midpoint) {
+                    return { text: 'MORNING STAR', direction: 'bullish', price: k.l };
+                }
+                if (isBullish(pp) && smallStar && Math.min(p.o, p.c) >= midpoint &&
+                    isBearish(k) && hasLongBody(k) && k.c < midpoint) {
+                    return { text: 'EVENING STAR', direction: 'bearish', price: k.h };
+                }
+            }
+
+            if (show.engulfing && p && p.body > 0) {
+                if (isBullish(k) && isBearish(p) && hasLongBody(k) &&
+                    k.o < p.c && k.c > p.o && hasTrend(rows, index - 1, 'down')) {
+                    return { text: 'BULL ENGULFING', direction: 'bullish', price: k.l };
+                }
+                if (isBearish(k) && isBullish(p) && hasLongBody(k) &&
+                    k.o > p.c && k.c < p.o && hasTrend(rows, index - 1, 'up')) {
+                    return { text: 'BEAR ENGULFING', direction: 'bearish', price: k.h };
+                }
+            }
+
+            if (show.harami && p && hasLongBody(p) && k.body < p.body * 0.5) {
+                if (isBullish(k) && isBearish(p) && k.o > p.c && k.c < p.o &&
+                    hasTrend(rows, index - 1, 'down')) {
+                    return { text: 'BULL HARAMI', direction: 'bullish', price: k.l };
+                }
+                if (isBearish(k) && isBullish(p) && k.o < p.c && k.c > p.o &&
+                    hasTrend(rows, index - 1, 'up')) {
+                    return { text: 'BEAR HARAMI', direction: 'bearish', price: k.h };
+                }
+            }
+
+            if (show.hammer && k.body > 0 && k.body / k.range <= 0.3) {
+                if (k.lower >= k.body * 2 && k.lower / k.range >= 0.55 &&
+                    k.upper / k.range <= 0.15 && hasTrend(rows, index, 'down')) {
+                    return { text: 'HAMMER', direction: 'bullish', price: k.l };
+                }
+                if (k.upper >= k.body * 2 && k.upper / k.range >= 0.55 &&
+                    k.lower / k.range <= 0.15 && hasTrend(rows, index, 'up')) {
+                    return { text: 'SHOOTING STAR', direction: 'bearish', price: k.h };
+                }
+            }
+
+            if (show.doji && k.body / k.range <= 0.1) {
+                return { text: 'DOJI', direction: 'neutral', price: k.h };
+            }
+            return null;
+        };
 
         window.onChartDrawOverlay = function(ctx, engine) {
             const { priceToY, candleWidth, padding, visibleData, visibleStartIndex, allData } = engine;
-            
             const show = {
                 doji: document.getElementById('toggle-doji').checked,
                 hammer: document.getElementById('toggle-hammer').checked,
@@ -96,65 +215,90 @@
                 harami: document.getElementById('toggle-harami').checked
             };
 
-            ctx.font = "bold 8px Inter";
+            const matches = [];
+            ctx.save();
+            ctx.font = "600 9px Inter, Arial, sans-serif";
             ctx.textAlign = "center";
 
             for (let i = 0; i < visibleData.length; i++) {
                 const idx = visibleStartIndex + i;
-                const k = getC(allData, idx);
-                const p = getC(allData, idx - 1);
-                const pp = getC(allData, idx - 2);
-                if (!k) continue;
-
-                let label = "";
-                let yPos = 0;
-
-                // Engulfing
-                if (show.engulfing) {
-                    if (isBullishEngulfing(k, p)) { label = "BULL ENGULF"; yPos = k.l; }
-                    else if (isBearishEngulfing(k, p)) { label = "BEAR ENGULF"; yPos = k.h; }
-                }
-
-                // Harami
-                if (!label && show.harami) {
-                    if (isBullishHarami(k, p)) { label = "BULL HARAMI"; yPos = k.l; }
-                    else if (isBearishHarami(k, p)) { label = "BEAR HARAMI"; yPos = k.h; }
-                }
-
-                // Morning/Evening Star
-                if (!label && show.stars && pp && p) {
-                    const isFirstGreen = pp.c > pp.o && isLong(pp);
-                    const isFirstRed = pp.c < pp.o && isLong(pp);
-                    const isStar = Math.abs(p.o-p.c)/(p.h-p.l) < 0.3;
-                    
-                    if (isFirstRed && isStar && k.c > k.o && k.c > (pp.o+pp.c)/2) { label = "MORNING STAR"; yPos = k.l; }
-                    else if (isFirstGreen && isStar && k.c < k.o && k.c < (pp.o+pp.c)/2) { label = "EVENING STAR"; yPos = k.h; }
-                }
-
-                // Doji/Hammer
-                if (!label) {
-                    if (show.doji && isDoji(k)) { label = "DOJI"; yPos = k.h; }
-                    else if (show.hammer && isHammer(k)) { label = "HAMMER"; yPos = k.l; }
-                    else if (show.hammer && isShootingStar(k)) { label = "S. STAR"; yPos = k.h; }
-                }
-
-                if (label) {
+                const pattern = getPattern(allData, idx, show);
+                if (pattern) {
                     const x = padding + i * candleWidth + candleWidth / 2;
-                    const y = priceToY(yPos) + (yPos === k.l ? 15 : -10);
-                    
-                    ctx.fillStyle = "rgba(197, 160, 89, 0.2)";
-                    const txtWidth = ctx.measureText(label).width + 8;
-                    ctx.fillRect(x - txtWidth/2, y - 8, txtWidth, 12);
-                    
-                    ctx.fillStyle = "#c5a059";
-                    ctx.fillText(label, x, y + 1);
+                    const color = pattern.direction === 'bullish' ? '#34d399'
+                        : pattern.direction === 'bearish' ? '#fb7185' : '#fbbf24';
+                    const yOffset = pattern.direction === 'bullish' ? 10 : -10;
+                    const y = Math.max(8, Math.min(ctx.canvas.height - 8, priceToY(pattern.price) + yOffset));
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    if (pattern.direction === 'neutral') {
+                        ctx.arc(x, y, 3, 0, Math.PI * 2);
+                    } else if (pattern.direction === 'bullish') {
+                        ctx.moveTo(x, y - 4);
+                        ctx.lineTo(x + 4, y + 3);
+                        ctx.lineTo(x - 4, y + 3);
+                        ctx.closePath();
+                    } else {
+                        ctx.moveTo(x, y + 4);
+                        ctx.lineTo(x + 4, y - 3);
+                        ctx.lineTo(x - 4, y - 3);
+                        ctx.closePath();
+                    }
+                    ctx.fill();
+                    matches.push({ ...pattern, time: allData[idx][0] });
                 }
+            }
+
+            ctx.restore();
+
+            const summary = document.getElementById('pattern-summary');
+            if (summary) {
+                summary.textContent = matches.length
+                    ? `${matches.length} хээ · Сүүлийн: ${matches[matches.length - 1].text}`
+                    : 'Харагдаж буй лаанд батлагдсан хээ алга';
+            }
+
+            const signature = matches.map(pattern => `${pattern.time}:${pattern.text}`).join('|');
+            if (signature !== lastResultSignature) {
+                lastResultSignature = signature;
+                const list = document.getElementById('pattern-list');
+                if (!list) return;
+                list.replaceChildren();
+                const recent = matches.slice(-8).reverse();
+                if (!recent.length) {
+                    const empty = document.createElement('p');
+                    empty.className = 'text-[11px] text-gray-500';
+                    empty.textContent = 'Харагдаж буй лаанд батлагдсан хээ алга';
+                    list.appendChild(empty);
+                    return;
+                }
+                recent.forEach(pattern => {
+                    const row = document.createElement('div');
+                    row.className = 'flex items-center justify-between gap-3 rounded-lg border border-white/5 bg-black/20 px-3 py-2';
+                    const details = document.createElement('div');
+                    details.className = 'min-w-0';
+                    const name = document.createElement('p');
+                    name.className = 'truncate text-[10px] font-bold text-gray-200';
+                    name.textContent = pattern.text;
+                    const time = document.createElement('p');
+                    time.className = 'mt-0.5 text-[9px] text-gray-500';
+                    time.textContent = new Date(pattern.time).toLocaleString();
+                    details.append(name, time);
+                    const direction = document.createElement('span');
+                    direction.className = 'shrink-0 text-[9px] font-bold uppercase';
+                    direction.style.color = pattern.direction === 'bullish' ? '#34d399'
+                        : pattern.direction === 'bearish' ? '#fb7185' : '#fbbf24';
+                    direction.textContent = pattern.direction === 'neutral' ? 'NEUTRAL' : pattern.direction;
+                    row.append(details, direction);
+                    list.appendChild(row);
+                });
             }
         };
 
-        // Toggles change redraw
-        document.querySelectorAll('input[type="checkbox"]').forEach(el => {
-            el.addEventListener('change', () => { if(window.draw) window.draw(); });
+        document.querySelectorAll('.pattern-filter input').forEach(el => {
+            el.addEventListener('change', () => {
+                if (typeof window.draw === 'function') window.draw();
+            });
         });
     })();
     </script>

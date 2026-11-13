@@ -35,23 +35,15 @@
     <script>
         const pageTranslations = {
             mn: {
-                "back-to-tools": '<i class="fas fa-arrow-left mr-2"></i> Хэрэгслүүд рүү буцах'
             },
             en: {
-                "back-to-tools": '<i class="fas fa-arrow-left mr-2"></i> Back to Tools'
             }
         };
     </script>
     <script src="/static/js/header.js"></script>
 
-    <main class="flex-grow pt-32 pb-12 px-4 md:px-6">
-        <div class="max-w-7xl mx-auto flex flex-col gap-6">
-            <div class="flex justify-between items-center px-2">
-                <a href="/main_live_tools.html" data-i18n="back-to-tools" class="text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-brand-gold transition">
-                    <i class="fas fa-arrow-left mr-2"></i> Back to Tools
-                </a>
-            </div>
-
+    <main class="flex-grow pt-20 pb-12 px-4 md:px-6">
+        <div class="max-w-7xl mx-auto flex flex-col gap-4">
             <div id="mgl-3d-wrapper" class="w-full h-[600px] md:h-[750px] bg-[#040609] border border-brand-border rounded-2xl overflow-hidden shadow-2xl relative">
                 <canvas id="mgl-perfect-canvas"></canvas>
             </div>
