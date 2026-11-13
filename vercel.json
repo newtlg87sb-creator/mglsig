@@ -3,6 +3,14 @@
   "regions": ["sin1"],
   "rewrites": [
     {
+      "source": "/altcointools/trendonator.html",
+      "destination": "/maintool_trendonator.html"
+    },
+    {
+      "source": "/altcointools/btc_invest.html",
+      "destination": "/maintool_btc_invest.html"
+    },
+    {
       "source": "/mydata",
       "destination": "/mydata.html"
     }
