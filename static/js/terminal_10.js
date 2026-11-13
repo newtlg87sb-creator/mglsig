@@ -1,3 +1,5 @@
+import { fetchExchange } from './universal.js';
+
 const exchangeListTerminal = {
     binance: '#28a745', kucoin: '#009292', mexc: '#00b2ff', bybit: '#f39c12', 
     okx: '#34E0FF', gateio: '#f84949', bitget: '#00D1FF', htx: '#00A6FF', 
@@ -88,45 +90,52 @@ function getFullNameTerminal(symbol, info) {
 async function fetchTerminalExchangeInfo(ex) {
     const type = document.getElementById('terminal-market-type')?.value || 'spot';
     const marketKey = `${ex}:${type}`;
+
     try {
-        const res = await fetch(`/api/universal?exchange=${ex}&type=${type}&info=true`);
-        const raw = await res.json();
+        const raw = await fetchExchange(ex, type, true);
+
         const apiError = getTerminalApiError(raw);
-        if (!res.ok || apiError) {
-            throw new Error(apiError || `HTTP ${res.status}`);
-        }
+        if (apiError) throw new Error(apiError);
+
         exchangeMetadataTerminal[marketKey] = {};
+
         let list = [];
         if (Array.isArray(raw)) list = raw;
         else if (raw.symbols && Array.isArray(raw.symbols)) list = raw.symbols;
         else if (raw.data?.products && Array.isArray(raw.data.products)) list = raw.data.products;
         else if (raw.data?.symbols && Array.isArray(raw.data.symbols)) list = raw.data.symbols;
-        else if (raw.data && Array.isArray(raw.data)) list = raw.data;
+        else if (Array.isArray(raw.data)) list = raw.data;
         else if (raw.result?.list && Array.isArray(raw.result.list)) list = raw.result.list;
-        else if (raw.result && Array.isArray(raw.result)) list = raw.result;
-        
+        else if (Array.isArray(raw.result)) list = raw.result;
+
         list.forEach(m => {
             const sym = (m.symbol || m.instId || m.currency_pair || m.id || '').toUpperCase();
+
             let minQty = 0, minCost = 0;
+
             if (ex === 'binance' || ex === 'mexc') {
                 const f = m.filters?.find(f => f.filterType === 'LOT_SIZE');
                 minQty = parseFloat(f?.minQty || 0);
                 minCost = parseFloat(m.filters?.find(f => f.filterType === 'NOTIONAL')?.minNotional || 0);
             } else if (ex === 'kucoin') {
-                minQty = parseFloat(m.baseMinSize || 0); minCost = parseFloat(m.minFunds || 0);
+                minQty = parseFloat(m.baseMinSize || 0);
+                minCost = parseFloat(m.minFunds || 0);
             } else if (ex === 'bybit') {
                 minQty = parseFloat(m.lotSizeFilter?.minOrderQty || 0);
             } else if (ex === 'bitmart') {
-                minQty = parseFloat(m.min_buy_amount || 0); minCost = parseFloat(m.min_notional || 0);
+                minQty = parseFloat(m.min_buy_amount || 0);
+                minCost = parseFloat(m.min_notional || 0);
             } else if (ex === 'gateio') {
                 minCost = parseFloat(m.min_quote_amount || 0);
             }
+
             exchangeMetadataTerminal[marketKey][sym] = {
                 minQty,
                 minCost,
                 st: scanTerminalRisk(m).includes('ST')
             };
         });
+
         addTerminalLog(`✅ ${ex.toUpperCase()} limits loaded.`);
     } catch (e) {
         addTerminalLog(`⚠️ ${ex.toUpperCase()} metadata error: ${e.message}`);
@@ -192,16 +201,22 @@ async function toggleTerminalExchange(id) {
 
 async function fetchTerminalTickerData() {
     if (!activeTerminalExchange) return;
+
+    const exchange = activeTerminalExchange;
     const type = document.getElementById('terminal-market-type')?.value || 'spot';
+
     try {
-        const res = await fetch(`/api/universal?exchange=${activeTerminalExchange}&type=${type}`);
-        const raw = await res.json();
+        const raw = await fetchExchange(exchange, type);
+
         const apiError = getTerminalApiError(raw);
-        if (!res.ok || apiError) {
-            throw new Error(apiError || `HTTP ${res.status}`);
-        }
-        processTerminalTickerData(activeTerminalExchange, raw);
-    } catch (e) { addTerminalLog(`⚠️ Error fetching ${activeTerminalExchange.toUpperCase()}: ${e.message}`); }
+        if (apiError) throw new Error(apiError);
+
+        if (activeTerminalExchange !== exchange) return;
+
+        processTerminalTickerData(exchange, raw);
+    } catch (e) {
+        addTerminalLog(`⚠️ Error fetching ${exchange.toUpperCase()}: ${e.message}`);
+    }
 }
 
 function processTerminalTickerData(ex, rawData) {
