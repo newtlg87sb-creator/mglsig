@@ -26,11 +26,49 @@ function calculateSignalStates(klines, fast, slow) {
         ? "long"
         : "short";
     const states = new Array(macdLine.length).fill(firstSlope);
+    let state = firstSlope;
+    let macdPeakValue = 0;
+    let macdTroughValue = 0;
+    let activePeakValue = null;
+    let activeTroughValue = null;
+    let processedThrough = -1;
 
     for (let index = 2; index < macdLine.length; index++) {
         const previousMacdLine = Number(macdLine[index - 1].toFixed(8));
         const previous2MacdLine = Number(macdLine[index - 2].toFixed(8));
-        states[index] = previousMacdLine > previous2MacdLine ? "long" : "short";
+
+        for (let lineIndex = processedThrough + 1; lineIndex < index; lineIndex++) {
+            const value = macdLine[lineIndex];
+            const previousValue = lineIndex > 0 ? macdLine[lineIndex - 1] : 0;
+
+            if (previousValue >= 0 && value < 0) {
+                if (activePeakValue !== null) macdPeakValue = activePeakValue;
+                activePeakValue = null;
+                activeTroughValue = value;
+            } else if (previousValue <= 0 && value > 0) {
+                if (activeTroughValue !== null) macdTroughValue = activeTroughValue;
+                activeTroughValue = null;
+                activePeakValue = value;
+            } else if (value > 0) {
+                activePeakValue = activePeakValue === null
+                    ? value
+                    : Math.max(activePeakValue, value);
+            } else if (value < 0) {
+                activeTroughValue = activeTroughValue === null
+                    ? value
+                    : Math.min(activeTroughValue, value);
+            }
+        }
+        processedThrough = index - 1;
+
+        if (previousMacdLine < macdPeakValue && previous2MacdLine > macdPeakValue) {
+            state = "short";
+        } else if (previousMacdLine > macdTroughValue && previous2MacdLine < macdTroughValue) {
+            state = "long";
+        } else if (previousMacdLine > previous2MacdLine) {
+            state = "long";
+        }
+        states[index] = state;
     }
 
     return states;
