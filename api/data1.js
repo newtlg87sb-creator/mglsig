@@ -267,8 +267,12 @@ function calculateMacdPeaks(klines, fast = 12, slow = 26, signal = 9) {
 
     let macd_peak = { "macd_value": 0.0, "price": 0.0 };
     let macd_trough = { "macd_value": 0.0, "price": 0.0 };
+    let macd_peak_maxprice = 0.0;
+    let macd_trough_minprice = 0.0;
     let active_peak = null;
     let active_trough = null;
+    let active_peak_maxprice = null;
+    let active_trough_minprice = null;
     let last_peak = null;
     let last_trough = null;
     let closed_length = Math.max(0, macdLine.length - 1);
@@ -281,22 +285,34 @@ function calculateMacdPeaks(klines, fast = 12, slow = 26, signal = 9) {
         if (previous >= 0 && value < 0) {
             if (active_peak !== null) {
                 macd_peak = { "macd_value": active_peak.macd_value, "price": active_peak.price };
+                macd_peak_maxprice = active_peak_maxprice;
             }
             active_peak = null;
+            active_peak_maxprice = null;
             active_trough = point;
+            active_trough_minprice = point.price;
         } else if (previous <= 0 && value > 0) {
             if (active_trough !== null) {
                 macd_trough = { "macd_value": active_trough.macd_value, "price": active_trough.price };
+                macd_trough_minprice = active_trough_minprice;
             }
             active_trough = null;
+            active_trough_minprice = null;
             active_peak = point;
+            active_peak_maxprice = point.price;
         } else if (value > 0) {
             if (active_peak === null || point.macd_value > active_peak.macd_value) {
                 active_peak = point;
             }
+            if (active_peak_maxprice === null || point.price > active_peak_maxprice) {
+                active_peak_maxprice = point.price;
+            }
         } else if (value < 0) {
             if (active_trough === null || point.macd_value < active_trough.macd_value) {
                 active_trough = point;
+            }
+            if (active_trough_minprice === null || point.price < active_trough_minprice) {
+                active_trough_minprice = point.price;
             }
         }
     }
@@ -311,8 +327,10 @@ function calculateMacdPeaks(klines, fast = 12, slow = 26, signal = 9) {
     return {
         "macd_peak_value": macd_peak.macd_value,
         "macd_peak_price": macd_peak.price,
+        "macd_peak_maxprice": macd_peak_maxprice,
         "macd_trough_value": macd_trough.macd_value,
         "macd_trough_price": macd_trough.price,
+        "macd_trough_minprice": macd_trough_minprice,
         "last_peak_value": last_peak ? last_peak.macd_value : null,
         "last_peak_price": last_peak ? last_peak.price : null,
         "last_peak_time": last_peak ? last_peak.time : null,
