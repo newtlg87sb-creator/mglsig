@@ -27,15 +27,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <link rel="icon" href="/favicon.ico" sizes="any">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png">
+    <link rel="icon" href="favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="48x48" href="favicon-48x48.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="android-chrome-512x512.png">
 
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="manifest" href="/site.webmanifest">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="manifest" href="site.webmanifest">
 
     <meta name="theme-color" content="#05070a">
 
@@ -77,7 +77,7 @@
     }
     </script>
     
-    <link rel="stylesheet" href="/static/main_style.css">
+    <link rel="stylesheet" href="static/main_style.css">
 
 </head>
 
@@ -214,7 +214,7 @@
         };
     </script>
 
-    <script src="/static/js/header.js"></script>
+    <script src="static/js/header.js"></script>
 
     <!-- Admin Announcement Widget -->
     <div id="admin-notif-container" class="fixed bottom-6 right-6 z-50">
@@ -301,7 +301,7 @@
             <div class="max-w-6xl mx-auto">
                 <div class="group bg-brand-dark-blue border border-brand-border rounded-2xl overflow-hidden flex flex-col md:flex-row shadow-2xl hover:border-brand-gold/30 transition-all duration-300">
                     <div class="md:w-2/5 min-h-64 md:min-h-[380px] bg-[#05070a] border-b md:border-b-0 md:border-r border-brand-border relative overflow-hidden flex items-center justify-center shrink-0">
-                        <img src="/static/images/iceberg1.jpg" alt="Iceberg trading signal chart" class="absolute inset-0 w-full h-full object-contain object-center">
+                        <img src="static/images/iceberg1.jpg" alt="Iceberg trading signal chart" class="absolute inset-0 w-full h-full object-contain object-center">
                         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent"></div>
                         <div class="absolute inset-x-0 bottom-0 z-10 px-5 py-4 text-brand-gold">
                             <span data-i18n="paid-signals-image-label" class="text-[10px] font-black uppercase tracking-[0.3em]">MGLSignal төлбөрт сигнал</span>
@@ -685,7 +685,10 @@
             const lang = localStorage.getItem('lang') || 'mn';
             const cacheKey = 'mglsignal.latest-news.v1';
             try {
-                const response = await fetch('/api/news');
+                const newsApiUrl = (location.hostname === '127.0.0.1' || location.hostname === 'localhost')
+                    ? 'https://mglsignal.com/api/news'
+                    : '/api/news';
+                const response = await fetch(newsApiUrl);
                 if (!response.ok) throw new Error(`News service returned HTTP ${response.status}`);
                 const data = await response.json();
                 if (data.Response === 'Error' || !Array.isArray(data.Data) || data.Data.length === 0) {
@@ -802,7 +805,7 @@
         fetchLatestNews();
         setInterval(fetchMarketData, 30000);
     </script>
-    <script src="/static/js/footer.js"></script>
-    <script src="/static/lock.js"></script>
+    <script src="static/js/footer.js"></script>
+    <script src="static/lock.js"></script>
 </body>
 </html>
