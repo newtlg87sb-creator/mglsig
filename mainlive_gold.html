@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <title>XAU vs PAXG - GOLD Arbitrage Terminal</title>
+    <title>GOLD / PAXG ханшны харьцуулалт | MGL Signal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
@@ -24,38 +24,38 @@
             mn: {
                 "gold-spot-label": "GOLD / USD (форекс)",
                 "paxg-crypto-label": "PAXG / USDT (Крипто)",
-                "arb-terminal-title": "GOLD Арбитраж Терминал",
+                "arb-terminal-title": "GOLD / PAXG · ХАНШНЫ ХАРЬЦУУЛАЛТ",
                 "status-syncing": "Олон-урсгалт хөдөлгүүрийг синхрончилж байна...",
-                "core-stream-msg": "Үндсэн урсгал холбогдсон: Live Pulse гарц",
-                "sync-feed-msg": "Бодит цагийн нэгдсэн өгөгдлийг синк хийж байна...",
+                "core-stream-msg": "Шууд өгөгдлийн урсгал",
+                "sync-feed-msg": "Сүүлийн шинэчлэлтийг хүлээж байна...",
                 "interval-1s": "1с Feed", "interval-1m": "1м Лаа", "interval-5m": "5м Лаа",
                 "interval-15m": "15м Лаа", "interval-30m": "30м Лаа", "interval-1h": "1ц Лаа",
                 "tz-local": "LOCAL (GMT+8)", "tz-utc": "UTC TIME", "tz-ny": "NEW YORK", "tz-london": "LONDON",
-                "chart-gold-title": "GOLD / USD (ФОРЕКС БОДИТ ЦАГИЙН ФЬЮЧЕРС)",
-                "chart-paxg-title": "PAXG / USDT (КРИПТО АЛТ 24/7 ХӨРВӨХ ЧАДВАР)",
-                "crypto-open": "• КРИПТО АРИЛЖАА НЭЭЛТТЭЙ",
-                "forex-open": "• ФОРЕКС АРИЛЖАА НЭЭЛТТЭЙ",
-                "forex-closed": "• ФОРЕКС ХААЛТТАЙ | НЭЭГДЭХ ХУГАЦАА:",
-                "ws-connected": "🟢 ХОС УРСГАЛ ХОЛБОГДЛОО: 0ms ХОЦРОЛТ",
-                "ws-retry": "🔴 Холболт тасарлаа. Дахин оролдож байна..."
+                "chart-gold-title": "GOLD / USD",
+                "chart-paxg-title": "PAXG / USDT",
+                "crypto-open": "КРИПТО НЭЭЛТТЭЙ",
+                "forex-open": "ФОРЕКС НЭЭЛТТЭЙ",
+                "forex-closed": "ФОРЕКС ХААЛТТАЙ · НЭЭХЭД:",
+                "ws-connected": "ХОС УРСГАЛ ХОЛБОГДЛОО · АМЬД",
+                "ws-retry": "Холболт тасарлаа. Дахин холбогдож байна..."
             },
             en: {
                 "gold-spot-label": "GOLD / USD (forex)",
                 "paxg-crypto-label": "PAXG / USDT (Crypto)",
-                "arb-terminal-title": "GOLD Arbitrage Terminal",
+                "arb-terminal-title": "GOLD / PAXG PRICE COMPARISON",
                 "status-syncing": "Syncing Multi-Stream Engine...",
-                "core-stream-msg": "Core Stream Connected: Live Pulse Gateway",
-                "sync-feed-msg": "Syncing real-time aggregate feed...",
+                "core-stream-msg": "Live data feed",
+                "sync-feed-msg": "Waiting for the latest update...",
                 "interval-1s": "1s Feed", "interval-1m": "1m Candle", "interval-5m": "5m Candle",
                 "interval-15m": "15m Candle", "interval-30m": "30m Candle", "interval-1h": "1h Candle",
                 "tz-local": "LOCAL (GMT+8)", "tz-utc": "UTC TIME", "tz-ny": "NEW YORK", "tz-london": "LONDON",
-                "chart-gold-title": "GOLD / USD (FOREX REAL-TIME FUTURES)",
-                "chart-paxg-title": "PAXG / USDT (CRYPTO GOLD 24/7 LIQUIDITY)",
-                "crypto-open": "• CRYPTO TRADING OPEN",
-                "forex-open": "• FOREX TRADING OPEN",
-                "forex-closed": "• FOREX CLOSED | OPEN IN:",
-                "ws-connected": "🟢 DUAL FEED CONNECTED: 0ms LATENCY",
-                "ws-retry": "🔴 Connection Dropped. Retrying..."
+                "chart-gold-title": "GOLD / USD",
+                "chart-paxg-title": "PAXG / USDT",
+                "crypto-open": "CRYPTO OPEN",
+                "forex-open": "FOREX OPEN",
+                "forex-closed": "FOREX CLOSED · OPENS IN:",
+                "ws-connected": "DUAL FEED CONNECTED · LIVE",
+                "ws-retry": "Connection dropped. Reconnecting..."
             }
         };
     </script>
@@ -64,6 +64,223 @@
         body { background-color: #05070a; color: #f1f5f9; font-family: 'Inter', sans-serif; }
         .cell-mono { font-family: 'JetBrains Mono', monospace; }
         select { background-image: url("data:image/svg+xml;utf8,<svg fill='%2364748b' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>"); background-position: right 6px center; background-repeat: no-repeat; padding-right: 24px !important; }
+
+        .gold-page {
+            width: 100%;
+            padding: 96px 16px 16px;
+        }
+
+        .gold-terminal {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 12px;
+            border: 1px solid #222b38;
+            border-radius: 12px;
+            background: #0f1217;
+            box-shadow: none;
+        }
+
+        .gold-topbar {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #222b38;
+        }
+
+        .gold-quote {
+            display: flex;
+            align-items: center;
+            min-width: 0;
+            gap: 12px;
+            padding: 9px 12px;
+            border: 1px solid #222b38;
+            border-radius: 8px;
+            background: #080b10;
+            box-shadow: none;
+        }
+
+        .gold-quote-paxg {
+            justify-content: flex-end;
+            text-align: right;
+        }
+
+        .gold-quote > div:nth-child(2) {
+            min-width: 0;
+        }
+
+        .gold-quote [data-i18n] {
+            font-size: 9px;
+            letter-spacing: .06em;
+        }
+
+        .gold-quote #price-xau,
+        .gold-quote #price-paxg {
+            font-size: clamp(16px, 2vw, 22px);
+        }
+
+        .gold-quote .p-2 {
+            padding: 7px;
+        }
+
+        .gold-heading {
+            min-width: 0;
+            gap: 7px;
+        }
+
+        .gold-title {
+            color: #e6edf5;
+            background: none;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: .02em;
+        }
+
+        .gold-title i {
+            display: none;
+        }
+
+        .gold-controls {
+            display: flex;
+            align-items: center;
+            margin-left: 0;
+            padding: 2px;
+            border: 1px solid #2a3544;
+            border-radius: 6px;
+            background: #080b10;
+        }
+
+        .gold-controls select {
+            min-height: 28px;
+            padding: 0 22px 0 8px !important;
+            font-size: 10px;
+        }
+
+        .gold-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 0;
+            padding: 0;
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+            color: #56d69a;
+            font: 10px/1.4 ui-monospace, Consolas, monospace;
+            font-size: 10px;
+        }
+
+        .gold-status .animate-ping {
+            animation: none;
+        }
+
+        .gold-chart-shell {
+            overflow: hidden;
+            min-width: 0;
+            height: clamp(360px, 58vh, 680px);
+            border: 1px solid #222b38;
+            border-radius: 9px;
+            background: #080b10;
+            box-shadow: none;
+        }
+
+        #dualChart {
+            display: block;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+
+        .gold-feed-row {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding-top: 0;
+            color: #8492a5;
+            font-size: 10px;
+        }
+
+        .gold-feed-row > div:last-child {
+            padding: 4px 8px;
+            border-color: #222b38;
+            border-radius: 6px;
+        }
+
+        @media (max-width: 760px) {
+            .gold-page {
+                padding: 84px 8px 12px;
+            }
+
+            .gold-terminal {
+                padding: 8px;
+                gap: 9px;
+            }
+
+            .gold-topbar {
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+                gap: 8px;
+                padding-bottom: 9px;
+            }
+
+            .gold-heading {
+                grid-column: 1 / -1;
+                grid-row: 1;
+            }
+
+            .gold-quote-xau {
+                grid-column: 1;
+                grid-row: 2;
+            }
+
+            .gold-quote-paxg {
+                grid-column: 2;
+                grid-row: 2;
+            }
+
+            .gold-quote {
+                gap: 7px;
+                padding: 7px;
+            }
+
+            .gold-quote [data-i18n] {
+                font-size: 8px;
+                letter-spacing: 0;
+            }
+
+            .gold-quote #price-xau,
+            .gold-quote #price-paxg {
+                font-size: 16px;
+            }
+
+            .gold-title {
+                font-size: 13px;
+            }
+
+            .gold-status {
+                margin-top: 5px;
+                font-size: 9px;
+            }
+
+            .gold-chart-shell {
+                height: clamp(380px, 58vh, 560px);
+            }
+
+            .gold-feed-row {
+                align-items: flex-start;
+                font-size: 9px;
+            }
+        }
+
+        @media (min-width: 640px) {
+            .gold-feed-row {
+                flex-direction: row;
+                align-items: center;
+            }
+        }
     </style>
     <link rel="stylesheet" href="/static/main_style.css">
 </head>
@@ -77,12 +294,12 @@
     </script>
     <script src="/static/js/header.js"></script>
 
-    <main class="flex-grow pt-32 pb-12 px-4 md:px-6">
-    <div class="w-full max-w-[1400px] mx-auto bg-brand-dark-blue border border-brand-border rounded-2xl p-6 shadow-2xl space-y-6">
+    <main class="gold-page flex-grow">
+    <div class="gold-terminal">
         
-        <div class="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4 border-b border-[#1e293b]/40 pb-5">
+        <div class="gold-topbar">
             
-            <div class="flex items-center gap-4 bg-brand-dark border border-brand-border px-5 py-3 rounded-xl shadow-inner min-w-[220px]">
+            <div class="gold-quote gold-quote-xau">
                 <div class="p-2 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
                     <i class="fas fa-cubes text-emerald-400 text-sm"></i>
                 </div>
@@ -92,13 +309,13 @@
                 </div>
             </div>
 
-            <div class="text-center flex-1 flex flex-col items-center justify-center">
+            <div class="gold-heading text-center flex flex-col items-center justify-center">
                 <div class="flex flex-wrap items-center justify-center gap-3">
-                    <span data-i18n="arb-terminal-title" class="flex items-center gap-2 bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent text-xl md:text-2xl font-black uppercase tracking-tight">
-                        <i class="fas fa-bolt text-amber-400 animate-pulse"></i> GOLD Arbitrage Terminal
+                    <span data-i18n="arb-terminal-title" class="gold-title">
+                        GOLD / PAXG PRICE COMPARISON
                     </span>
                     
-                    <div class="flex items-center bg-brand-dark border border-brand-border p-0.5 rounded-lg ml-2">
+                    <div class="gold-controls">
                         <select id="interval" class="bg-transparent text-amber-400 font-bold text-xs rounded px-3 py-1.5 outline-none cursor-pointer hover:bg-[#090d16] transition-colors appearance-none">
                             <option data-i18n="interval-1s" value="1s" class="bg-brand-dark-blue text-white">1s Feed</option>
                             <option data-i18n="interval-1m" value="1m" selected class="bg-brand-dark-blue text-white">1m Candl</option>
@@ -116,12 +333,12 @@
                         </select>
                     </div>
                 </div>
-                <p id="status" data-i18n="status-syncing" class="text-[11px] text-emerald-400 font-mono font-medium mt-2 flex items-center gap-1.5 bg-emerald-500/5 px-3 py-1 rounded-full border border-emerald-500/10">
+                <p id="status" data-i18n="status-syncing" class="gold-status">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> Syncing Multi-Stream Engine...
                 </p>
             </div>
 
-            <div class="flex items-center gap-4 bg-brand-dark border border-brand-border px-5 py-3 rounded-xl shadow-inner min-w-[220px] justify-end text-right">
+            <div class="gold-quote gold-quote-paxg">
                 <div>
                     <div data-i18n="paxg-crypto-label" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">PAXG / USDT (Crypto)</div>
                     <div id="price-paxg" class="text-2xl font-extrabold cell-mono text-white tracking-tight">0.00</div>
@@ -132,11 +349,11 @@
             </div>
         </div>
 
-        <div class="relative bg-brand-dark border border-brand-border rounded-xl overflow-hidden shadow-inner">
+        <div class="gold-chart-shell">
             <canvas id="dualChart" class="w-full block"></canvas>
         </div>
 
-        <div class="flex flex-col sm:flex-row justify-between items-center text-[11px] text-slate-500 font-mono pt-1 gap-2">
+        <div class="gold-feed-row">
             <div data-i18n="core-stream-msg" class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500/40"></span> Core Stream Connected: Live Pulse Gateway</div>
             <div id="last-update" data-i18n="sync-feed-msg" class="bg-brand-dark px-3 py-1 rounded-md border border-brand-border text-slate-400">Syncing real-time aggregate feed...</div>
         </div>
@@ -254,6 +471,12 @@
         intervalEl.addEventListener('change', () => loadAllHistory());
         timezoneEl.addEventListener('change', () => drawDualChart());
 
+        if ("ResizeObserver" in window) {
+            new ResizeObserver(drawDualChart).observe(canvas.parentElement);
+        } else {
+            window.addEventListener("resize", drawDualChart);
+        }
+
         function getGoldMarketCountdown() {
             const now = new Date();
             const day = now.getUTCDay();
@@ -281,46 +504,47 @@
 
         function drawDualChart() {
             const rect = canvas.parentNode.getBoundingClientRect();
-            canvas.width = rect.width;
-            canvas.height = rect.width * (2.2 / 5); // Дэлгэцийн харьцааг улам ганган болгов
+            const width = rect.width;
+            const height = rect.height;
+            if (!width || !height) return;
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const midY = canvas.height / 2;
+            const ratio = Math.min(window.devicePixelRatio || 1, 2);
+            canvas.width = Math.round(width * ratio);
+            canvas.height = Math.round(height * ratio);
+            ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+            ctx.clearRect(0, 0, width, height);
+            const midY = height / 2;
 
             const lang = localStorage.getItem('lang') || 'mn';
             const t = window.translations[lang];
 
             // Голын тусгаарлагч шугам (High-Tech зааглагч)
-            ctx.strokeStyle = 'rgba(30, 41, 59, 0.8)';
-            ctx.lineWidth = 1.5;
-            ctx.setLineDash([8, 4]); // Тасархай шугам
+            ctx.strokeStyle = '#273241';
+            ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(0, midY);
-            ctx.lineTo(canvas.width, midY);
+            ctx.lineTo(width, midY);
             ctx.stroke();
-            ctx.setLineDash([]); // Шугамыг буцааж хэвийн болгох
 
-            // Дээд тал: XAU/USD
-            renderSingleSide(dataXAU, 0, midY, t["chart-gold-title"] || "GOLD / USD (FOREX REAL-TIME FUTURES)", "#94a3b8", true);
+            renderSingleSide(dataXAU, 0, midY, t["chart-gold-title"] || "GOLD / USD", true);
             
-            // Доод тал: PAXG/USDT
-            renderSingleSide(dataPAXG, midY, canvas.height, t["chart-paxg-title"] || "PAXG / USDT (CRYPTO GOLD 24/7 LIQUIDITY)", "#fbbf24", false);
+            renderSingleSide(dataPAXG, midY, height, t["chart-paxg-title"] || "PAXG / USDT", false);
 
             // Баруун дээд талын усан тэмдэг текстүүд
-            ctx.fillStyle = 'rgba(34, 197, 94, 1.0)'; // Опаситиг 1.0 болгож тодруулав
-            ctx.font = '900 12px Inter'; 
             ctx.textAlign = 'right';
-            ctx.fillText(t["crypto-open"] || "• CRYPTO TRADING OPEN", canvas.width - 25, midY + 30);
+            ctx.textBaseline = 'middle';
+            ctx.font = '500 10px Inter, Arial, sans-serif';
+            ctx.fillStyle = '#56d69a';
+            ctx.fillText(t["crypto-open"] || "CRYPTO OPEN", width - 18, midY + 19);
 
             const countdown = getGoldMarketCountdown();
             if (countdown) {
-                ctx.fillStyle = 'rgba(239, 68, 68, 1.0)'; // Улаан өнгийг тодруулав
-                ctx.font = '900 12px Inter';
-                ctx.fillText(`${t["forex-closed"] || "• FOREX CLOSED | OPEN IN:"} ${countdown}`, canvas.width - 25, 30);
+                ctx.fillStyle = '#ff7b82';
+                ctx.fillText(`${t["forex-closed"] || "FOREX CLOSED · OPENS IN:"} ${countdown}`, width - 18, 19);
             } else {
-                ctx.fillStyle = 'rgba(34, 197, 94, 1.0)'; // Ногоон өнгийг тодруулав
-                ctx.font = '900 12px Inter';
-                ctx.fillText(t["forex-open"] || "• FOREX TRADING OPEN", canvas.width - 25, 30);
+                ctx.fillStyle = '#56d69a';
+                ctx.fillText(t["forex-open"] || "FOREX OPEN", width - 18, 19);
             }
             ctx.textAlign = 'left';
         }
@@ -332,13 +556,14 @@
             drawDualChart();
         };
 
-        function renderSingleSide(candlesArray, startY, endY, title, titleColor, isTop) {
+        function renderSingleSide(candlesArray, startY, endY, title) {
             if (candlesArray.length === 0) return;
 
-            const paddingRight = 65;
-            const paddingTop = 45;
-            const paddingBottom = 25;
-            const viewWidth = canvas.width - paddingRight;
+            const paddingLeft = 12;
+            const paddingRight = 58;
+            const paddingTop = 38;
+            const paddingBottom = 23;
+            const viewWidth = canvas.clientWidth - paddingLeft - paddingRight;
             const viewHeight = (endY - startY) - paddingTop - paddingBottom;
 
             let highs = candlesArray.map(c => c.high);
@@ -346,14 +571,18 @@
             let minPrice = Math.min(...lows);
             let maxPrice = Math.max(...highs);
             let priceRange = maxPrice - minPrice || 1;
+            minPrice -= priceRange * 0.06;
+            maxPrice += priceRange * 0.06;
+            priceRange = maxPrice - minPrice;
 
             // Хөгжүүлэгчийн цэвэрхэн Гарчиг
-            ctx.fillStyle = titleColor;
-            ctx.font = '800 11px Inter';
-            ctx.fillText(title, 20, startY + 28);
+            ctx.fillStyle = '#cbd5e1';
+            ctx.font = '600 11px Inter, Arial, sans-serif';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(title, 16, startY + 19);
 
             // Цэгтэй Төгс Сүлжээ шугам (Bloomberg Dotted Grid)
-            ctx.strokeStyle = 'rgba(30, 41, 59, 0.3)';
+            ctx.strokeStyle = '#1b2532';
             ctx.lineWidth = 1;
             ctx.setLineDash([2, 4]); // Цэгтэй шугам үүсгэх
             
@@ -361,31 +590,35 @@
                 let y = startY + paddingTop + (viewHeight / 4) * i;
                 let price = maxPrice - (priceRange / 4) * i;
                 
+                ctx.setLineDash([]);
                 ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(viewWidth, y);
+                ctx.moveTo(paddingLeft, y);
+                ctx.lineTo(paddingLeft + viewWidth, y);
                 ctx.stroke();
 
                 ctx.setLineDash([]); // Текстэнд зураас нөлөөлөхгүй
-                ctx.fillStyle = '#64748b';
-                ctx.font = 'bold 9px JetBrains Mono';
-                ctx.fillText(price.toFixed(2), viewWidth + 10, y + 3);
+                ctx.fillStyle = '#8795a7';
+                ctx.font = '10px ui-monospace, Consolas, monospace';
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(price.toFixed(2), paddingLeft + viewWidth + 7, y);
                 ctx.setLineDash([2, 4]);
             }
             ctx.setLineDash([]);
 
             const count = 65; // Сүүлийн 65 кандлыг илүү зайтай гоё харуулна
             const displayData = candlesArray.slice(-count);
-            const spacing = viewWidth / count;
+            const spacing = viewWidth / displayData.length;
             const width = spacing * 0.70; // Лааны өргөнийг харьцааг тааруулав
 
             // X тэнхлэгийн Цагийн заалтыг маш цэвэрхэн зурах
-            ctx.fillStyle = '#475569';
-            ctx.font = '700 9px JetBrains Mono';
-            const timeStep = Math.floor(count / 5);
+            ctx.fillStyle = '#8795a7';
+            ctx.font = '9px ui-monospace, Consolas, monospace';
+            ctx.textAlign = 'center';
+            const timeStep = Math.max(1, Math.floor(displayData.length / 5));
             displayData.forEach((c, i) => {
                 if (i % timeStep === 0) {
-                    const x = (i * spacing) + spacing / 2;
+                    const x = paddingLeft + (i * spacing) + spacing / 2;
                     const d = new Date(c.time);
                     const tz = timezoneEl.value === 'local' ? undefined : timezoneEl.value;
                     const timeStr = new Intl.DateTimeFormat('en-GB', {
@@ -398,7 +631,7 @@
 
             // КАНДЛ ЗУРАХ ГОЁ ҮЙЛДЭЛ (Капсул ба Амьд гэрэлтүүлэг)
             displayData.forEach((c, idx) => {
-                const x = (idx * spacing) + (spacing - width) / 2;
+                const x = paddingLeft + (idx * spacing) + (spacing - width) / 2;
                 
                 const yOpen = startY + paddingTop + viewHeight - ((c.open - minPrice) / priceRange) * viewHeight;
                 const yClose = startY + paddingTop + viewHeight - ((c.close - minPrice) / priceRange) * viewHeight;
@@ -407,13 +640,11 @@
 
                 const isBullish = c.close >= c.open;
                 
-                // Шинэ лааны соргог өнгөнүүд (Neon Green vs Electric Crimson)
-                const mainColor = isBullish ? '#10b981' : '#f43f5e';
-                const glowColor = isBullish ? 'rgba(16, 185, 129, 0.4)' : 'rgba(244, 63, 94, 0.4)';
+                const mainColor = isBullish ? '#26c98b' : '#f05d68';
 
                 ctx.strokeStyle = mainColor;
                 ctx.fillStyle = mainColor;
-                ctx.lineWidth = 1.5;
+                ctx.lineWidth = 1;
 
                 // 1. Сүүдэр зурах
                 ctx.beginPath();
@@ -421,22 +652,9 @@
                 ctx.lineTo(x + width / 2, yLow);
                 ctx.stroke();
 
-                // 2. Бие зурах (Капсул маягийн бөөрөнхий ирмэг)
-                const bHeight = Math.max(Math.abs(yOpen - yClose), 1.5);
+                const bHeight = Math.max(Math.abs(yOpen - yClose), 1);
                 const yTop = Math.min(yOpen, yClose);
-
-                // Хамгийн сүүлийн лаа буюу АМЬД гүйж байгаа лаанд Glow эффект өгөх
-                if (idx === displayData.length - 1) {
-                    ctx.save();
-                    ctx.shadowBlur = 8;
-                    ctx.shadowColor = mainColor;
-                    ctx.fillStyle = mainColor;
-                    roundRect(ctx, x, yTop, width, bHeight, 2);
-                    ctx.restore();
-                } else {
-                    // Энгийн кандлууд
-                    roundRect(ctx, x, yTop, width, bHeight, 1.5);
-                }
+                ctx.fillRect(x, yTop, width, bHeight);
             });
         }
 
