@@ -910,8 +910,6 @@ export default async function handler(req, res) {
             return res.status(403).json({ error: "This account cannot access MyData" });
         }
 
-        // --- Энд хуучны хэвээрээ зөвхөн хэрэглэгчийн browser-оор ороход болон cron-оор ажилладаг дата татах логик үргэлжилнэ ---
-
         const symbol = String(req.query?.symbol || "BTCUSDT").trim().toUpperCase();
         const interval = String(req.query?.interval || "1m").trim();
         const market = String(req.query?.market || "spot").trim().toLowerCase();
@@ -956,105 +954,105 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: "Invalid indicator periods" });
         }
 
-            // ================= MYDATA CACHE CHECK =================
+        // ================= MYDATA CACHE CHECK =================
 
-            const cacheKey = [
-                user.id,
-                symbol,
-                market,
-                interval,
-                fast,
-                slow,
-                signal,
-                rsiPeriod
-            ].join(":");
+        const cacheKey = [
+            user?.id || "cron",
+            symbol,
+            market,
+            interval,
+            fast,
+            slow,
+            signal,
+            rsiPeriod
+        ].join(":");
 
-            const cached = myDataCache.get(cacheKey);
+        const cached = typeof myDataCache !== "undefined" ? myDataCache.get(cacheKey) : null;
 
-            if (cached && Date.now() - cached.timestamp < MYDATA_CACHE_TTL) {
-                res.setHeader("X-MyData-Cache", "HIT");
-                applyUsageHeaders(res, market, []);
-                return res.status(200).json(cached.data);
+        if (cached && Date.now() - cached.timestamp < MYDATA_CACHE_TTL) {
+            res.setHeader("X-MyData-Cache", "HIT");
+            applyUsageHeaders(res, market, []);
+            return res.status(200).json(cached.data);
+        }
+
+        res.setHeader("X-MyData-Cache", "MISS");
+
+        const ledger = [];
+        try {
+            if (typeof exchangeInfoCache !== "undefined" && !exchangeInfoCache.get(market)?.limit) {
+                await ensureExchangeInfo(market, ledger);
             }
 
-            res.setHeader("X-MyData-Cache", "MISS");
+            const baseUrl = market === "futures"
+                ? "https://fapi.binance.com/fapi/v1/klines"
+                : "https://api.binance.com/api/v3/klines";
+            
+            const marketResponse = await binanceFetch(
+                market,
+                `${baseUrl}?symbol=${encodeURIComponent(symbol)}&interval=${encodeURIComponent(interval)}&limit=1000`,
+                "klines",
+                ledger
+            );
+            applyUsageHeaders(res, market, ledger);
 
-            const ledger = [];
-            try {
-                if (!exchangeInfoCache.get(market)?.limit) {
-                    await ensureExchangeInfo(market, ledger);
-                }
+            const usedWeight = marketResponse.headers.get("X-MBX-USED-WEIGHT-1M");
+            if (usedWeight !== null) {
+                res.setHeader("X-Binance-Used-Weight-1m", usedWeight);
+            }
 
-                const baseUrl = market === "futures"
-                    ? "https://fapi.binance.com/fapi/v1/klines"
-                    : "https://api.binance.com/api/v3/klines";
-                const marketResponse = await binanceFetch(
-                    market,
-                    `${baseUrl}?symbol=${encodeURIComponent(symbol)}&interval=${encodeURIComponent(interval)}&limit=1000`,
-                    "klines",
-                    ledger
-                );
-                applyUsageHeaders(res, market, ledger);
+            if (!marketResponse.ok) {
+                const status = marketResponse.status;
 
-                // Binance 429 / 418 алдааг frontend-д дамжуулах
-                if (!marketResponse.ok) {
-                    const status = marketResponse.status;
-
-                    if (status === 429 || status === 418) {
-                        const retryAfter = marketResponse.headers.get("Retry-After");
-
-                        if (retryAfter) {
-                            res.setHeader("Retry-After", retryAfter);
-                        }
-
-                        return res.status(status).json({
-                            error: status === 429
-                                ? "Binance rate limit exceeded"
-                                : "Binance IP temporarily banned"
-                        });
+                if (status === 429 || status === 418) {
+                    const retryAfter = marketResponse.headers.get("Retry-After");
+                    if (retryAfter) {
+                        res.setHeader("Retry-After", retryAfter);
                     }
-
-                    console.error(
-                        "[MYDATA SOURCE ERROR]",
-                        status
-                    );
-
-                    return res.status(502).json({
-                        error: "Unable to load market data"
+                    return res.status(status).json({
+                        error: status === 429
+                            ? "Binance rate limit exceeded"
+                            : "Binance IP temporarily banned"
                     });
                 }
-                const klines = await marketResponse.json();
-                if (!Array.isArray(klines) || klines.length < Math.max(slow + signal, rsiPeriod + 5)) {
-                    return res.status(502).json({ error: "Not enough market data to calculate indicators" });
+
+                console.error("[MYDATA SOURCE ERROR]", status);
+                return res.status(502).json({ error: "Unable to load market data" });
+            }
+
+            const klines = await marketResponse.json();
+            if (!Array.isArray(klines) || klines.length < Math.max(slow + signal, rsiPeriod + 5)) {
+                return res.status(502).json({ error: "Not enough market data to calculate indicators" });
+            }
+
+            const macd = calculateAllMacdIndicators(klines, fast, slow, signal);
+            const rsi = calculateAllRsiIndicators(klines, rsiPeriod);
+            const ohlc = calculateOhlcTrackerReport(klines, symbol, {});
+            
+            const responseData = {
+                status: "OK",
+                data: {
+                    symbol,
+                    latest_price: Number(klines[klines.length - 1][4]),
+                    timestamp: Number(klines[klines.length - 1][0]),
+                    macd,
+                    rsi,
+                    ohlc
                 }
+            };
 
-                const macd = calculateAllMacdIndicators(klines, fast, slow, signal);
-                const rsi = calculateAllRsiIndicators(klines, rsiPeriod);
-                const ohlc = calculateOhlcTrackerReport(klines, symbol, {});
-                const responseData = {
-                    status: "OK",
-                    data: {
-                        symbol,
-                        latest_price: Number(klines[klines.length - 1][4]),
-                        timestamp: Number(klines[klines.length - 1][0]),
-                        macd,
-                        rsi,
-                        ohlc
-                    }
-                };
-
-                // Cache-д хадгалах
+            if (typeof myDataCache !== "undefined") {
                 myDataCache.set(cacheKey, {
                     timestamp: Date.now(),
                     data: responseData
                 });
-
-                return res.status(200).json(responseData);
-            } catch (error) {
-                console.error("[MYDATA CALCULATION ERROR]", error);
-                return res.status(502).json({ error: "Unable to calculate MyData indicators" });
             }
+
+            return res.status(200).json(responseData);
+        } catch (error) {
+            console.error("[MYDATA CALCULATION ERROR]", error);
+            return res.status(502).json({ error: "Unable to calculate MyData indicators" });
         }
+    }
 
     try {
         const profileUrl = new URL("/rest/v1/User%20control", supabaseUrl);
@@ -1081,39 +1079,61 @@ export default async function handler(req, res) {
             return res.status(403).json({ error: "An active Beta or Alpha subscription is required to use Iceberg" });
         }
     } catch (error) {
-        console.error("[ICEBERG ACCESS ERROR]", error.message);
+        const errorMsg = typeof error === 'object' && error !== null ? (error.message || JSON.stringify(error)) : String(error);
+        console.error("[ICEBERG ACCESS ERROR]", errorMsg);
         return res.status(503).json({ error: "Unable to verify Iceberg access" });
     }
 
-    const usedWeight = marketResponse.headers.get(
-        "X-MBX-USED-WEIGHT-1M"
-    );
+    if (req.method === "POST") {
+        const { klines, fast = 12, slow = 26, signal = 9 } = req.body || {};
+        if (!Array.isArray(klines) || klines.length < 5 || klines.length > 2000 ||
+            klines.some(kline => !Array.isArray(kline) || kline.length < 6 ||
+                ![0, 1, 2, 3, 4, 5].every(index => Number.isFinite(Number(kline[index]))))) {
+            return res.status(400).json({ error: "Invalid candle data" });
+        }
 
-    if (usedWeight !== null) {
-        res.setHeader(
-            "X-Binance-Used-Weight-1m",
-            usedWeight
-        );
+        const periods = [fast, slow, signal].map(Number);
+        if (!periods.every(period => Number.isInteger(period) && period > 0 && period <= 500) ||
+            periods[0] >= periods[1]) {
+            return res.status(400).json({ error: "Invalid MACD periods" });
+        }
+
+        try {
+            const states = calculateIcebergCandleStates(klines, ...periods);
+            return res.status(200).json({ states });
+        } catch (error) {
+            console.error("[ICEBERG STRATEGY ERROR]", error);
+            return res.status(500).json({ error: "Iceberg strategy calculation failed" });
+        }
+    }
+}
+
+function calculateIcebergCandleStates(klines, fast, slow, signal) {
+    const states = new Array(klines.length).fill(null);
+    let state = null;
+
+    for (let index = 3; index < klines.length - 1; index++) {
+        const closedKlines = klines.slice(0, index + 2);
+        const {
+            previous_macd_line,
+            previous_2_macd_line,
+        } = calculateMacdValues(closedKlines, fast, slow, signal);
+        const { macd_peak, macd_trough } = calculateMacdPeaks(closedKlines, fast, slow, signal);
+        const previous = Number(previous_macd_line);
+        const previous2 = Number(previous_2_macd_line);
+        const peak = Number(macd_peak.macd_value);
+        const trough = Number(macd_trough.macd_value);
+
+        const crossedUp = (previous > peak && previous2 < peak) ||
+            (previous > trough && previous2 < trough);
+        const crossedDown = (previous < peak && previous2 > peak) ||
+            (previous < trough && previous2 > trough);
+
+        if (crossedUp) state = 'up';
+        else if (crossedDown) state = 'down';
+        states[index] = state;
     }
 
-    const { klines, fast = 12, slow = 26, signal = 9 } = req.body || {};
-    if (!Array.isArray(klines) || klines.length < 5 || klines.length > 2000 ||
-        klines.some(kline => !Array.isArray(kline) || kline.length < 6 ||
-            ![0, 1, 2, 3, 4, 5].every(index => Number.isFinite(Number(kline[index]))))) {
-        return res.status(400).json({ error: "Invalid candle data" });
-    }
-
-    const periods = [fast, slow, signal].map(Number);
-    if (!periods.every(period => Number.isInteger(period) && period > 0 && period <= 500) ||
-        periods[0] >= periods[1]) {
-        return res.status(400).json({ error: "Invalid MACD periods" });
-    }
-
-    try {
-        const states = calculateIcebergCandleStates(klines, ...periods);
-        return res.status(200).json({ states });
-    } catch (error) {
-        console.error("[ICEBERG STRATEGY ERROR]", error);
-        return res.status(500).json({ error: "Iceberg strategy calculation failed" });
-    }
+    states[klines.length - 1] = state;
+    return states;
 }
