@@ -3,13 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#080b10">
-    <title>MGL Chart</title>
+    <meta name="theme-color" content="#05070a">
+    <meta name="description" content="MGL Signal-ийн крипто графикаар Binance Spot болон Futures зах зээлийн лаа, MACD, RSI үзүүлэлтүүдийг хараарай.">
+    <meta name="keywords" content="крипто график, crypto chart, Binance, Spot, Futures, MACD, RSI, MGL Signal">
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow">
+    <meta name="bingbot" content="index, follow">
+    <link rel="canonical" href="https://mglsignal.com/main_chart.html">
+
+    <title>Зах зээлийн график | MGL Signal</title>
+    <meta property="og:title" content="Зах зээлийн график | MGL Signal">
+    <meta property="og:description" content="Binance Spot болон Futures зах зээлийн лаа, MACD, RSI график.">
+    <meta property="og:image" content="https://mglsignal.com/static/new/images/logogo1.png">
+    <meta property="og:url" content="https://mglsignal.com/main_chart.html">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="mn_MN">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Зах зээлийн график | MGL Signal">
+    <meta name="twitter:description" content="Binance Spot болон Futures зах зээлийн лаа, MACD, RSI график.">
+    <meta name="twitter:image" content="https://mglsignal.com/static/new/images/logogo1.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
+    <link rel="apple-touch-icon" href="/static/new/images/logogo1.png">
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q1FKYGV6Z1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-Q1FKYGV6Z1');
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 'dark': '#05070a', 'dark-blue': '#0f1217', 'gold': '#c5a059', 'border': '#1f242d' }
+                    },
+                    fontFamily: { 'inter': ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/main_style.css">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Зах зээлийн график | MGL Signal",
+        "url": "https://mglsignal.com/main_chart.html",
+        "description": "Binance Spot болон Futures зах зээлийн лаа, MACD, RSI график.",
+        "isPartOf": {
+            "@type": "WebSite",
+            "name": "MGL Signal",
+            "url": "https://mglsignal.com"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "MGL Signal",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://mglsignal.com/static/new/images/logogo1.png"
+            }
+        }
+    }
+    </script>
     <style>
         :root {
             color-scheme: dark;
             font-family: Inter, "Segoe UI", Arial, sans-serif;
-            background: #080b10;
+            background: #05070a;
             color: #e6edf5;
             font-synthesis: none;
         }
@@ -22,16 +91,22 @@
             min-width: 320px;
             min-height: 100vh;
             margin: 0;
-            padding: 10px;
-            background: #080b10;
+            padding: 0;
+            background: #05070a;
+        }
+
+        .chart-page {
+            flex: 1 0 auto;
+            min-width: 0;
+            padding: 96px 16px 16px;
         }
 
         .chart-app {
             display: flex;
             flex-direction: column;
             width: min(100%, 1600px);
-            height: calc(100vh - 20px);
-            height: calc(100dvh - 20px);
+            height: clamp(480px, calc(100vh - 260px), 900px);
+            height: clamp(480px, calc(100dvh - 260px), 900px);
             margin: 0 auto;
         }
 
@@ -52,9 +127,9 @@
             display: none;
         }
 
-        select,
-        input,
-        button {
+        .chart-app select,
+        .chart-app input,
+        .chart-app button {
             min-height: 28px;
             border: 1px solid #2a3544;
             border-radius: 5px;
@@ -64,13 +139,13 @@
             font-size: 11px;
         }
 
-        select,
-        input {
+        .chart-app select,
+        .chart-app input {
             padding: 0 7px;
         }
 
-        select,
-        button {
+        .chart-app select,
+        .chart-app button {
             cursor: pointer;
         }
 
@@ -88,7 +163,7 @@
             width: 52px;
         }
 
-        button {
+        .chart-app button {
             min-width: 24px;
             padding: 0 5px;
             border-color: #9c7a3c;
@@ -98,11 +173,11 @@
             font-weight: 700;
         }
 
-        button:hover {
+        .chart-app button:hover {
             background: #d3b36f;
         }
 
-        button:disabled {
+        .chart-app button:disabled {
             cursor: wait;
             opacity: .65;
         }
@@ -250,7 +325,7 @@
             background: #080b10;
         }
 
-        canvas {
+        .chart-frame canvas {
             display: block;
             width: 100%;
             height: 100%;
@@ -259,13 +334,8 @@
         }
 
         @media (max-width: 640px) {
-            body {
-                padding: 8px;
-            }
-
-            .chart-app {
-                height: calc(100vh - 16px);
-                height: calc(100dvh - 16px);
+            .chart-page {
+                padding: 88px 8px 12px;
             }
 
             .toolbar {
@@ -284,8 +354,11 @@
         }
     </style>
 </head>
-<body>
-    <main class="chart-app">
+<body class="bg-brand-dark text-white font-inter flex flex-col min-h-screen">
+    <script src="/static/js/header.js"></script>
+    <main class="chart-page">
+      <h1 class="sr-only">Зах зээлийн график</h1>
+      <div class="chart-app">
         <section class="toolbar" aria-label="Графикийн тохиргоо">
             <select id="market" aria-label="Зах зээл" title="Зах зээл">
                 <option value="spot">Spot</option>
@@ -347,6 +420,7 @@
             </div>
             <canvas id="chart" role="img" aria-label="BTCUSDT үнийн график"></canvas>
         </section>
+      </div>
     </main>
 
     <script>
@@ -1232,5 +1306,6 @@
             window.setInterval(updateCountdown, 1000);
         })();
     </script>
+    <script src="/static/js/footer.js"></script>
 </body>
 </html>
