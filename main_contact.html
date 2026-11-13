@@ -105,6 +105,7 @@
                 "social-fb-sub": "MGL Signal - Албан ёсны хуудас",
                 "social-tg-sub": "Мэдээ мэдээллийн суваг",
                 "social-yt-sub": "Арилжааны хичээлүүд",
+                "or": "ЭСВЭЛ",
                 "contact-success": "Зурвас амжилттай илгээлээ!",
                 "contact-error": "Зурвас илгээхэд алдаа гарлаа. Дахин оролдон уу.",
                 "contact-sending": "Илгээж байна..."
@@ -125,18 +126,25 @@
                 "social-fb-sub": "Official Facebook Page",
                 "social-tg-sub": "Official Telegram Channel",
                 "social-yt-sub": "Trading Tutorials & Reviews",
+                "or": "OR",
                 "contact-success": "Your message has been sent successfully!",
                 "contact-error": "Failed to send message. Please try again.",
                 "contact-sending": "Sending..."
             }
         };
-        Object.keys(pageTranslations).forEach(lang => Object.assign(translations[lang], pageTranslations[lang]));
+        window.translations = window.translations || { mn: {}, en: {} };
+        Object.keys(pageTranslations).forEach(lang => {
+            window.translations[lang] = {
+                ...window.translations[lang],
+                ...pageTranslations[lang]
+            };
+        });
     </script>
 
     <script>
         function t(key) {
             const lang = localStorage.getItem('lang') || 'mn';
-            return (translations && translations[lang] && translations[lang][key]) || key;
+            return (window.translations && window.translations[lang] && window.translations[lang][key]) || key;
         }
 
         function showContactStatus(message, isError) {
