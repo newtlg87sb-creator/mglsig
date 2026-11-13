@@ -3,8 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exchange Terminals - MGL Signal</title>
+    <meta name="theme-color" content="#05070a">
+    <meta name="description" content="MGL Signal-ийн крипто биржийн терминалаас Binance, Bybit, OKX болон бусад биржийн Spot, Futures зах зээлийн үнэ, spread, 24 цагийн өөрчлөлтийг харьцуулна.">
+    <meta name="keywords" content="крипто биржийн дата, crypto exchange data, Binance, Bybit, OKX, Spot, Futures, MGL Signal">
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow">
+    <meta name="bingbot" content="index, follow">
+    <link rel="canonical" href="https://mglsignal.com/main_exchanges.html">
+
+    <title>Биржүүдийн терминал | MGL Signal</title>
+    <meta property="og:title" content="Биржүүдийн терминал | MGL Signal">
+    <meta property="og:description" content="Крипто биржүүдийн Spot болон Futures зах зээлийн үнийн мэдээллийг харьцуулна.">
+    <meta property="og:image" content="https://mglsignal.com/static/new/images/logogo1.png">
+    <meta property="og:url" content="https://mglsignal.com/main_exchanges.html">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="mn_MN">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Биржүүдийн терминал | MGL Signal">
+    <meta name="twitter:description" content="Крипто биржүүдийн Spot болон Futures зах зээлийн үнийн мэдээллийг харьцуулна.">
+    <meta name="twitter:image" content="https://mglsignal.com/static/new/images/logogo1.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
+    <link rel="apple-touch-icon" href="/static/new/images/logogo1.png">
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q1FKYGV6Z1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-Q1FKYGV6Z1');
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -20,6 +53,52 @@
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/main_style.css">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Биржүүдийн терминал | MGL Signal",
+        "url": "https://mglsignal.com/main_exchanges.html",
+        "description": "Крипто биржүүдийн Spot болон Futures зах зээлийн үнийн мэдээллийг харьцуулна.",
+        "isPartOf": {
+            "@type": "WebSite",
+            "name": "MGL Signal",
+            "url": "https://mglsignal.com"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "MGL Signal",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://mglsignal.com/static/new/images/logogo1.png"
+            }
+        }
+    }
+    </script>
+    <style>
+        .terminal-scroll {
+            scrollbar-color: #3a3021 #0f1217;
+            scrollbar-width: thin;
+        }
+        .terminal-scroll::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .terminal-scroll::-webkit-scrollbar-track {
+            background: #0f1217;
+        }
+        .terminal-scroll::-webkit-scrollbar-thumb {
+            border-radius: 999px;
+            background: #3a3021;
+        }
+        .terminal-table th,
+        .terminal-table td {
+            white-space: nowrap;
+        }
+        .terminal-table tbody tr:hover {
+            background: rgba(197, 160, 89, 0.06);
+        }
+    </style>
 </head>
 <body class="bg-brand-dark text-white font-inter flex flex-col min-h-screen">
 
@@ -33,7 +112,7 @@
                 "exchanges-page-desc": "Дэлхийн шилдэг биржүүдийн бодит цагийн дата болон арилжааны хэрэгслүүд.",
                 "back-to-home": '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>Нүүр хуудас руу буцах',
                 "guide-item-1-title": "1. BLACKLISTED / ST RISK",
-                "guide-item-1-desc": "ST (Special Treatment) буюу биржийн гэрээний зөрчилтэй, арилжаанаас хасагдах өндөр эрсдэлтэй койнууд. Систем илрүүлсэн тохиолдолд улаанаар тэмдэглэж анхааруулна. ST тэмдэглэгээтэй койн дээр арилжаа хийхгүй байхыг зөвлөж байна.",
+                "guide-item-1-desc": "Энэ terminal нийтийн ticker feed-ээс ST-risk мэдээлэл цуглуулдаггүй. Тиймээс хүснэгтийн тэмдэглэгээ нь хөрөнгийг эрсдэлгүй гэсэн үг биш.",
                 "guide-item-2-title": "2. SPOT / FUTURES",
                 "guide-item-2-desc": "Жагсаалтаас зах зээлийн төрлөө сонгоно. Боломжтой дата бирж бүрд өөр байж болно.",
                 "guide-item-3-title": "3. БИРЖ СОНГОХ",
@@ -43,7 +122,7 @@
                 "guide-item-5-title": "5. ХАРУУЛЖ БУЙ ҮЗҮҮЛЭЛТ",
                 "guide-item-5-desc": "Хүснэгтэд үнэ, спред болон 24 цагийн өөрчлөлт харагдана. Эдгээр нь мэдээллийн үзүүлэлт болохоос арилжааны зөвлөмж биш.",
                 "guide-item-6-title": "6. ST LABEL",
-                "guide-item-6-desc": "ST тэмдэглэгээ нь биржийн тусгай хяналтад орсон, арилжаанаас хасагдах эрсдэлтэйг илтгэнэ. ST тэмдэгтэй койн дээр арилжаа хийхгүй байхыг зөвлөж байна.",
+                "guide-item-6-desc": "— нь ST-risk мэдээлэл байхгүйг илэрхийлнэ. Тухайн биржийн албан мэдэгдлийг шалгана уу.",
                 "status-dev": "Хөгжүүлэлт хийгдэж байна",
                 "status-live": "Шууд"
             },
@@ -54,7 +133,7 @@
                 "exchanges-page-desc": "Real-time market data and professional terminals from world top exchanges.",
                 "back-to-home": '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>Back to Home',
                 "guide-item-1-title": "1. BLACKLISTED / ST RISK",
-                "guide-item-1-desc": "ST (Special Treatment) coins have breached exchange requirements and face a higher risk of delisting. When detected, the system highlights them in red. We recommend not trading coins marked ST.",
+                "guide-item-1-desc": "This terminal does not collect ST-risk labels from public ticker feeds. A missing label does not mean the asset is risk-free.",
                 "guide-item-2-title": "2. SPOT / FUTURES",
                 "guide-item-2-desc": "Select a market type from the menu. Data availability may vary by exchange.",
                 "guide-item-3-title": "3. SELECT AN EXCHANGE",
@@ -64,7 +143,7 @@
                 "guide-item-5-title": "5. DISPLAYED METRICS",
                 "guide-item-5-desc": "The table displays price, spread, and 24-hour change. These are informational metrics, not trading advice.",
                 "guide-item-6-title": "6. ST LABEL",
-                "guide-item-6-desc": "An ST label indicates special exchange treatment and a risk of delisting. We recommend not trading coins marked ST.",
+                "guide-item-6-desc": "A `—` means ST-risk data is unavailable. Check the exchange's official notices.",
                 "status-dev": "Under Development",
                 "status-live": "Live Now"
             }
@@ -94,7 +173,7 @@
     </script>
     <script src="/static/js/header.js"></script>
 
-    <main class="flex-grow pt-24 pb-12 px-6">
+    <main class="flex-grow pt-24 pb-12 px-4 sm:px-6">
         <div class="max-w-7xl mx-auto">
             <!-- Back to Home Button -->
             <div class="flex justify-between items-center mb-10">
@@ -118,56 +197,58 @@
             </div>
 
             <!-- ── Unified Terminal Window (New Interface) ── -->
-            <div class="bg-brand-dark-blue border border-brand-border rounded-2xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
+            <div class="bg-brand-dark-blue border border-brand-border rounded-2xl p-4 sm:p-6 md:p-8 shadow-2xl relative overflow-hidden">
                 <div class="absolute top-0 right-0 w-64 h-64 bg-brand-gold/5 blur-[100px] -mr-32 -mt-32"></div>
                 
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                     <div>
-                        <h2 class="text-2xl font-black text-white uppercase tracking-tighter">Unified <span class="text-brand-gold italic">Scanner</span></h2>
-                        <p class="text-[9px] text-gray-500 font-bold uppercase tracking-[0.3em] mt-1">Institutional Multi-Exchange Data Stream</p>
+                        <h2 class="text-xl sm:text-2xl font-black text-white uppercase tracking-tighter">Unified <span class="text-brand-gold italic">Scanner</span></h2>
+                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-1">Institutional Multi-Exchange Data Stream</p>
                     </div>
                     <div class="flex items-center gap-3">
-                        <select id="terminal-market-type" onchange="resetAndFetchTerminal()" class="bg-brand-dark border border-brand-border text-white rounded-lg px-3 py-1.5 text-[10px] font-black outline-none focus:border-brand-gold transition-colors">
+                        <select id="terminal-market-type" class="bg-brand-dark border border-brand-border text-white rounded-lg px-3 py-2 text-[11px] font-black outline-none focus:border-brand-gold transition-colors">
                             <option value="spot">SPOT MARKET</option>
                             <option value="swap">FUTURE MARKET</option>
                         </select>
-                        <div id="terminal-timer" class="text-[10px] font-mono bg-black px-3 py-1.5 border border-brand-border text-green-500 rounded-lg min-w-[55px] text-center shadow-inner">OFF</div>
+                        <div id="terminal-timer" class="text-[11px] font-mono bg-black px-3 py-2 border border-brand-border text-brand-gold rounded-lg min-w-[58px] text-center">OFF</div>
                     </div>
                 </div>
 
-                <div id="exchange-buttons" class="flex flex-wrap gap-2 mb-8">
+                <div id="exchange-buttons" class="flex flex-wrap gap-2 mb-6 lg:mb-8">
                     <!-- Exchange Selectors Injected Here -->
                 </div>
 
                 <div class="flex flex-col lg:flex-row gap-8">
                     <!-- 1/4: Logs -->
                     <div class="w-full lg:w-1/4 flex flex-col gap-2">
-                        <h3 class="text-[9px] font-black uppercase text-gray-600 tracking-widest flex items-center px-1"><i class="fas fa-terminal mr-2"></i>Scanner Logs</h3>
-                        <div id="terminal-log-container" class="h-[600px] bg-black border border-brand-border rounded-xl p-4 font-mono text-[9px] text-green-500/70 overflow-y-auto shadow-2xl">
+                        <h3 class="text-[10px] font-black uppercase text-gray-500 tracking-widest flex items-center px-1"><i class="fas fa-terminal mr-2 text-brand-gold"></i>Scanner Logs</h3>
+                        <div id="terminal-log-container" class="terminal-scroll h-64 sm:h-72 lg:h-[600px] bg-black/50 border border-brand-border rounded-xl p-3 sm:p-4 font-mono text-[11px] leading-relaxed text-gray-300 overflow-y-auto">
                             <div class="opacity-30 italic">[System] Initializing scanner engine...</div>
                         </div>
                     </div>
 
                     <!-- 3/4: Table -->
                     <div class="w-full lg:w-3/4 flex flex-col gap-2">
-                        <div class="flex justify-between items-center px-1">
-                            <h3 class="text-[9px] font-black uppercase text-gray-600 tracking-widest flex items-center"><i class="fas fa-list mr-2"></i>Global Feed</h3>
-                            <input type="text" id="terminal-global-search" oninput="renderTerminalUI()" placeholder="Filter results..." class="bg-black/40 border border-brand-border rounded-lg py-1.5 px-4 text-[10px] text-white focus:border-brand-gold outline-none w-48 font-bold transition-all">
+                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 px-1">
+                            <h3 class="text-[10px] font-black uppercase text-gray-500 tracking-widest flex items-center"><i class="fas fa-list mr-2 text-brand-gold"></i>Global Feed</h3>
+                            <input type="text" id="terminal-global-search" placeholder="Filter results..." class="bg-black/40 border border-brand-border rounded-lg py-2 px-3 text-[11px] text-white focus:border-brand-gold outline-none w-full sm:w-48 font-bold transition-all">
                         </div>
-                        <div class="h-[600px] bg-[#05070a] border border-brand-border rounded-xl overflow-hidden relative shadow-2xl">
-                            <div class="overflow-y-auto h-full scroll-luxury">
-                                <table class="w-full text-left border-collapse">
+                        <div class="h-[480px] sm:h-[520px] lg:h-[600px] bg-[#05070a] border border-brand-border rounded-xl overflow-hidden relative">
+                            <div class="terminal-scroll overflow-auto h-full">
+                                <table class="terminal-table w-full min-w-[640px] text-left border-collapse">
                                     <thead class="sticky top-0 bg-brand-dark-blue z-20 shadow-lg border-b border-brand-border">
-                                        <tr class="text-[9px] text-gray-500 uppercase font-black tracking-widest">
-                                            <th class="p-4 cursor-pointer hover:text-white" onclick="updateSortTerminal('name')">Name</th>
-                                            <th class="p-4 cursor-pointer hover:text-white" onclick="updateSortTerminal('symbol')">Symbol</th>
-                                            <th class="p-4 text-right cursor-pointer hover:text-white" onclick="updateSortTerminal('price')">Price</th>
-                                            <th class="p-4 text-right cursor-pointer hover:text-white" onclick="updateSortTerminal('spread')">Spread %</th>
-                                            <th class="p-4 text-right cursor-pointer hover:text-white" onclick="updateSortTerminal('change')">24H %</th>
-                                            <th class="p-4">ST Risk</th>
+                                        <tr class="text-[10px] text-gray-400 uppercase font-black tracking-wider">
+                                            <th data-terminal-sort="name" class="px-3 py-3 cursor-pointer hover:text-white">Name</th>
+                                            <th data-terminal-sort="symbol" class="px-3 py-3 cursor-pointer hover:text-white">Symbol</th>
+                                            <th data-terminal-sort="price" class="px-3 py-3 text-right cursor-pointer hover:text-white">Price</th>
+                                            <th data-terminal-sort="spread" class="px-3 py-3 text-right cursor-pointer hover:text-white">Spread %</th>
+                                            <th data-terminal-sort="change" class="px-3 py-3 text-right cursor-pointer hover:text-white">24H %</th>
+                                            <th class="px-3 py-3">ST Risk</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="terminal-master-table" class="font-mono text-[10px] divide-y divide-white/5"></tbody>
+                                    <tbody id="terminal-master-table" class="font-mono text-[11px] divide-y divide-white/5">
+                                        <tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">Select an exchange to load public market data.</td></tr>
+                                    </tbody>
                                 </table>
                             </div>
                         </div>
@@ -175,7 +256,439 @@
                 </div>
             </div>
 
-            <script src="/static/js/terminal_10.js"></script>
+            <script>
+                (() => {
+                    "use strict";
+
+                    const exchanges = [
+                        "binance", "bybit", "okx", "gateio", "bitget",
+                        "htx", "bitmart", "kucoin", "mexc", "phemex"
+                    ];
+                    const spotSymbols = [
+                        "BTC", "ETH", "BNB", "SOL", "XRP", "DOGE", "ADA", "TRX", "LTC", "LINK",
+                        "AVAX", "DOT", "BCH", "ETC", "UNI", "APT", "NEAR", "SUI", "XLM"
+                    ];
+                    const restTickerUrls = {
+                        binance: type => type === "spot"
+                            ? "https://api.binance.com/api/v3/ticker/24hr"
+                            : "https://fapi.binance.com/fapi/v1/ticker/24hr",
+                        bybit: type => `https://api.bybit.com/v5/market/tickers?category=${type === "spot" ? "spot" : "linear"}`,
+                        okx: type => `https://www.okx.com/api/v5/market/tickers?instType=${type === "spot" ? "SPOT" : "SWAP"}`,
+                        gateio: type => `https://api.gateio.ws/api/v4/${type === "spot" ? "spot" : "futures/usdt"}/tickers`,
+                        bitget: type => type === "spot"
+                            ? "https://api.bitget.com/api/v2/spot/market/tickers"
+                            : "https://api.bitget.com/api/v2/mix/market/tickers?productType=USDT-FUTURES"
+                    };
+                    const unavailableReasons = {
+                        kucoin: "Public WebSocket requires a token, and KuCoin blocks browser access to its public-token REST endpoint.",
+                        mexc: "MEXC rejected the tested public ticker WebSocket channels; its REST endpoint blocks browser CORS.",
+                        phemex: "Phemex rejected the tested public ticker subscription; its REST endpoint blocks browser CORS."
+                    };
+                    const state = {
+                        exchange: null,
+                        generation: 0,
+                        socket: null,
+                        socketTimer: null,
+                        reconnectTimer: null,
+                        pollTimer: null,
+                        polling: false,
+                        data: [],
+                        lastLoggedCount: -1,
+                        sort: { col: "change", desc: true }
+                    };
+                    const logContainer = document.getElementById("terminal-log-container");
+                    const timerElement = document.getElementById("terminal-timer");
+                    const buttonsContainer = document.getElementById("exchange-buttons");
+                    const tableBody = document.getElementById("terminal-master-table");
+                    const marketSelect = document.getElementById("terminal-market-type");
+                    const searchInput = document.getElementById("terminal-global-search");
+
+                    function addLog(message) {
+                        if (!logContainer) return;
+                        if (logContainer.children.length > 50) logContainer.removeChild(logContainer.firstChild);
+                        const line = document.createElement("div");
+                        line.className = "mb-1 border-l border-brand-gold/30 pl-2 text-[11px] leading-relaxed text-gray-300";
+                        const time = document.createElement("span");
+                        time.className = "text-gray-500 mr-2";
+                        time.textContent = `[${new Date().toLocaleTimeString([], { hour12: false })}]`;
+                        line.append(time, document.createTextNode(` ${message}`));
+                        logContainer.appendChild(line);
+                        logContainer.scrollTop = logContainer.scrollHeight;
+                    }
+
+                    function marketType() {
+                        return marketSelect.value;
+                    }
+
+                    function unavailableReason(exchange) {
+                        if (unavailableReasons[exchange]) return unavailableReasons[exchange];
+                        if (["htx", "bitmart"].includes(exchange) && marketType() !== "spot") {
+                            return `${exchange.toUpperCase()} public WebSocket feed is currently available only for Spot.`;
+                        }
+                        return "";
+                    }
+
+                    function updateButtons() {
+                        exchanges.forEach(exchange => {
+                            const button = document.getElementById(`btn-term-${exchange}`);
+                            if (!button) return;
+                            const reason = unavailableReason(exchange);
+                            button.disabled = Boolean(reason);
+                            button.title = reason || `Start ${exchange.toUpperCase()} public market data`;
+                            button.textContent = reason ? `${exchange} N/A` :
+                                `${exchange} ${state.exchange === exchange ? "STOP" : "START"}`;
+                            button.style.backgroundColor = reason ? "#10141a" :
+                                state.exchange === exchange ? "#c5a059" : "rgba(197, 160, 89, 0.08)";
+                            button.style.color = reason ? "#697586" :
+                                state.exchange === exchange ? "#080b10" : "#c5a059";
+                            button.style.borderColor = reason ? "#1f242d" : "rgba(197, 160, 89, 0.4)";
+                            button.style.opacity = reason ? "0.65" : "1";
+                        });
+                    }
+
+                    function initButtons() {
+                        buttonsContainer.replaceChildren();
+                        exchanges.forEach(exchange => {
+                            const button = document.createElement("button");
+                            button.id = `btn-term-${exchange}`;
+                            button.className = "px-3 py-2 rounded-lg font-bold text-[10px] uppercase transition-colors border hover:border-brand-gold/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/60";
+                            button.addEventListener("click", () => toggleExchange(exchange));
+                            buttonsContainer.appendChild(button);
+                        });
+                        updateButtons();
+                    }
+
+                    function parseApiError(raw) {
+                        if (raw?.retCode != null && Number(raw.retCode) !== 0) return raw.retMsg || `API code ${raw.retCode}`;
+                        if (raw?.code != null && !["0", "00000", "200000", "1000"].includes(String(raw.code))) {
+                            return raw.msg || `API code ${raw.code}`;
+                        }
+                        if (raw?.status && !["ok", "success"].includes(String(raw.status).toLowerCase())) {
+                            return raw.message || `API status ${raw.status}`;
+                        }
+                        return null;
+                    }
+
+                    async function fetchJson(url) {
+                        const response = await fetch(url, { cache: "no-store" });
+                        let data;
+                        try {
+                            data = await response.json();
+                        } catch {
+                            throw new Error(`Invalid response (HTTP ${response.status})`);
+                        }
+                        if (!response.ok) throw new Error(data?.msg || data?.message || `HTTP ${response.status}`);
+                        const apiError = parseApiError(data);
+                        if (apiError) throw new Error(apiError);
+                        return data;
+                    }
+
+                    function openSocket(exchange, generation) {
+                        if (generation !== state.generation || state.exchange !== exchange) return;
+                        const type = marketType();
+                        const socketUrl = exchange === "htx"
+                            ? "wss://api.huobi.pro/ws"
+                            : "wss://ws-manager-compress.bitmart.com/api?protocol=1.1";
+                        const socket = new WebSocket(socketUrl);
+                        state.socket = socket;
+                        timerElement.textContent = "CONNECT";
+
+                        socket.onopen = () => {
+                            if (generation !== state.generation) return socket.close();
+                            timerElement.textContent = "LIVE";
+                            addLog(`${exchange.toUpperCase()} public WebSocket connected.`);
+                            if (exchange === "htx") {
+                                spotSymbols.forEach((base, index) => {
+                                    socket.send(JSON.stringify({
+                                        sub: `market.${base.toLowerCase()}usdt.ticker`,
+                                        id: `mgl-${index}`
+                                    }));
+                                });
+                                addLog(`HTX Spot feed is limited to up to ${spotSymbols.length} common USDT pairs; ST metadata is unavailable.`);
+                            } else if (exchange === "bitmart") {
+                                socket.send(JSON.stringify({
+                                    op: "subscribe",
+                                    args: spotSymbols.map(base => `spot/ticker:${base}_USDT`)
+                                }));
+                                state.socketTimer = setInterval(() => {
+                                    if (socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ op: "ping" }));
+                                }, 15000);
+                                addLog(`BitMart Spot feed is limited to up to ${spotSymbols.length} common USDT pairs; ST metadata is unavailable.`);
+                            }
+                        };
+
+                        socket.onmessage = event => {
+                            if (generation !== state.generation) return;
+                            if (exchange === "htx") {
+                                decodeHtxMessage(event.data).then(message => {
+                                    if (message?.ping != null) {
+                                        socket.send(JSON.stringify({ pong: message.ping }));
+                                    } else if (message?.ch && message.tick) {
+                                        const symbol = message.ch.split(".")[1]?.toUpperCase();
+                                        processTickers("htx", [{ ...message.tick, symbol }]);
+                                    } else if (message?.status && message.status !== "ok") {
+                                        addLog(`HTX feed: ${message["err-msg"] || message.status}`);
+                                    }
+                                }).catch(error => addLog(`HTX message error: ${error.message}`));
+                                return;
+                            }
+                            try {
+                                const message = JSON.parse(event.data);
+                                if (exchange === "bitmart") {
+                                    if (message.event === "ping") {
+                                        socket.send(JSON.stringify({ op: "pong" }));
+                                    } else if (Array.isArray(message.data)) {
+                                        processTickers("bitmart", message.data);
+                                    }
+                                }
+                            } catch (error) {
+                                addLog(`${exchange.toUpperCase()} message error: ${error.message}`);
+                            }
+                        };
+
+                        socket.onerror = () => {
+                            if (generation === state.generation) timerElement.textContent = "RETRY";
+                        };
+                        socket.onclose = () => {
+                            clearInterval(state.socketTimer);
+                            state.socketTimer = null;
+                            if (generation !== state.generation || state.exchange !== exchange) return;
+                            timerElement.textContent = "RETRY";
+                            addLog(`${exchange.toUpperCase()} WebSocket disconnected; retrying.`);
+                            state.reconnectTimer = setTimeout(() => openSocket(exchange, generation), 3000);
+                        };
+                    }
+
+                    async function decodeHtxMessage(data) {
+                        if (typeof data === "string") return JSON.parse(data);
+                        if (!("DecompressionStream" in window)) {
+                            throw new Error("This browser cannot decode the HTX public feed.");
+                        }
+                        const stream = new Blob([data]).stream().pipeThrough(new DecompressionStream("gzip"));
+                        return JSON.parse(await new Response(stream).text());
+                    }
+
+                    async function pollExchange(exchange, generation) {
+                        if (state.polling || generation !== state.generation) return;
+                        state.polling = true;
+                        const url = restTickerUrls[exchange](marketType());
+                        try {
+                            const data = await fetchJson(url);
+                            if (generation === state.generation) processTickers(exchange, data);
+                        } catch (error) {
+                            if (generation === state.generation) addLog(`${exchange.toUpperCase()} feed error: ${error.message}`);
+                        } finally {
+                            state.polling = false;
+                        }
+                    }
+
+                    function getTickerList(raw) {
+                        if (Array.isArray(raw)) return raw;
+                        return raw?.data?.ticker || raw?.result?.list || raw?.result ||
+                            raw?.data?.list || raw?.data || raw?.ticks || raw?.tick?.data || [];
+                    }
+
+                    function processTickers(exchange, raw) {
+                        const list = getTickerList(raw);
+                        if (!Array.isArray(list)) {
+                            addLog(`${exchange.toUpperCase()} returned an unsupported data format.`);
+                            return;
+                        }
+
+                        const processed = [];
+                        list.forEach(item => {
+                            const ticker = item?.tick && typeof item.tick === "object"
+                                ? { ...item.tick, symbol: item.contract_code || item.symbol || item.tick.symbol }
+                                : item;
+                            const symbol = String(ticker?.symbol || ticker?.instId || ticker?.s ||
+                                ticker?.currency_pair || ticker?.inst_id || ticker?.pair || ticker?.contract || "").toUpperCase();
+                            if (!symbol.includes("USDT")) return;
+
+                            const last = Number(ticker.lastPrice || ticker.last || ticker.lastPr || ticker.close ||
+                                ticker.last_price || ticker.lastEp || ticker.lastTradePrice || ticker.price || ticker.c);
+                            if (!Number.isFinite(last) || last <= 0) return;
+                            const bidValue = ticker.bidPrice || ticker.buy || ticker.bid1Price || ticker.bidPx ||
+                                ticker.highest_bid || ticker.bidPr || ticker.best_bid || ticker.bid1 || ticker.bidEp ||
+                                ticker.bestBidPrice || ticker.bid_px || ticker.bid || ticker.b || last;
+                            const askValue = ticker.askPrice || ticker.sell || ticker.ask1Price || ticker.askPx ||
+                                ticker.lowest_ask || ticker.askPr || ticker.best_ask || ticker.ask1 || ticker.askEp ||
+                                ticker.bestAskPrice || ticker.ask_px || ticker.ask || ticker.a || last;
+                            const bid = Number(Array.isArray(bidValue) ? bidValue[0] : bidValue) || last;
+                            const ask = Number(Array.isArray(askValue) ? askValue[0] : askValue) || last;
+                            let change = Number(ticker.priceChangePercent || ticker.changeRate || ticker.price24hPcnt ||
+                                ticker.change_percentage || ticker.change24h || ticker.fluctuation || ticker.ratio24h ||
+                                ticker.priceChgPct || ticker.riseFallRate || ticker.P || 0);
+                            const open = Number(ticker.open || ticker.open24h || ticker.open_24h || ticker.o);
+                            if (!change && open > 0) change = (last - open) / open * 100;
+                            else if (["bybit", "bitget"].includes(exchange) ||
+                                (exchange === "okx" && ticker.change24h) ||
+                                (exchange === "bitmart" && Math.abs(change) <= 1)) change *= 100;
+
+                            const normalizedSymbol = symbol.replace(/[-_:/]/g, "").replace("USDT", "/USDT");
+                            const base = normalizedSymbol.split("/")[0];
+                            processed.push({
+                                name: String(ticker.fullName || ticker.baseCurrencyFullName || ticker.displayName || base),
+                                symbol: normalizedSymbol,
+                                price: last,
+                                spread: bid > 0 ? (ask - bid) / bid * 100 : 0,
+                                change,
+                            });
+                        });
+
+                        if (["htx", "bitmart"].includes(exchange)) {
+                            const tickersBySymbol = new Map(state.data.map(item => [item.symbol, item]));
+                            processed.forEach(item => tickersBySymbol.set(item.symbol, item));
+                            state.data = Array.from(tickersBySymbol.values());
+                        } else {
+                            state.data = processed;
+                        }
+                        if (state.data.length !== state.lastLoggedCount) {
+                            addLog(`${exchange.toUpperCase()} feed: ${state.data.length} pairs active.`);
+                            state.lastLoggedCount = state.data.length;
+                        }
+                        renderTable();
+                    }
+
+                    function renderTable() {
+                        if (!tableBody) return;
+                        const query = searchInput.value.trim().toUpperCase();
+                        const rows = state.data.filter(item =>
+                            !query || item.symbol.includes(query) || item.name.toUpperCase().includes(query)
+                        );
+                        if (!rows.length) {
+                            const row = document.createElement("tr");
+                            const message = document.createElement("td");
+                            message.colSpan = 6;
+                            message.className = "px-4 py-10 text-center text-gray-500";
+                            message.textContent = query
+                                ? "No markets match this search."
+                                : "Select an exchange to load public market data.";
+                            row.appendChild(message);
+                            tableBody.replaceChildren(row);
+                            return;
+                        }
+                        const { col, desc } = state.sort;
+                        rows.sort((a, b) => {
+                            const left = a[col];
+                            const right = b[col];
+                            const result = typeof left === "string"
+                                ? left.localeCompare(right)
+                                : Number(left) - Number(right);
+                            return desc ? -result : result;
+                        });
+                        tableBody.replaceChildren();
+                        rows.forEach(item => {
+                            const row = document.createElement("tr");
+                            const values = [item.name, item.symbol,
+                                `$${item.price.toFixed(8).replace(/\.?0+$/, "")}`,
+                                `${item.spread.toFixed(2)}%`,
+                                `${item.change >= 0 ? "+" : ""}${item.change.toFixed(2)}%`];
+                            values.forEach((value, index) => {
+                                const cell = document.createElement("td");
+                                cell.className = index === 1 ? "font-bold px-3 py-2.5" :
+                                    index === 2 || index === 3 || index === 4 ? "text-right px-3 py-2.5" : "px-3 py-2.5";
+                                cell.textContent = value;
+                                if (index === 0) cell.style.color = "#aaa";
+                                if (index === 3) cell.classList.add("text-yellow-500");
+                                if (index === 4) cell.classList.add(item.change >= 0 ? "text-green-500" : "text-red-500", "font-bold");
+                                row.appendChild(cell);
+                            });
+                            const risk = document.createElement("td");
+                            risk.className = "px-3 py-2.5";
+                            risk.textContent = "—";
+                            risk.title = "Public ticker feeds do not reliably provide ST risk metadata.";
+                            row.appendChild(risk);
+                            tableBody.appendChild(row);
+                        });
+                    }
+
+                    function resetActive() {
+                        state.generation++;
+                        clearInterval(state.pollTimer);
+                        clearInterval(state.socketTimer);
+                        clearTimeout(state.reconnectTimer);
+                        state.pollTimer = null;
+                        state.socketTimer = null;
+                        state.reconnectTimer = null;
+                        if (state.socket) {
+                            state.socket.onclose = null;
+                            state.socket.close();
+                            state.socket = null;
+                        }
+                        state.exchange = null;
+                        state.polling = false;
+                        state.data = [];
+                        state.lastLoggedCount = -1;
+                        timerElement.textContent = "OFF";
+                        updateButtons();
+                        renderTable();
+                    }
+
+                    function toggleExchange(exchange) {
+                        if (state.exchange === exchange) {
+                            addLog(`${exchange.toUpperCase()} feed stopped.`);
+                            resetActive();
+                            return;
+                        }
+                        if (state.exchange) resetActive();
+                        const reason = unavailableReason(exchange);
+                        if (reason) {
+                            addLog(`${exchange.toUpperCase()} unavailable: ${reason}`);
+                            return;
+                        }
+
+                        state.exchange = exchange;
+                        state.data = [];
+                        state.lastLoggedCount = -1;
+                        const generation = ++state.generation;
+                        updateButtons();
+                        renderTable();
+                        addLog(`Connecting to ${exchange.toUpperCase()} public market data...`);
+
+                        if (["htx", "bitmart"].includes(exchange)) {
+                            openSocket(exchange, generation);
+                        } else {
+                            pollExchange(exchange, generation);
+                            state.pollTimer = setInterval(() => pollExchange(exchange, generation), 5000);
+                            timerElement.textContent = "5.0s";
+                            let countdown = 50;
+                            state.socketTimer = setInterval(() => {
+                                countdown = countdown <= 0 ? 50 : countdown - 1;
+                                timerElement.textContent = `${(countdown / 10).toFixed(1)}s`;
+                            }, 100);
+                        }
+                    }
+
+                    function initTerminal() {
+                        initButtons();
+                        searchInput.addEventListener("input", renderTable);
+                        document.querySelectorAll("[data-terminal-sort]").forEach(header => {
+                            header.addEventListener("click", () => {
+                                const col = header.dataset.terminalSort;
+                                if (state.sort.col === col) state.sort.desc = !state.sort.desc;
+                                else state.sort = { col, desc: true };
+                                renderTable();
+                            });
+                        });
+                        marketSelect.addEventListener("change", () => {
+                            const wasActive = state.exchange;
+                            if (wasActive) {
+                                addLog(`Switching ${wasActive.toUpperCase()} market to ${marketType().toUpperCase()}.`);
+                                resetActive();
+                            }
+                            updateButtons();
+                            if (wasActive && !unavailableReason(wasActive)) toggleExchange(wasActive);
+                        });
+                        addLog("Standalone mode: direct public exchange feeds only; no private API proxy.");
+                        Object.entries(unavailableReasons).forEach(([exchange, reason]) =>
+                            addLog(`${exchange.toUpperCase()} unavailable in browser-only mode: ${reason}`)
+                        );
+                        addLog(`HTX and BitMart use up to ${spotSymbols.length} common Spot pairs; public ST-risk metadata is unavailable.`);
+                    }
+
+                    initTerminal();
+                })();
+            </script>
 
             <!-- Terminal Usage Guide Section -->
             <div class="mt-20 border-t border-brand-border pt-12">

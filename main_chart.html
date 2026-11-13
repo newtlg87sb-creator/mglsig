@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#080b10">
+    <title>MGL Chart</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            background: #080b10;
+            color: #e6edf5;
+            font-synthesis: none;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-width: 320px;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+            background: #080b10;
+        }
+
+        .chart-app {
+            display: flex;
+            flex-direction: column;
+            width: min(100%, 1600px);
+            height: calc(100vh - 20px);
+            height: calc(100dvh - 20px);
+            margin: 0 auto;
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: center;
+            gap: 2px;
+            padding: 6px;
+            overflow-x: auto;
+            border: 1px solid #222b38;
+            border-radius: 8px;
+            background: #10151d;
+            scrollbar-width: none;
+        }
+
+        .toolbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        select,
+        input,
+        button {
+            min-height: 28px;
+            border: 1px solid #2a3544;
+            border-radius: 5px;
+            background: #0a0f16;
+            color: #e6edf5;
+            font-family: inherit;
+            font-size: 11px;
+        }
+
+        select,
+        input {
+            padding: 0 7px;
+        }
+
+        select,
+        button {
+            cursor: pointer;
+        }
+
+        #market {
+            width: 66px;
+        }
+
+        #symbol {
+            width: 78px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        #interval {
+            width: 52px;
+        }
+
+        button {
+            min-width: 24px;
+            padding: 0 5px;
+            border-color: #9c7a3c;
+            background: #b89452;
+            color: #080b10;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        button:hover {
+            background: #d3b36f;
+        }
+
+        button:disabled {
+            cursor: wait;
+            opacity: .65;
+        }
+
+        .toolbar-divider {
+            flex: 0 0 1px;
+            height: 20px;
+            margin: 0 1px;
+            background: #2a3544;
+        }
+
+        .indicator-toggle,
+        .indicator-period {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            color: #a7b3c2;
+            font-size: 9px;
+            white-space: nowrap;
+        }
+
+        .indicator-toggle input {
+            width: 13px;
+            min-height: 13px;
+            margin: 0;
+            accent-color: #c5a059;
+        }
+
+        .indicator-period input {
+            width: 36px;
+            min-height: 25px;
+            padding: 0 3px;
+            text-align: center;
+        }
+
+        #reload {
+            border-color: #344151;
+            background: #18212c;
+            color: #d5be88;
+        }
+
+        #reload:hover {
+            background: #263445;
+        }
+
+        #applyIndicators {
+            min-height: 27px;
+            border-color: #344151;
+            background: #18212c;
+            color: #c4d0de;
+            font-size: 10px;
+        }
+
+        #applyIndicators:hover {
+            background: #263445;
+        }
+
+        .symbols-status {
+            flex: 0 0 auto;
+            color: #708095;
+            font-size: 10px;
+            white-space: nowrap;
+        }
+
+        .countdown {
+            flex: 0 0 auto;
+            color: #64c8dc;
+            font: 10px ui-monospace, Consolas, monospace;
+            white-space: nowrap;
+        }
+
+        .status-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-height: 26px;
+            padding: 3px 8px;
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: none;
+        }
+
+        .status-row::-webkit-scrollbar {
+            display: none;
+        }
+
+        .status {
+            flex: 0 0 auto;
+            min-height: 0;
+            padding: 0;
+            color: #9aa8b8;
+            font-size: 10px;
+        }
+
+        .status[data-state="error"] {
+            color: #ff7b82;
+        }
+
+        .status[data-state="live"] {
+            color: #56d69a;
+        }
+
+        #status {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ohlc {
+            position: absolute;
+            z-index: 1;
+            top: 4px;
+            left: 12px;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            pointer-events: none;
+            color: #a7b3c2;
+            font: 9px/16px ui-monospace, Consolas, monospace;
+        }
+
+        .ohlc span {
+            white-space: nowrap;
+        }
+
+        .ohlc b {
+            color: #647386;
+            font-weight: 500;
+        }
+
+        .ohlc [data-value="up"] {
+            color: #38d996;
+        }
+
+        .ohlc [data-value="down"] {
+            color: #ff6874;
+        }
+
+        .chart-frame {
+            position: relative;
+            flex: 1 1 auto;
+            min-height: 220px;
+            overflow: hidden;
+            border: 1px solid #222b38;
+            border-radius: 10px;
+            background: #080b10;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+            touch-action: none;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 8px;
+            }
+
+            .chart-app {
+                height: calc(100vh - 16px);
+                height: calc(100dvh - 16px);
+            }
+
+            .toolbar {
+                gap: 2px;
+                padding: 5px;
+            }
+
+            .chart-frame {
+                min-height: 200px;
+            }
+
+            .ohlc {
+                gap: 5px;
+                font-size: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="chart-app">
+        <section class="toolbar" aria-label="Графикийн тохиргоо">
+            <select id="market" aria-label="Зах зээл" title="Зах зээл">
+                <option value="spot">Spot</option>
+                <option value="futures">Futures</option>
+            </select>
+            <input id="symbol" type="text" value="BTCUSDT" list="symbol-suggestions" maxlength="20"
+                autocomplete="off" spellcheck="false" aria-label="Хослол" title="Хослол">
+            <datalist id="symbol-suggestions"></datalist>
+            <select id="interval" aria-label="Хугацаа" title="Хугацаа">
+                <option value="1m">1m</option>
+                <option value="3m">3m</option>
+                <option value="5m">5m</option>
+                <option value="15m">15m</option>
+                <option value="30m">30m</option>
+                <option value="1h">1h</option>
+                <option value="2h">2h</option>
+                <option value="4h">4h</option>
+                <option value="6h">6h</option>
+                <option value="12h">12h</option>
+                <option value="1d">1d</option>
+                <option value="1w">1w</option>
+                <option value="1M">1M</option>
+            </select>
+            <button id="reload" type="button" aria-label="Шинэчлэх" title="Шинэчлэх">↻</button>
+            <span class="toolbar-divider" aria-hidden="true"></span>
+            <label class="indicator-toggle" title="MACD үзүүлэлт">
+                <input id="showMACD" type="checkbox" checked> MACD
+            </label>
+            <label class="indicator-period" title="MACD Fast">
+                F <input id="macdFast" type="number" min="1" max="500" value="12" aria-label="MACD Fast">
+            </label>
+            <label class="indicator-period" title="MACD Slow">
+                S <input id="macdSlow" type="number" min="2" max="500" value="26" aria-label="MACD Slow">
+            </label>
+            <label class="indicator-period" title="MACD Signal">
+                Sig <input id="macdSignal" type="number" min="1" max="500" value="9" aria-label="MACD Signal">
+            </label>
+            <label class="indicator-toggle" title="RSI үзүүлэлт">
+                <input id="showRSI" type="checkbox" checked> RSI
+            </label>
+            <label class="indicator-period" title="RSI Period">
+                P <input id="rsiPeriod" type="number" min="1" max="500" value="14" aria-label="RSI Period">
+            </label>
+            <button id="applyIndicators" type="button" aria-label="Үзүүлэлт хэрэглэх" title="Үзүүлэлт хэрэглэх">✓</button>
+        </section>
+
+        <div class="status-row" aria-label="Графикийн төлөв">
+            <span class="countdown"><span>Дараагийн лаа</span> <b id="candle-countdown">--:--</b></span>
+            <span id="symbols-status" class="symbols-status" role="status" aria-live="polite"></span>
+            <span id="status" class="status" role="status" aria-live="polite">График ачаалж байна...</span>
+        </div>
+        <section class="chart-frame" aria-label="Үнийн лаан график">
+            <div class="ohlc" aria-label="Лааны O H L C үнэ" aria-live="polite">
+                <span id="ohlc-symbol">BTCUSDT</span>
+                <span><b>O</b> <span id="ohlc-open">—</span></span>
+                <span><b>H</b> <span id="ohlc-high">—</span></span>
+                <span><b>L</b> <span id="ohlc-low">—</span></span>
+                <span><b>C</b> <span id="ohlc-close">—</span></span>
+            </div>
+            <canvas id="chart" role="img" aria-label="BTCUSDT үнийн график"></canvas>
+        </section>
+    </main>
+
+    <script>
+        (() => {
+            "use strict";
+
+            const HISTORY_LIMIT = 500;
+            const LIVE_POLL_MS = 1000;
+            const MIN_VISIBLE = 20;
+            const MAX_VISIBLE = 300;
+            const LEFT = 12;
+            const RIGHT = 60;
+            const TOP = 28;
+            const BOTTOM = 30;
+
+            const canvas = document.getElementById("chart");
+            const ctx = canvas.getContext("2d");
+            const marketInput = document.getElementById("market");
+            const symbolInput = document.getElementById("symbol");
+            const symbolSuggestions = document.getElementById("symbol-suggestions");
+            const symbolsStatus = document.getElementById("symbols-status");
+            const intervalInput = document.getElementById("interval");
+            const reloadButton = document.getElementById("reload");
+            const applyIndicatorsButton = document.getElementById("applyIndicators");
+            const statusElement = document.getElementById("status");
+            const countdownElement = document.getElementById("candle-countdown");
+            const showMacdInput = document.getElementById("showMACD");
+            const showRsiInput = document.getElementById("showRSI");
+            const indicatorInputs = {
+                fast: document.getElementById("macdFast"),
+                slow: document.getElementById("macdSlow"),
+                signal: document.getElementById("macdSignal"),
+                rsi: document.getElementById("rsiPeriod")
+            };
+            const ohlcElements = {
+                symbol: document.getElementById("ohlc-symbol"),
+                open: document.getElementById("ohlc-open"),
+                high: document.getElementById("ohlc-high"),
+                low: document.getElementById("ohlc-low"),
+                close: document.getElementById("ohlc-close")
+            };
+
+            const state = {
+                candles: [],
+                market: marketInput.value,
+                symbol: symbolInput.value,
+                interval: intervalInput.value,
+                visible: 100,
+                offset: 0,
+                priceScale: 1,
+                priceShift: 0,
+                periods: { fast: 12, slow: 26, signal: 9, rsi: 14 },
+                indicators: { macd: [], signal: [], histogram: [], rsi: [] },
+                hover: null,
+                drag: null,
+                layout: null,
+                loading: false,
+                requestId: 0,
+                controller: null,
+                symbolsRequestId: 0,
+                symbolsController: null
+            };
+
+            const symbolsCache = new Map();
+
+            function setStatus(message, stateName = "") {
+                statusElement.textContent = message;
+                statusElement.dataset.state = stateName;
+            }
+
+            function formatPrice(value) {
+                const price = Number(value);
+                if (!Number.isFinite(price)) return "—";
+                const digits = price >= 1000 ? 2 : price >= 1 ? 4 : price >= 0.001 ? 6 : 8;
+                return price.toLocaleString("en-US", {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: digits
+                });
+            }
+
+            function formatTime(timestamp) {
+                const date = new Date(timestamp);
+                const options = /[dwM]$/.test(state.interval)
+                    ? { timeZone: "Asia/Ulaanbaatar", month: "short", day: "2-digit" }
+                    : { timeZone: "Asia/Ulaanbaatar", month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false };
+                return new Intl.DateTimeFormat("en-GB", options).format(date);
+            }
+
+            function formatCrosshairTime(timestamp) {
+                return new Intl.DateTimeFormat("en-GB", {
+                    timeZone: "Asia/Ulaanbaatar",
+                    year: "numeric",
+                    month: "short",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false
+                }).format(new Date(timestamp));
+            }
+
+            function nextCandleTime(now = Date.now()) {
+                const match = /^(\d+)([smhdwM])$/.exec(state.interval);
+                if (!match) return now;
+                const count = Number(match[1]);
+                const unit = match[2];
+
+                if (unit === "M") {
+                    const nextMonth = new Date(now);
+                    nextMonth.setUTCDate(1);
+                    nextMonth.setUTCHours(0, 0, 0, 0);
+                    nextMonth.setUTCMonth(nextMonth.getUTCMonth() + count);
+                    return nextMonth.getTime();
+                }
+                if (unit === "w") {
+                    const day = 24 * 60 * 60 * 1000;
+                    const startOfDay = Math.floor(now / day) * day;
+                    const weekday = new Date(now).getUTCDay();
+                    const daysToMonday = (8 - weekday) % 7 || 7;
+                    return startOfDay + daysToMonday * day;
+                }
+
+                const duration = count * ({
+                    s: 1000,
+                    m: 60 * 1000,
+                    h: 60 * 60 * 1000,
+                    d: 24 * 60 * 60 * 1000
+                })[unit];
+                return (Math.floor(now / duration) + 1) * duration;
+            }
+
+            function updateCountdown() {
+                const secondsLeft = Math.max(0, Math.ceil((nextCandleTime() - Date.now()) / 1000));
+                const hours = Math.floor(secondsLeft / 3600);
+                const minutes = Math.floor((secondsLeft % 3600) / 60);
+                const seconds = secondsLeft % 60;
+                countdownElement.textContent = hours > 0
+                    ? `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+                    : `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+            }
+
+            function updateOhlc(candle) {
+                if (!candle) return;
+                const rising = candle[4] >= candle[1];
+                ohlcElements.symbol.textContent = state.symbol;
+                ohlcElements.open.textContent = formatPrice(candle[1]);
+                ohlcElements.high.textContent = formatPrice(candle[2]);
+                ohlcElements.low.textContent = formatPrice(candle[3]);
+                ohlcElements.close.textContent = formatPrice(candle[4]);
+                ohlcElements.close.dataset.value = rising ? "up" : "down";
+                canvas.setAttribute("aria-label", `${state.symbol} үнийн график`);
+            }
+
+            function parseCandles(rows) {
+                if (!Array.isArray(rows)) throw new Error("Биржээс буруу өгөгдөл ирлээ.");
+                return rows.map(row => {
+                    const candle = [0, 1, 2, 3, 4, 5].map(index => Number(row[index]));
+                    if (candle.length !== 6 || !candle.every(Number.isFinite)) {
+                        throw new Error("Лааны өгөгдөл дутуу эсвэл буруу байна.");
+                    }
+                    return candle;
+                });
+            }
+
+            function endpoint(limit) {
+                const base = state.market === "futures"
+                    ? "https://fapi.binance.com/fapi/v1/klines"
+                    : "https://api.binance.com/api/v3/klines";
+                const params = new URLSearchParams({
+                    symbol: state.symbol,
+                    interval: state.interval,
+                    limit: String(limit)
+                });
+                return `${base}?${params}`;
+            }
+
+            function renderSymbolSuggestions(symbols) {
+                const options = document.createDocumentFragment();
+                symbols.forEach(symbol => {
+                    const option = document.createElement("option");
+                    option.value = symbol;
+                    options.append(option);
+                });
+                symbolSuggestions.replaceChildren(options);
+                symbolsStatus.textContent = `${symbols.length.toLocaleString()} хослол`;
+            }
+
+            async function loadSymbolSuggestions() {
+                const market = marketInput.value;
+                const requestId = ++state.symbolsRequestId;
+                state.symbolsController?.abort();
+                state.symbolsController = null;
+                const cached = symbolsCache.get(market);
+                if (cached) {
+                    renderSymbolSuggestions(cached);
+                    return;
+                }
+
+                const controller = new AbortController();
+                state.symbolsController = controller;
+                symbolsStatus.textContent = "Хослолын жагсаалт...";
+
+                const url = market === "futures"
+                    ? "https://fapi.binance.com/fapi/v1/exchangeInfo"
+                    : "https://api.binance.com/api/v3/exchangeInfo";
+
+                try {
+                    const response = await fetch(url, { cache: "force-cache", signal: controller.signal });
+                    const data = await response.json();
+                    if (!response.ok) {
+                        throw new Error(data?.msg || `Биржийн хүсэлт амжилтгүй (HTTP ${response.status}).`);
+                    }
+                    if (!Array.isArray(data.symbols)) throw new Error("Биржийн хослолын жагсаалт буруу байна.");
+
+                    const symbols = data.symbols
+                        .filter(item => item.status === "TRADING" && item.quoteAsset === "USDT" &&
+                            (market !== "futures" || item.contractType === "PERPETUAL"))
+                        .map(item => item.symbol)
+                        .sort();
+                    if (!symbols.length) throw new Error("Арилжааны хослолын жагсаалт хоосон байна.");
+                    if (requestId !== state.symbolsRequestId) return;
+
+                    symbolsCache.set(market, symbols);
+                    renderSymbolSuggestions(symbols);
+                } catch (error) {
+                    if (error.name === "AbortError" || requestId !== state.symbolsRequestId) return;
+                    symbolsStatus.textContent = "Хослолын санал авах боломжгүй";
+                    console.error("[CHART SYMBOLS ERROR]", error);
+                } finally {
+                    if (requestId === state.symbolsRequestId) state.symbolsController = null;
+                }
+            }
+
+            function calculateEma(values, period) {
+                if (!values.length) return [];
+                const multiplier = 2 / (period + 1);
+                const result = [values[0]];
+                for (let index = 1; index < values.length; index++) {
+                    result.push(values[index] * multiplier + result[index - 1] * (1 - multiplier));
+                }
+                return result;
+            }
+
+            function calculateIndicators() {
+                const closes = state.candles.map(candle => candle[4]);
+                if (!closes.length) {
+                    state.indicators = { macd: [], signal: [], histogram: [], rsi: [] };
+                    return;
+                }
+
+                const { fast, slow, signal: signalPeriod, rsi: rsiPeriod } = state.periods;
+                const fastEma = calculateEma(closes, fast);
+                const slowEma = calculateEma(closes, slow);
+                const macd = fastEma.map((value, index) => value - slowEma[index]);
+                const signal = calculateEma(macd, signalPeriod);
+                const rsi = new Array(closes.length).fill(50);
+
+                if (closes.length > rsiPeriod) {
+                    let gains = 0;
+                    let losses = 0;
+                    for (let index = 1; index <= rsiPeriod; index++) {
+                        const change = closes[index] - closes[index - 1];
+                        gains += Math.max(change, 0);
+                        losses += Math.max(-change, 0);
+                    }
+
+                    let averageGain = gains / rsiPeriod;
+                    let averageLoss = losses / rsiPeriod;
+                    const toRsi = () => averageLoss === 0
+                        ? (averageGain === 0 ? 50 : 100)
+                        : 100 - 100 / (1 + averageGain / averageLoss);
+                    rsi[rsiPeriod] = toRsi();
+
+                    for (let index = rsiPeriod + 1; index < closes.length; index++) {
+                        const change = closes[index] - closes[index - 1];
+                        averageGain = (averageGain * (rsiPeriod - 1) + Math.max(change, 0)) / rsiPeriod;
+                        averageLoss = (averageLoss * (rsiPeriod - 1) + Math.max(-change, 0)) / rsiPeriod;
+                        rsi[index] = toRsi();
+                    }
+                }
+
+                state.indicators = {
+                    macd,
+                    signal,
+                    histogram: macd.map((value, index) => value - signal[index]),
+                    rsi
+                };
+            }
+
+            async function loadHistory(resetView = true) {
+                const symbol = symbolInput.value.trim().toUpperCase();
+                if (!/^[A-Z0-9]{2,20}$/.test(symbol)) {
+                    setStatus("Арилжааны хослолын нэр буруу байна.", "error");
+                    symbolInput.focus();
+                    return;
+                }
+
+                const chartChanged = symbol !== state.symbol ||
+                    marketInput.value !== state.market ||
+                    intervalInput.value !== state.interval;
+                state.symbol = symbol;
+                state.market = marketInput.value;
+                state.interval = intervalInput.value;
+                symbolInput.value = symbol;
+
+                if (chartChanged) {
+                    state.candles = [];
+                    calculateIndicators();
+                    draw();
+                }
+
+                if (resetView) {
+                    state.visible = 100;
+                    state.offset = 0;
+                    state.priceScale = 1;
+                    state.priceShift = 0;
+                }
+
+                const requestId = ++state.requestId;
+                state.controller?.abort();
+                const controller = new AbortController();
+                state.controller = controller;
+                state.loading = true;
+                reloadButton.disabled = true;
+                setStatus(`${state.symbol} · ${state.market} · ${state.interval} ачаалж байна...`);
+
+                try {
+                    const response = await fetch(endpoint(HISTORY_LIMIT), {
+                        cache: "no-store",
+                        signal: controller.signal
+                    });
+                    const payload = await response.json();
+                    if (!response.ok) {
+                        throw new Error(payload?.msg || `Биржийн хүсэлт амжилтгүй (HTTP ${response.status}).`);
+                    }
+
+                    const candles = parseCandles(payload);
+                    if (!candles.length) throw new Error("Энэ хослолд лааны өгөгдөл олдсонгүй.");
+                    if (requestId !== state.requestId) return;
+
+                    state.candles = candles.slice(-HISTORY_LIMIT);
+                    state.offset = Math.min(state.offset, Math.max(0, state.candles.length - state.visible));
+                    calculateIndicators();
+                    updateOhlc(state.candles[state.candles.length - 1]);
+                    setStatus(`${state.symbol} · ${state.market} · ${state.interval} · ${state.candles.length} лаа`, "live");
+                    draw();
+                } catch (error) {
+                    if (error.name === "AbortError" || requestId !== state.requestId) return;
+                    setStatus(`График ачаалж чадсангүй: ${error.message}`, "error");
+                    draw();
+                } finally {
+                    if (requestId === state.requestId) {
+                        state.loading = false;
+                        state.controller = null;
+                        reloadButton.disabled = false;
+                    }
+                }
+            }
+
+            async function pollLatest() {
+                if (state.loading || document.hidden || !state.candles.length) return;
+                const requestId = state.requestId;
+                const controller = new AbortController();
+                state.controller = controller;
+                state.loading = true;
+
+                try {
+                    const response = await fetch(endpoint(2), {
+                        cache: "no-store",
+                        signal: controller.signal
+                    });
+                    const payload = await response.json();
+                    if (!response.ok) {
+                        throw new Error(payload?.msg || `HTTP ${response.status}`);
+                    }
+                    const updates = parseCandles(payload);
+                    if (requestId !== state.requestId || !updates.length) return;
+
+                    const lastTime = state.candles[state.candles.length - 1][0];
+                    const added = updates.filter(candle => candle[0] > lastTime).length;
+                    const merged = new Map(state.candles.map(candle => [candle[0], candle]));
+                    updates.forEach(candle => merged.set(candle[0], candle));
+                    state.candles = Array.from(merged.values()).sort((a, b) => a[0] - b[0]).slice(-HISTORY_LIMIT);
+                    calculateIndicators();
+                    if (state.offset > 0 && added) {
+                        state.offset = Math.min(state.offset + added, Math.max(0, state.candles.length - state.visible));
+                    }
+
+                    if (state.offset === 0) {
+                        updateOhlc(state.candles[state.candles.length - 1]);
+                        setStatus(`${state.symbol} · ${state.market} · ${state.interval} · шинэчлэгдсэн ${new Date().toLocaleTimeString("mn-MN")}`, "live");
+                    }
+                    draw();
+                } catch (error) {
+                    if (error.name !== "AbortError" && requestId === state.requestId) {
+                        setStatus(`Шинэчлэхэд алдаа гарлаа: ${error.message}`, "error");
+                    }
+                } finally {
+                    if (requestId === state.requestId) {
+                        state.loading = false;
+                        state.controller = null;
+                    }
+                }
+            }
+
+            function drawMacdPanel(start, candles, plotLeft, plotWidth, top, height, barWidth, hoverIndex) {
+                const macd = state.indicators.macd.slice(start, start + candles.length);
+                const signal = state.indicators.signal.slice(start, start + candles.length);
+                const histogram = state.indicators.histogram.slice(start, start + candles.length);
+                const values = [...macd, ...signal, ...histogram, 0];
+                let min = Math.min(...values);
+                let max = Math.max(...values);
+                if (max === min) {
+                    min += 1;
+                    max -= 1;
+                }
+                const innerTop = top + 16;
+                const innerHeight = Math.max(1, height - 20);
+                const valueToY = value => innerTop + (max - value) / (max - min) * innerHeight;
+                const zeroY = valueToY(0);
+
+                ctx.strokeStyle = "#26303d";
+                ctx.beginPath();
+                ctx.moveTo(plotLeft, top);
+                ctx.lineTo(plotLeft + plotWidth, top);
+                ctx.stroke();
+                ctx.fillStyle = "#7e8da0";
+                ctx.font = "10px Inter, Arial, sans-serif";
+                ctx.textAlign = "left";
+                ctx.textBaseline = "top";
+                ctx.fillText(`MACD (${state.periods.fast}, ${state.periods.slow}, ${state.periods.signal})`, plotLeft + 5, top + 3);
+
+                ctx.strokeStyle = "#26303d";
+                ctx.beginPath();
+                ctx.moveTo(plotLeft, zeroY);
+                ctx.lineTo(plotLeft + plotWidth, zeroY);
+                ctx.stroke();
+                histogram.forEach((value, index) => {
+                    const x = plotLeft + (index + 0.5) * barWidth;
+                    ctx.fillStyle = value >= 0 ? "rgba(38, 201, 139, .72)" : "rgba(240, 93, 104, .72)";
+                    ctx.fillRect(x - Math.max(1, barWidth * 0.32), Math.min(zeroY, valueToY(value)),
+                        Math.max(1, barWidth * 0.64), Math.max(1, Math.abs(valueToY(value) - zeroY)));
+                });
+
+                [[macd, "#40b8f5"], [signal, "#f5a64a"]].forEach(([series, color]) => {
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 1.4;
+                    ctx.beginPath();
+                    series.forEach((value, index) => {
+                        const x = plotLeft + (index + 0.5) * barWidth;
+                        const y = valueToY(value);
+                        if (index === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    });
+                    ctx.stroke();
+                });
+
+                if (hoverIndex !== null) {
+                    const localIndex = hoverIndex - start;
+                    if (localIndex >= 0 && localIndex < macd.length) {
+                        ctx.fillStyle = "#40b8f5";
+                        ctx.fillText(`MACD ${macd[localIndex].toFixed(6)}   Signal ${signal[localIndex].toFixed(6)}`,
+                            plotLeft + 130, top + 3);
+                    }
+                }
+            }
+
+            function drawRsiPanel(start, candles, plotLeft, plotWidth, top, height, barWidth, hoverIndex) {
+                const rsi = state.indicators.rsi.slice(start, start + candles.length);
+                const innerTop = top + 16;
+                const innerHeight = Math.max(1, height - 20);
+                const valueToY = value => innerTop + (100 - value) / 100 * innerHeight;
+
+                ctx.strokeStyle = "#26303d";
+                ctx.beginPath();
+                ctx.moveTo(plotLeft, top);
+                ctx.lineTo(plotLeft + plotWidth, top);
+                ctx.stroke();
+                ctx.fillStyle = "#7e8da0";
+                ctx.font = "10px Inter, Arial, sans-serif";
+                ctx.textAlign = "left";
+                ctx.textBaseline = "top";
+                ctx.fillText(`RSI (${state.periods.rsi})`, plotLeft + 5, top + 3);
+
+                [70, 30].forEach(level => {
+                    const y = valueToY(level);
+                    ctx.setLineDash([3, 4]);
+                    ctx.strokeStyle = "#303b49";
+                    ctx.beginPath();
+                    ctx.moveTo(plotLeft, y);
+                    ctx.lineTo(plotLeft + plotWidth, y);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.fillStyle = "#7e8da0";
+                    ctx.textAlign = "left";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(String(level), plotLeft + plotWidth + 8, y);
+                });
+
+                ctx.strokeStyle = "#b679e5";
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                rsi.forEach((value, index) => {
+                    const x = plotLeft + (index + 0.5) * barWidth;
+                    const y = valueToY(value);
+                    if (index === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+
+                if (hoverIndex !== null) {
+                    const localIndex = hoverIndex - start;
+                    if (localIndex >= 0 && localIndex < rsi.length) {
+                        ctx.fillStyle = "#b679e5";
+                        ctx.textAlign = "left";
+                        ctx.textBaseline = "top";
+                        ctx.fillText(`RSI ${rsi[localIndex].toFixed(2)}`, plotLeft + 100, top + 3);
+                    }
+                }
+            }
+
+            function draw() {
+                const bounds = canvas.getBoundingClientRect();
+                if (!bounds.width || !bounds.height) return;
+
+                const ratio = window.devicePixelRatio || 1;
+                const width = Math.round(bounds.width * ratio);
+                const height = Math.round(bounds.height * ratio);
+                if (canvas.width !== width || canvas.height !== height) {
+                    canvas.width = width;
+                    canvas.height = height;
+                }
+                ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+                ctx.clearRect(0, 0, bounds.width, bounds.height);
+                ctx.fillStyle = "#080b10";
+                ctx.fillRect(0, 0, bounds.width, bounds.height);
+
+                if (!state.candles.length) {
+                    ctx.fillStyle = "#758397";
+                    ctx.font = "13px Inter, Arial, sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.fillText("Лааны өгөгдөл хүлээж байна", bounds.width / 2, bounds.height / 2);
+                    return;
+                }
+
+                const plotLeft = LEFT;
+                const plotTop = TOP;
+                const plotWidth = Math.max(1, bounds.width - LEFT - RIGHT);
+                const availableHeight = Math.max(1, bounds.height - TOP - BOTTOM);
+                const showMacd = showMacdInput.checked;
+                const showRsi = showRsiInput.checked;
+                const panelGap = 9;
+                let mainHeight = availableHeight;
+                let macdTop = null;
+                let macdHeight = 0;
+                let rsiTop = null;
+                let rsiHeight = 0;
+                const indicatorCount = Number(showMacd) + Number(showRsi);
+
+                if (indicatorCount === 2) {
+                    mainHeight = availableHeight * 0.62;
+                    const indicatorHeight = (availableHeight - mainHeight - panelGap * 2) / 2;
+                    macdTop = plotTop + mainHeight + panelGap;
+                    macdHeight = indicatorHeight;
+                    rsiTop = macdTop + macdHeight + panelGap;
+                    rsiHeight = indicatorHeight;
+                } else if (indicatorCount === 1) {
+                    mainHeight = availableHeight * 0.72;
+                    const indicatorHeight = availableHeight - mainHeight - panelGap;
+                    if (showMacd) {
+                        macdTop = plotTop + mainHeight + panelGap;
+                        macdHeight = indicatorHeight;
+                    } else {
+                        rsiTop = plotTop + mainHeight + panelGap;
+                        rsiHeight = indicatorHeight;
+                    }
+                }
+
+                const plotBottom = plotTop + availableHeight;
+                const end = state.candles.length - state.offset;
+                const start = Math.max(0, end - state.visible);
+                const candles = state.candles.slice(start, end);
+                if (!candles.length) return;
+
+                const barWidth = plotWidth / candles.length;
+                let minPrice = Math.min(...candles.map(candle => candle[3]));
+                let maxPrice = Math.max(...candles.map(candle => candle[2]));
+                if (maxPrice === minPrice) {
+                    const padding = Math.max(maxPrice * 0.001, 0.001);
+                    maxPrice += padding;
+                    minPrice -= padding;
+                }
+                const baseMidpoint = (maxPrice + minPrice) / 2;
+                const baseRange = (maxPrice - minPrice) * 1.1;
+                const midpoint = baseMidpoint + state.priceShift;
+                const halfRange = baseRange * 0.5 * state.priceScale;
+                maxPrice = midpoint + halfRange;
+                minPrice = midpoint - halfRange;
+                const priceToY = price => plotTop + ((maxPrice - price) / (maxPrice - minPrice)) * mainHeight;
+
+                state.layout = {
+                    plotLeft, plotTop, plotWidth, mainHeight, plotBottom, barWidth, start, candles,
+                    minPrice, maxPrice, baseMidpoint, baseRange
+                };
+
+                ctx.font = "10px Inter, Arial, sans-serif";
+                ctx.textAlign = "left";
+                ctx.textBaseline = "middle";
+                for (let tick = 0; tick <= 6; tick++) {
+                    const price = maxPrice - (maxPrice - minPrice) * tick / 6;
+                    const y = plotTop + mainHeight * tick / 6;
+                    ctx.strokeStyle = "#17202b";
+                    ctx.beginPath();
+                    ctx.moveTo(plotLeft, y);
+                    ctx.lineTo(plotLeft + plotWidth, y);
+                    ctx.stroke();
+                    ctx.fillStyle = "#8795a7";
+                    ctx.fillText(formatPrice(price), plotLeft + plotWidth + 5, y);
+                }
+
+                const tickCount = Math.max(2, Math.floor(plotWidth / 125));
+                const tickStep = Math.max(1, Math.ceil(candles.length / tickCount));
+                const chartBottom = rsiTop !== null ? rsiTop + rsiHeight :
+                    macdTop !== null ? macdTop + macdHeight : plotTop + mainHeight;
+                for (let index = 0; index < candles.length; index += tickStep) {
+                    const x = plotLeft + (index + 0.5) * barWidth;
+                    ctx.strokeStyle = "#111923";
+                    ctx.beginPath();
+                    ctx.moveTo(x, plotTop);
+                    ctx.lineTo(x, chartBottom);
+                    ctx.stroke();
+                    ctx.fillStyle = "#8795a7";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "top";
+                    ctx.fillText(formatTime(candles[index][0]), x, plotBottom + 5);
+                }
+
+                candles.forEach((candle, index) => {
+                    const [, open, high, low, close] = candle;
+                    const x = plotLeft + (index + 0.5) * barWidth;
+                    const openY = priceToY(open);
+                    const closeY = priceToY(close);
+                    const color = close >= open ? "#26c98b" : "#f05d68";
+                    ctx.strokeStyle = color;
+                    ctx.fillStyle = color;
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(x, priceToY(high));
+                    ctx.lineTo(x, priceToY(low));
+                    ctx.stroke();
+                    const bodyWidth = Math.max(0.5, barWidth - Math.min(1.2, barWidth * 0.12));
+                    ctx.fillRect(x - bodyWidth / 2, Math.min(openY, closeY), bodyWidth, Math.max(1, Math.abs(closeY - openY)));
+                });
+
+                const latest = candles[candles.length - 1][4];
+                const latestY = priceToY(latest);
+                ctx.setLineDash([4, 4]);
+                ctx.strokeStyle = "#c5a059";
+                ctx.beginPath();
+                ctx.moveTo(plotLeft, latestY);
+                ctx.lineTo(plotLeft + plotWidth, latestY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.fillStyle = "#c5a059";
+                ctx.textAlign = "left";
+                ctx.font = "9px Inter, Arial, sans-serif";
+                ctx.fillRect(plotLeft + plotWidth + 2, latestY - 9, RIGHT - 4, 18);
+                ctx.fillStyle = "#080b10";
+                ctx.textBaseline = "middle";
+                ctx.fillText(formatPrice(latest), plotLeft + plotWidth + 5, latestY);
+
+                const hover = state.hover;
+                const insideChart = hover && hover.y >= plotTop && hover.y <= chartBottom;
+                const insidePricePanel = insideChart && hover.y <= plotTop + mainHeight;
+                const insidePlotX = hover && hover.x >= plotLeft && hover.x <= plotLeft + plotWidth;
+                const hoverIndex = insideChart && insidePlotX
+                ? start + Math.min(candles.length - 1, Math.max(0, Math.floor((hover.x - plotLeft) / barWidth)))
+                : null;
+
+                if (showMacd) drawMacdPanel(start, candles, plotLeft, plotWidth, macdTop, macdHeight, barWidth, hoverIndex);
+                if (showRsi) drawRsiPanel(start, candles, plotLeft, plotWidth, rsiTop, rsiHeight, barWidth, hoverIndex);
+
+                if (insideChart && (insidePlotX || hover.x > plotLeft + plotWidth)) {
+                ctx.setLineDash([3, 4]);
+                ctx.strokeStyle = "rgba(214, 225, 238, .5)";
+                ctx.beginPath();
+                if (insidePlotX) {
+                    const crossX = plotLeft + (hoverIndex - start + 0.5) * barWidth;
+                    ctx.moveTo(crossX, plotTop);
+                    ctx.lineTo(crossX, chartBottom);
+                }
+                ctx.moveTo(plotLeft, hover.y);
+                ctx.lineTo(plotLeft + plotWidth, hover.y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                if (insidePricePanel) {
+                    const crossPrice = maxPrice - ((hover.y - plotTop) / mainHeight) * (maxPrice - minPrice);
+                    ctx.fillStyle = "#252014";
+                    ctx.fillRect(plotLeft + plotWidth + 2, hover.y - 10, RIGHT - 4, 20);
+                    ctx.strokeStyle = "#c5a059";
+                    ctx.strokeRect(plotLeft + plotWidth + 2, hover.y - 10, RIGHT - 4, 20);
+                    ctx.fillStyle = "#f1d58f";
+                    ctx.textAlign = "left";
+                    ctx.textBaseline = "middle";
+                    ctx.font = "9px Inter, Arial, sans-serif";
+                    ctx.fillText(formatPrice(crossPrice), plotLeft + plotWidth + 5, hover.y);
+                } else if (hoverIndex !== null) {
+                    const activeMacd = state.indicators.macd[hoverIndex];
+                    const activeSignal = state.indicators.signal[hoverIndex];
+                    const activeRsi = state.indicators.rsi[hoverIndex];
+                    if (showMacd && Number.isFinite(activeMacd)) {
+                        ctx.fillStyle = "#40b8f5";
+                        ctx.textAlign = "left";
+                        ctx.textBaseline = "top";
+                        ctx.fillText(`MACD ${activeMacd.toFixed(6)} · Signal ${activeSignal.toFixed(6)}`,
+                            plotLeft + 5, macdTop + 3);
+                    }
+                    if (showRsi && Number.isFinite(activeRsi)) {
+                        ctx.fillStyle = "#b679e5";
+                        ctx.textAlign = "left";
+                        ctx.textBaseline = "top";
+                        ctx.fillText(`RSI ${activeRsi.toFixed(2)}`, plotLeft + 5, rsiTop + 3);
+                    }
+                }
+
+                if (hoverIndex !== null) {
+                    const candle = state.candles[hoverIndex];
+                    updateOhlc(candle);
+                    const label = formatCrosshairTime(candle[0]);
+                    const labelWidth = Math.min(152, plotWidth);
+                    const crossX = plotLeft + (hoverIndex - start + 0.5) * barWidth;
+                    const labelX = Math.max(plotLeft, Math.min(crossX - labelWidth / 2, plotLeft + plotWidth - labelWidth));
+                    const labelY = Math.min(bounds.height - 22, plotBottom + 3);
+                    ctx.fillStyle = "#151d28";
+                    ctx.fillRect(labelX, labelY, labelWidth, 18);
+                    ctx.strokeStyle = "#384658";
+                    ctx.strokeRect(labelX, labelY, labelWidth, 18);
+                    ctx.fillStyle = "#d5deea";
+                    ctx.font = "10px Inter, Arial, sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(label, labelX + labelWidth / 2, labelY + 9);
+                } else if (insidePricePanel) {
+                    updateOhlc(state.candles[state.candles.length - 1]);
+                }
+                } else {
+                updateOhlc(state.candles[state.candles.length - 1]);
+                }
+            }
+
+            function onPointerDown(event) {
+                if (!state.layout) return;
+                const rect = canvas.getBoundingClientRect();
+                const x = event.clientX - rect.left;
+                const y = event.clientY - rect.top;
+                const { plotLeft, plotTop, plotWidth, mainHeight, plotBottom, barWidth } = state.layout;
+                const insideChart = y >= plotTop && y <= plotBottom;
+                const onPriceScale = x > plotLeft + plotWidth && y >= plotTop && y <= plotTop + mainHeight;
+                if (!insideChart || (!onPriceScale && (x < plotLeft || x > plotLeft + plotWidth))) return;
+
+                state.drag = {
+                    mode: onPriceScale ? "price" : "pan",
+                    x,
+                    y,
+                    offset: state.offset,
+                    priceShift: state.priceShift,
+                    priceScale: state.priceScale,
+                    barWidth,
+                    plotHeight: mainHeight,
+                    baseMidpoint: state.layout.baseMidpoint,
+                    baseRange: state.layout.baseRange,
+                    anchorRatio: Math.max(0, Math.min(1, (y - plotTop) / mainHeight)),
+                    anchorPrice: state.layout.maxPrice -
+                        ((y - plotTop) / mainHeight) * (state.layout.maxPrice - state.layout.minPrice),
+                    visibleCandles: state.layout.candles
+                };
+                canvas.setPointerCapture(event.pointerId);
+                canvas.style.cursor = "grabbing";
+            }
+
+            function onPointerMove(event) {
+                const rect = canvas.getBoundingClientRect();
+                const x = event.clientX - rect.left;
+                const y = event.clientY - rect.top;
+                state.hover = { x, y };
+
+                if (state.drag) {
+                    if (state.drag.mode === "pan") {
+                        const move = Math.round((x - state.drag.x) / state.drag.barWidth);
+                        state.offset = Math.max(0, Math.min(
+                            state.candles.length - state.visible,
+                            state.drag.offset + move
+                        ));
+                    } else {
+                        const scale = Math.max(0.5, Math.min(6,
+                            state.drag.priceScale * Math.exp((y - state.drag.y) * 0.005)
+                        ));
+                        state.priceScale = scale;
+                        const range = state.drag.baseRange * scale;
+                        const midpoint = state.drag.anchorPrice +
+                            (state.drag.anchorRatio - 0.5) * range;
+                        state.priceShift = midpoint - state.drag.baseMidpoint;
+                    }
+                }
+                draw();
+            }
+
+            function endDrag(event) {
+                state.drag = null;
+                if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+                canvas.style.cursor = state.hover?.x > canvas.clientWidth - RIGHT ? "ns-resize" : "crosshair";
+            }
+
+            canvas.addEventListener("pointerdown", onPointerDown);
+            canvas.addEventListener("pointermove", onPointerMove);
+            canvas.addEventListener("pointerup", endDrag);
+            canvas.addEventListener("pointercancel", endDrag);
+            canvas.addEventListener("pointerleave", () => {
+                if (!state.drag) {
+                    state.hover = null;
+                    draw();
+                }
+            });
+            canvas.addEventListener("wheel", event => {
+                if (!state.candles.length) return;
+                event.preventDefault();
+                state.visible = Math.max(MIN_VISIBLE, Math.min(
+                    MAX_VISIBLE,
+                    state.visible + (event.deltaY > 0 ? 15 : -15)
+                ));
+                state.offset = Math.min(state.offset, Math.max(0, state.candles.length - state.visible));
+                draw();
+            }, { passive: false });
+            canvas.addEventListener("dblclick", () => {
+                state.visible = 100;
+                state.offset = 0;
+                state.priceScale = 1;
+                state.priceShift = 0;
+                draw();
+            });
+
+            showMacdInput.addEventListener("change", draw);
+            showRsiInput.addEventListener("change", draw);
+            applyIndicatorsButton.addEventListener("click", () => {
+                const periods = Object.values(indicatorInputs).map(input => Number(input.value));
+                if (!periods.every(period => Number.isInteger(period) && period >= 1 && period <= 500) ||
+                    Number(indicatorInputs.fast.value) >= Number(indicatorInputs.slow.value)) {
+                    setStatus("Indicator-ийн үе 1–500 байх ба MACD Fast нь Slow-оос бага байх ёстой.", "error");
+                    return;
+                }
+                state.periods = {
+                    fast: periods[0],
+                    slow: periods[1],
+                    signal: periods[2],
+                    rsi: periods[3]
+                };
+                calculateIndicators();
+                draw();
+                setStatus(`${state.symbol} · ${state.market} · ${state.interval} · indicator шинэчлэгдлээ`, "live");
+            });
+
+            marketInput.addEventListener("change", () => {
+                loadSymbolSuggestions();
+                loadHistory();
+            });
+            intervalInput.addEventListener("change", () => loadHistory());
+            symbolInput.addEventListener("change", () => loadHistory());
+            symbolInput.addEventListener("keydown", event => {
+                if (event.key === "Enter") loadHistory();
+            });
+            reloadButton.addEventListener("click", () => loadHistory(false));
+
+            if ("ResizeObserver" in window) {
+                new ResizeObserver(draw).observe(canvas.parentElement);
+            } else {
+                window.addEventListener("resize", draw);
+            }
+
+            loadSymbolSuggestions();
+            loadHistory();
+            window.setInterval(pollLatest, LIVE_POLL_MS);
+            updateCountdown();
+            window.setInterval(updateCountdown, 1000);
+        })();
+    </script>
+</body>
+</html>
