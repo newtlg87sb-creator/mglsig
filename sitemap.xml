@@ -54,12 +54,6 @@
     <priority>0.7</priority>
   </url>
 
-  <url>
-    <loc>https://mglsignal.com/main_chart.html</loc>
-    <lastmod>2026-11-14</lastmod>
-    <priority>0.7</priority>
-  </url>
-
   <!-- Information -->
   <url>
     <loc>https://mglsignal.com/main_knowledge.html</loc>

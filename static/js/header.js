@@ -4,7 +4,7 @@ const sharedTranslations = {
         "nav-home": "Нүүр", "nav-forex": "Форекс", "nav-crypto": "Крипто", "nav-news": "Мэдээ", "nav-more": "ЦЭС",
         "nav-alpha": "Alpha Сигналууд", "nav-projects": "Шинэ төслүүд", "nav-knowledge": "Мэдлэг",
         "drop-alt": "Зах зээлийн хэрэгслүүд", "drop-live": "Live Tools (Амьд график)",
-        "drop-chart": "Зах зээлийн график", "drop-exchanges": "Биржийн терминал", "sig-title": "Сигналууд",
+        "sig-title": "Сигналууд",
         "drop-major": "Гол хослолууд", "drop-minor": "Туслах хослолууд", 
         "donate-bar-text": "Нийгэмлэгээ дэмжих: <span class=\"hidden sm:inline\">Хөгжүүлэлтийг дэмжих</span>", 
         "donate-bar-btn": "Хандив өгөх", "update-info-btn": "Шинэчлэлтийн тухай", "btn-refresh": "Одоо шинэчлэх", 
@@ -19,7 +19,7 @@ const sharedTranslations = {
         "nav-home": "Home", "nav-forex": "Forex", "nav-crypto": "Crypto", "nav-news": "News", "nav-more": "MENU",
         "nav-alpha": "Alpha Signals", "nav-projects": "Projects", "nav-knowledge": "Knowledge",
         "drop-alt": "Market Tools", "drop-live": "Live Tools",
-        "drop-chart": "Market Chart", "drop-exchanges": "Exchange Terminal", "sig-title": "Signals",
+        "sig-title": "Signals",
         "drop-major": "Major Pairs", "drop-minor": "Minor Pairs",
         "donate-bar-text": "Support the Community", "donate-bar-btn": "Donate Now",
         "update-info-btn": "About Update", "btn-refresh": "REFRESH NOW", "update-modal-title": "Daily Updates",
@@ -141,8 +141,6 @@ const headerHTML = `    <style>
                         <div class="hidden dropdown-menu absolute left-0 mt-0 pt-4 w-52 z-50">
                             <div class="bg-brand-dark-blue border border-brand-border shadow-2xl overflow-hidden">
                                 <a href="/main_altcoin_tools.html" data-i18n="drop-alt" class="block px-4 py-2.5 hover:bg-brand-gold hover:text-black transition">Market Tools</a>
-                                <a href="/main_chart.html" data-i18n="drop-chart" class="block px-4 py-2.5 hover:bg-brand-gold hover:text-black transition border-t border-brand-border/50">Market Chart</a>
-                                <a href="/main_exchanges.html" data-i18n="drop-exchanges" class="block px-4 py-2.5 hover:bg-brand-gold hover:text-black transition border-t border-brand-border/50">Exchange Terminal</a>
                                 <a href="/main_signals.html" data-i18n="sig-title" class="block px-4 py-2.5 hover:bg-brand-gold hover:text-black transition border-t border-brand-border/50">Сигналууд</a>
                                 <a href="/main_alpha_signals.html" data-i18n="nav-alpha" class="block px-4 py-2.5 hover:bg-brand-gold hover:text-black transition border-t border-brand-border/50">Alpha Signals</a>
                             </div>
@@ -213,8 +211,6 @@ const headerHTML = `    <style>
                 <p data-i18n="nav-crypto" class="text-[10px] text-gray-500 font-black uppercase tracking-widest">Crypto</p>
                 <div class="pl-4 space-y-2 border-l border-brand-border">
                     <a href="/main_altcoin_tools.html" class="block text-xs font-bold uppercase"><span data-i18n="drop-alt" class="mgl-spotlight-text text-brand-gold">Market Tools</span></a>
-                    <a href="/main_chart.html" class="block text-xs font-bold uppercase"><span data-i18n="drop-chart" class="mgl-spotlight-text text-gray-400">Market Chart</span></a>
-                    <a href="/main_exchanges.html" class="block text-xs font-bold uppercase"><span data-i18n="drop-exchanges" class="mgl-spotlight-text text-gray-400">Exchange Terminal</span></a>
                     <a href="/main_signals.html" class="block text-xs font-bold uppercase"><span data-i18n="sig-title" class="mgl-spotlight-text text-gray-400">Сигналууд</span></a>
                     <a href="/main_alpha_signals.html" data-i18n="nav-alpha" class="block text-brand-gold font-bold uppercase text-xs italic">Alpha Signals</a>
                 </div>
