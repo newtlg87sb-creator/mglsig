@@ -172,3 +172,20 @@ CREATE POLICY "Enable full access for service_role" ON public.balance_data FOR A
 
 -- Гишүүнчлэлийн эрх гар аргаар сунгах жишээ (Postgres Format):
 -- UPDATE "User control" SET membership_type = 'alpha', membership_expires_at = NOW() + interval '30 days' WHERE email = 'example@gmail.com';
+
+-- ============================================================================
+-- 6. CONTACT FORM MESSAGES (Холбоо барихдээс илгээгдсэн зурвасууд)
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS public.contact_messages (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  email text NOT NULL,
+  message text NOT NULL,
+  created_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE public.contact_messages ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Enable full access for service_role" ON public.contact_messages;
+CREATE POLICY "Enable full access for service_role" ON public.contact_messages
+  FOR ALL TO service_role USING (true) WITH CHECK (true);

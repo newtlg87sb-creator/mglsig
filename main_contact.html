@@ -104,7 +104,10 @@
                 "contact-btn-messenger": "Facebook Messenger-ээр илгээх",
                 "social-fb-sub": "MGL Signal - Албан ёсны хуудас",
                 "social-tg-sub": "Мэдээ мэдээллийн суваг",
-                "social-yt-sub": "Арилжааны хичээлүүд"
+                "social-yt-sub": "Арилжааны хичээлүүд",
+                "contact-success": "Зурвас амжилттай илгээлээ!",
+                "contact-error": "Зурвас илгээхэд алдаа гарлаа. Дахин оролдон уу.",
+                "contact-sending": "Илгээж байна..."
             },
             en: {
                 "contact-page-title": 'Contact <span class="text-brand-gold italic">Us</span>',
@@ -121,10 +124,86 @@
                 "contact-btn-messenger": "Send via Facebook Messenger",
                 "social-fb-sub": "Official Facebook Page",
                 "social-tg-sub": "Official Telegram Channel",
-                "social-yt-sub": "Trading Tutorials & Reviews"
+                "social-yt-sub": "Trading Tutorials & Reviews",
+                "contact-success": "Your message has been sent successfully!",
+                "contact-error": "Failed to send message. Please try again.",
+                "contact-sending": "Sending..."
             }
         };
         Object.keys(pageTranslations).forEach(lang => Object.assign(translations[lang], pageTranslations[lang]));
+    </script>
+
+    <script>
+        function t(key) {
+            const lang = localStorage.getItem('lang') || 'mn';
+            return (translations && translations[lang] && translations[lang][key]) || key;
+        }
+
+        function showContactStatus(message, isError) {
+            const el = document.getElementById('contact-status');
+            const btn = document.getElementById('contact-btn');
+            if (!el) return;
+            el.textContent = message;
+            el.className = 'mt-3 text-xs font-medium relative z-10 ' + (isError ? 'text-red-400' : 'text-brand-gold');
+            el.classList.remove('hidden');
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = t('btn-send');
+            }
+            if (!isError) {
+                setTimeout(() => el.classList.add('hidden'), 5000);
+            }
+        }
+
+        async function handleContactSubmit(event) {
+            event.preventDefault();
+            const form = document.getElementById('contact-form');
+            const btn = document.getElementById('contact-btn');
+            const status = document.getElementById('contact-status');
+            if (!form) return false;
+
+            const name = form.elements['name'] ? form.elements['name'].value.trim() : '';
+            const email = form.elements['email'] ? form.elements['email'].value.trim() : '';
+            const message = form.elements['message'] ? form.elements['message'].value.trim() : '';
+
+            if (!name || !email || !message) {
+                showContactStatus(t('contact-error'), true);
+                return false;
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showContactStatus('Enter a valid email address', true);
+                return false;
+            }
+
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = t('contact-sending');
+            }
+            if (status) status.classList.add('hidden');
+
+            try {
+                const response = await fetch('/api/contact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, message })
+                });
+                const data = await response.json().catch(() => ({}));
+
+                if (response.ok && data.success) {
+                    form.reset();
+                    showContactStatus(t('contact-success'), false);
+                } else {
+                    showContactStatus(data.error || t('contact-error'), true);
+                }
+            } catch (err) {
+                console.error('Contact submit error:', err);
+                showContactStatus(t('contact-error'), true);
+            }
+
+            return false;
+        }
     </script>
 
     <script src="/static/js/header.js"></script>
@@ -185,23 +264,24 @@
                     
                     <h2 data-i18n="form-title" class="text-2xl font-bold mb-6 text-white relative z-10">Or Send Us a Message</h2>
                     
-                    <form class="space-y-4 relative z-10" onsubmit="event.preventDefault(); alert('Message feature coming soon!');">
+                    <form id="contact-form" class="space-y-4 relative z-10" onsubmit="return handleContactSubmit(event);">
                         <div class="space-y-1">
                             <label data-i18n="lbl-name" class="text-[10px] font-bold uppercase text-gray-500 tracking-wider">Your Name</label>
-                            <input type="text" data-i18n-placeholder="ph-name" placeholder="Enter your name" class="w-full bg-[#05070a] border border-brand-border rounded-lg p-3 text-sm focus:border-brand-gold focus:outline-none focus:ring-1 focus:ring-brand-gold transition text-white">
+                            <input type="text" name="name" data-i18n-placeholder="ph-name" placeholder="Enter your name" class="w-full bg-[#05070a] border border-brand-border rounded-lg p-3 text-sm focus:border-brand-gold focus:outline-none focus:ring-1 focus:ring-brand-gold transition text-white">
                         </div>
                         <div class="space-y-1">
                             <label data-i18n="lbl-email" class="text-[10px] font-bold uppercase text-gray-500 tracking-wider">Your Email</label>
-                            <input type="email" data-i18n-placeholder="ph-email" placeholder="Enter your email" class="w-full bg-[#05070a] border border-brand-border rounded-lg p-3 text-sm focus:border-brand-gold focus:outline-none focus:ring-1 focus:ring-brand-gold transition text-white">
+                            <input type="email" name="email" data-i18n-placeholder="ph-email" placeholder="Enter your email" class="w-full bg-[#05070a] border border-brand-border rounded-lg p-3 text-sm focus:border-brand-gold focus:outline-none focus:ring-1 focus:ring-brand-gold transition text-white">
                         </div>
                         <div class="space-y-1">
                             <label data-i18n="lbl-message" class="text-[10px] font-bold uppercase text-gray-500 tracking-wider">Your Message</label>
-                            <textarea rows="4" data-i18n-placeholder="ph-message" placeholder="How can we help you?" class="w-full bg-[#05070a] border border-brand-border rounded-lg p-3 text-sm focus:border-brand-gold focus:outline-none focus:ring-1 focus:ring-brand-gold transition text-white resize-none"></textarea>
+                            <textarea name="message" rows="4" data-i18n-placeholder="ph-message" placeholder="How can we help you?" class="w-full bg-[#05070a] border border-brand-border rounded-lg p-3 text-sm focus:border-brand-gold focus:outline-none focus:ring-1 focus:ring-brand-gold transition text-white resize-none"></textarea>
                         </div>
-                        <button type="submit" data-i18n="btn-send" class="w-full bg-brand-gold text-black font-bold py-3.5 rounded-lg hover:bg-white transition transform hover:scale-[1.02] shadow-lg shadow-brand-gold/20 uppercase text-xs tracking-widest">
+                        <button type="submit" data-i18n="btn-send" id="contact-btn" class="w-full bg-brand-gold text-black font-bold py-3.5 rounded-lg hover:bg-white transition transform hover:scale-[1.02] shadow-lg shadow-brand-gold/20 uppercase text-xs tracking-widest">
                             Send Message
                         </button>
                     </form>
+                    <div id="contact-status" class="mt-3 text-xs font-medium relative z-10 hidden"></div>
 
                     <div class="flex items-center my-6 relative z-10">
                         <div class="flex-grow h-px bg-brand-border"></div>
