@@ -852,36 +852,6 @@ function calculateIcebergCandleStates(klines, fast, slow, signal) {
     return states;
 }
 
-function calculateIcebergCandleStates(klines, fast, slow, signal) {
-    const states = new Array(klines.length).fill(null);
-    let state = null;
-
-    for (let index = 3; index < klines.length - 1; index++) {
-        const closedKlines = klines.slice(0, index + 2);
-        const {
-            previous_macd_line,
-            previous_2_macd_line,
-        } = calculateMacdValues(closedKlines, fast, slow, signal);
-        const { macd_peak, macd_trough } = calculateMacdPeaks(closedKlines, fast, slow, signal);
-        const previous = Number(previous_macd_line);
-        const previous2 = Number(previous_2_macd_line);
-        const peak = Number(macd_peak.macd_value);
-        const trough = Number(macd_trough.macd_value);
-
-        const crossedUp = (previous > peak && previous2 < peak) ||
-            (previous > trough && previous2 < trough);
-        const crossedDown = (previous < peak && previous2 > peak) ||
-            (previous < trough && previous2 > trough);
-
-        if (crossedUp) state = 'up';
-        else if (crossedDown) state = 'down';
-        states[index] = state;
-    }
-
-    states[klines.length - 1] = state;
-    return states;
-}
-
 export default async function handler(req, res) {
     res.setHeader("Cache-Control", "no-store");
 
@@ -895,14 +865,13 @@ export default async function handler(req, res) {
     const isCronJob = secretKey === cronSecret;
 
     let user = null;
+    const authHeader = req.headers.authorization || "";
+    const accessToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseApiKey = req.headers.apikey;
 
     if (!isCronJob) {
         // Хэрэв cron робот биш бол энгийн хэрэглэгчийн auth шалгалтыг хийнэ
-        const authHeader = req.headers.authorization || "";
-        const accessToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
-        const supabaseUrl = process.env.SUPABASE_URL;
-        const supabaseApiKey = req.headers.apikey;
-
         if (!accessToken || !supabaseApiKey) {
             return res.status(401).json({ error: "Sign in to use Iceberg" });
         }
