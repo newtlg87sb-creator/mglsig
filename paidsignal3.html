@@ -769,6 +769,15 @@
                             }),
                             signal: controller.signal
                         });
+                        const contentType = response.headers.get("content-type") || "";
+                        if (!contentType.toLowerCase().includes("application/json")) {
+                            const responseText = await response.text();
+                            const unsupportedPost = response.status === 501 ||
+                                /Unsupported method.*POST/i.test(responseText);
+                            throw new Error(unsupportedPost
+                                ? "Локал сервер /api/data3 POST хүсэлтийг дэмжихгүй. Vercel dev эсвэл deploy хийсэн серверээр шалгана уу."
+                                : `Signal API JSON биш хариу буцаалаа (HTTP ${response.status}).`);
+                        }
                         const result = await response.json();
                         if (!response.ok) {
                             throw new Error(result?.error || `Signal хүсэлт амжилтгүй (HTTP ${response.status}).`);
