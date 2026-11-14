@@ -86,10 +86,7 @@
     <script>
         window.translations = {
             mn: {
-                "admin-notif-title": "Админы мэдэгдэл",
-                "admin-notif-msg": "MGL Signal-н хөгжүүлэлт 80%-тай үргэлжилж байна. Шинэ хэрэгслүүд удахгүй нэмэгдэнэ! 🚀",
-                "assistant-tab-admin": "Мэдэгдэл",
-                "assistant-tab-chat": "AI туслах",
+                "assistant-title": "AI зөвлөх",
                 "assistant-greeting": "Сайн байна уу! MGL Signal-ийн үйлчилгээ, хэрэгслүүдийн талаар асуугаарай.",
                 "assistant-disclaimer": "AI-ийн хариулт алдаатай байж болно. Арилжааны зөвлөгөө биш. Нууц мэдээлэл бүү оруул.",
                 "assistant-privacy": "Асуултыг Gemini-д илгээнэ. Үнэгүй түвшний мэдээллийг Google бүтээгдэхүүнээ сайжруулахад ашиглаж болзошгүй.",
@@ -158,15 +155,11 @@
                 "feat-5-d": "Арилжааг хүн бүрт хүртээмжтэй болгодог энгийн, ойлгомжтой интерфейс.",
                 "feat-cta-t": "Арилжааны аялалаа эхлүүлэхэд бэлэн үү?",
                 "feat-cta-btn": "СИГНАЛРУУ ОРОХ",
-                "react-text": "Сэтгэгдэл",
                 "latest-news-title": "Сүүлийн үеийн мэдээ",
                 "all-news-link": "Бүх мэдээ"
             },
             en: {
-                "admin-notif-title": "Admin Message",
-                "admin-notif-msg": "MGL Signal development is 80% complete. New tools coming soon! 🚀",
-                "assistant-tab-admin": "Announcement",
-                "assistant-tab-chat": "AI Assistant",
+                "assistant-title": "AI Assistant",
                 "assistant-greeting": "Hi! Ask me about MGL Signal's services and tools.",
                 "assistant-disclaimer": "AI can make mistakes. This is not trading advice. Do not share sensitive information.",
                 "assistant-privacy": "Questions are sent to Gemini. Google may use free-tier data to improve its products.",
@@ -229,7 +222,6 @@
                 "feat-4-t": "Free & Paid", "feat-4-d": "Start free or upgrade for high-potential trades.",
                 "feat-5-t": "User Friendly", "feat-5-d": "Intuitive interface making trading accessible.",
                 "feat-cta-t": "Ready to start your trading journey?", "feat-cta-btn": "GO TO SIGNALS",
-                "react-text": "Reactions",
                 "nav-home": "Home", "nav-forex": "Forex", "nav-crypto": "Crypto", "nav-news": "News", "nav-more": "MENU",
                 "drop-alt": "Market Tools", "drop-live": "Live Tools", "sig-title": "Signals", "nav-alpha": "Alpha Signals",
                 "latest-news-title": "Latest News",
@@ -244,47 +236,22 @@
 
     <script src="/static/js/header.js"></script>
 
-    <!-- Admin Announcement Widget -->
-    <div id="admin-notif-container" class="fixed bottom-6 right-6 z-50">
-        <!-- Collapse Trigger Logo -->
-        <button id="admin-notif-btn" class="w-14 h-14 bg-brand-gold rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform relative group">
-            <i class="fas fa-bullhorn text-black text-xl"></i>
-            <!-- Notification Dot -->
-            <span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-brand-dark animate-pulse" id="admin-notif-dot"></span>
+    <!-- Site AI Assistant -->
+    <div id="site-assistant-container" class="fixed bottom-6 right-6 z-50">
+        <button id="site-assistant-toggle" type="button" data-i18n="assistant-title" aria-expanded="false" aria-controls="site-assistant-card" class="rounded-full bg-brand-gold px-5 py-3 text-xs font-black text-black shadow-2xl transition-transform hover:scale-105">
+            AI зөвлөх
         </button>
 
-        <!-- Message Card -->
-        <div id="admin-notif-card" class="hidden absolute bottom-16 right-0 bg-brand-dark-blue border border-brand-border rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300 flex flex-col" style="width:min(85vw,24rem);max-height:min(80vh,620px)">
+        <div id="site-assistant-card" class="hidden absolute bottom-16 right-0 bg-brand-dark-blue border border-brand-border rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300 flex flex-col" style="width:min(85vw,24rem);max-height:min(80vh,620px)">
             <div class="bg-brand-gold/10 p-4 border-b border-brand-border flex justify-between items-center shrink-0">
-                <h3 class="text-[10px] font-black uppercase tracking-widest text-brand-gold flex items-center">
-                    <i class="fas fa-user-shield mr-2"></i><span id="admin-notif-heading" data-i18n="admin-notif-title">Admin Message</span>
+                <h3 data-i18n="assistant-title" class="text-[10px] font-black uppercase tracking-widest text-brand-gold">
+                    AI Assistant
                 </h3>
-                <button id="admin-notif-close" aria-label="Close" class="text-gray-500 hover:text-white transition">
-                    <i class="fas fa-times text-xs"></i>
+                <button id="site-assistant-close" type="button" aria-label="Close" class="text-gray-500 hover:text-white transition">
+                    <i class="fas fa-times text-xs" aria-hidden="true"></i>
                 </button>
             </div>
-            <div class="grid grid-cols-2 border-b border-brand-border shrink-0">
-                <button id="admin-tab-button" type="button" data-i18n="assistant-tab-admin" aria-pressed="true" class="px-3 py-2 text-[10px] font-bold text-brand-gold border-b-2 border-brand-gold">Announcement</button>
-                <button id="assistant-tab-button" type="button" data-i18n="assistant-tab-chat" aria-pressed="false" class="px-3 py-2 text-[10px] font-bold text-gray-400 border-b-2 border-transparent hover:text-white">AI Assistant</button>
-            </div>
-            <div id="admin-notif-content" class="p-5 overflow-y-auto">
-                <p data-i18n="admin-notif-msg" class="text-xs text-gray-300 leading-relaxed mb-6">
-                    MGL Signal development is 80% complete. New tools coming soon! 🚀
-                </p>
-                
-                <div class="flex items-center justify-between border-t border-brand-border/50 pt-4">
-                    <div class="flex gap-3">
-                        <button onclick="handleReaction(this)" class="hover:scale-125 transition text-lg grayscale hover:grayscale-0" title="Like">👍</button>
-                        <button onclick="handleReaction(this)" class="hover:scale-125 transition text-lg grayscale hover:grayscale-0" title="Fire">🔥</button>
-                        <button onclick="handleReaction(this)" class="hover:scale-125 transition text-lg grayscale hover:grayscale-0" title="Heart">❤️</button>
-                        <button onclick="handleReaction(this)" class="hover:scale-125 transition text-lg grayscale hover:grayscale-0" title="Smile">😊</button>
-                    </div>
-                    <div class="text-[9px] font-black text-gray-500 uppercase tracking-tighter">
-                        <span id="react-val">24</span> <span data-i18n="react-text">Reactions</span>
-                    </div>
-                </div>
-            </div>
-            <section id="site-assistant-content" class="hidden p-3 overflow-y-auto" aria-label="MGL Signal AI assistant">
+            <section id="site-assistant-content" class="p-3 overflow-y-auto" aria-label="MGL Signal AI assistant">
                 <div id="assistant-messages" role="log" aria-live="polite" aria-relevant="additions" class="space-y-3 overflow-y-auto max-h-56 mb-3">
                     <p data-i18n="assistant-greeting" class="text-xs text-gray-200 leading-relaxed whitespace-pre-wrap"></p>
                 </div>
@@ -809,27 +776,9 @@
             } catch (e) { console.error("Market Data Error:", e); }
         }
 
-        // Admin Notification Interaction Logic
-        const adminBtn = document.getElementById('admin-notif-btn');
-        const adminCard = document.getElementById('admin-notif-card');
-        const adminClose = document.getElementById('admin-notif-close');
-        const adminDot = document.getElementById('admin-notif-dot');
-
-        adminBtn.addEventListener('click', () => {
-            adminCard.classList.toggle('hidden');
-            if (adminDot) adminDot.style.display = 'none'; // Уншсаны дараа улаан цэг алга болно
-        });
-
-        adminClose.addEventListener('click', (e) => {
-            e.stopPropagation();
-            adminCard.classList.add('hidden');
-        });
-
-        const adminTabButton = document.getElementById('admin-tab-button');
-        const assistantTabButton = document.getElementById('assistant-tab-button');
-        const adminNotifHeading = document.getElementById('admin-notif-heading');
-        const adminContent = document.getElementById('admin-notif-content');
-        const assistantContent = document.getElementById('site-assistant-content');
+        const assistantToggle = document.getElementById('site-assistant-toggle');
+        const assistantCard = document.getElementById('site-assistant-card');
+        const assistantClose = document.getElementById('site-assistant-close');
         const assistantForm = document.getElementById('site-assistant-form');
         const assistantInput = document.getElementById('site-assistant-input');
         const assistantSend = document.getElementById('site-assistant-send');
@@ -839,25 +788,18 @@
         const MAX_ASSISTANT_MESSAGES = 8;
         let assistantStatusKey = '';
 
-        function setAssistantTab(activeTab) {
-            const showAssistant = activeTab === 'assistant';
-            adminContent.classList.toggle('hidden', showAssistant);
-            assistantContent.classList.toggle('hidden', !showAssistant);
-            adminTabButton.setAttribute('aria-pressed', String(!showAssistant));
-            assistantTabButton.setAttribute('aria-pressed', String(showAssistant));
-            adminTabButton.classList.toggle('text-brand-gold', !showAssistant);
-            adminTabButton.classList.toggle('border-brand-gold', !showAssistant);
-            adminTabButton.classList.toggle('text-gray-400', showAssistant);
-            adminTabButton.classList.toggle('border-transparent', showAssistant);
-            assistantTabButton.classList.toggle('text-brand-gold', showAssistant);
-            assistantTabButton.classList.toggle('border-brand-gold', showAssistant);
-            assistantTabButton.classList.toggle('text-gray-400', !showAssistant);
-            assistantTabButton.classList.toggle('border-transparent', !showAssistant);
-            adminNotifHeading.textContent = assistantTranslation(
-                showAssistant ? 'assistant-tab-chat' : 'admin-notif-title'
-            );
-            if (showAssistant) assistantInput.focus();
-        }
+        assistantToggle.addEventListener('click', () => {
+            const isOpening = assistantCard.classList.contains('hidden');
+            assistantCard.classList.toggle('hidden');
+            assistantToggle.setAttribute('aria-expanded', String(isOpening));
+            if (isOpening) assistantInput.focus();
+        });
+
+        assistantClose.addEventListener('click', () => {
+            assistantCard.classList.add('hidden');
+            assistantToggle.setAttribute('aria-expanded', 'false');
+            assistantToggle.focus();
+        });
 
         function currentAssistantLanguage() {
             return localStorage.getItem('lang') === 'en' ? 'en' : 'mn';
@@ -882,9 +824,6 @@
             assistantMessagesEl.appendChild(bubble);
             assistantMessagesEl.scrollTop = assistantMessagesEl.scrollHeight;
         }
-
-        assistantTabButton.addEventListener('click', () => setAssistantTab('assistant'));
-        adminTabButton.addEventListener('click', () => setAssistantTab('admin'));
 
         document.querySelectorAll('#assistant-suggestions button').forEach(button => {
             button.addEventListener('click', () => {
@@ -949,39 +888,15 @@
             } finally {
                 assistantSend.disabled = false;
                 assistantInput.disabled = false;
-                if (!assistantContent.classList.contains('hidden')) assistantInput.focus();
+                if (!assistantCard.classList.contains('hidden')) assistantInput.focus();
             }
         });
-
-        function handleReaction(btn) {
-            const valEl = document.getElementById('react-val');
-            let count = parseInt(valEl.textContent);
-            
-            // Товчлуур дээр дарахад богино хэмжээний эффект
-            btn.classList.add('animate-bounce');
-            setTimeout(() => btn.classList.remove('animate-bounce'), 1000);
-            
-            if (!btn.dataset.clicked) {
-                valEl.textContent = count + 1;
-                btn.dataset.clicked = "true";
-                btn.classList.remove('grayscale');
-                btn.style.opacity = "1";
-                
-                // Сэтгэгдлийг localStorage-д хадгалах (дараа ороход санах зорилгоор)
-                localStorage.setItem('admin_reacted', 'true');
-            }
-        }
 
         // Re-fetch news on language change
         const originalChangeLang = window.changeLang;
         window.changeLang = function(lang) {
             if (originalChangeLang) originalChangeLang(lang);
             if (latestNewsItem) renderLatestNews(latestNewsItem, lang);
-            adminNotifHeading.textContent = assistantTranslation(
-                assistantContent.classList.contains('hidden')
-                    ? 'admin-notif-title'
-                    : 'assistant-tab-chat'
-            );
             if (assistantStatusKey) assistantStatus.textContent = assistantTranslation(assistantStatusKey);
         };
 
