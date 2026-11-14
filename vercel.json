@@ -1,6 +1,11 @@
 
 {
   "regions": ["sin1"],
+  "functions": {
+    "api/site-assistant.js": {
+      "includeFiles": "api/knowledge_base.md"
+    }
+  },
   "rewrites": [
     {
       "source": "/altcointools/trendonator.html",

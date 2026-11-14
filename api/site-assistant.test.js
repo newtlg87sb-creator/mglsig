@@ -39,6 +39,11 @@ test('site assistant validates requests, calls Gemini, and limits requests per c
     providerCalls += 1;
     assert.match(url, /models\/gemini-3\.5-flash-lite:generateContent$/);
     assert.equal(options.headers['x-goog-api-key'], 'test-secret');
+    const requestBody = JSON.parse(options.body);
+    const instruction = requestBody.systemInstruction.parts[0].text;
+    assert.ok(instruction.includes('Alpha: $20 per month'));
+    assert.ok(instruction.includes('main_pricing.html'));
+    assert.ok(instruction.includes('Never provide personalized financial advice'));
     return {
       ok: providerStatus === 200,
       status: providerStatus,
