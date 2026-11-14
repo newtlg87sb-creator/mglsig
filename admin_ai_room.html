@@ -167,6 +167,24 @@
                 addMessage('system', 'Мэдэгдэл', text);
             }
 
+            function describeProviderError(code) {
+                const messages = {
+                    not_configured: 'API key тохируулаагүй байна (Vercel Environment Variables шалгана уу).',
+                    invalid_api_key: 'API key хүчингүй эсвэл provider танихгүй байна (401).',
+                    billing_required: 'Provider төлбөр эсвэл ашиглах эрх шаардаж байна (402).',
+                    access_denied: 'API key энэ model-д эрхгүй байна (403).',
+                    model_unavailable: 'Model/provider олдсонгүй (404).',
+                    rate_limited: 'Provider-ийн rate limit хүрсэн (429).',
+                    provider_error: 'Provider талын серверийн алдаа (5xx).',
+                    timeout: 'Provider 12 секундэд хариу өгсөнгүй.',
+                    network_error: 'Provider-тэй холбогдож чадсангүй.',
+                    invalid_response: 'Provider буруу форматтай хариу өглөө.',
+                    empty_response: 'Provider хоосон хариу өглөө.',
+                    request_rejected: 'Provider хүсэлтийг хүлээж авсангүй.'
+                };
+                return messages[code] || 'Одоогоор хариу өгөх боломжгүй байна.';
+            }
+
             function trimConversation() {
                 while (conversation.length > 20 || conversation.reduce((sum, message) => sum + message.text.length, 0) > 18000) {
                     conversation.shift();
@@ -274,11 +292,13 @@
                         }
                         if (result.errors?.length) {
                             result.errors.forEach(item => showSystemMessage(
-                                `${item.provider}: ${item.error === 'not_configured' ? 'API key тохируулаагүй байна.' : 'Одоогоор хариу өгөх боломжгүй байна.'}`
+                                `${item.provider}: ${describeProviderError(item.error)}`
                             ));
+                        } else if (result.error === 'provider_unavailable') {
+                            statusElement.textContent = `${result.provider}: ${describeProviderError(result.reason)}`;
                         } else {
                             statusElement.textContent = result.error === 'provider_not_configured'
-                                ? `${result.provider} API key тохируулаагүй байна.`
+                                ? `${result.provider}: ${describeProviderError('not_configured')}`
                                 : 'AI үйлчилгээ одоогоор хариулах боломжгүй байна.';
                         }
                         return;
@@ -293,9 +313,7 @@
                         addMessage('assistant', item.provider, item.answer);
                     }
                     for (const item of result.errors || []) {
-                        showSystemMessage(
-                            `${item.provider}: ${item.error === 'not_configured' ? 'API key тохируулаагүй байна.' : 'Одоогоор хариу өгөх боломжгүй байна.'}`
-                        );
+                        showSystemMessage(`${item.provider}: ${describeProviderError(item.error)}`);
                     }
                     trimConversation();
                     statusElement.textContent = result.results?.length

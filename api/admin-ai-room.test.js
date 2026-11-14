@@ -27,7 +27,7 @@ function createRequest(messages, token = 'admin-session-token', mode = 'roundtab
   return {
     method: 'POST',
     headers: token ? { authorization: `Bearer ${token}` } : {},
-    body: { mode, messages }
+    body: { mode, provider: 'Gemini', messages }
   };
 }
 
@@ -100,6 +100,8 @@ test('admin AI room runs a roundtable and passes earlier AI replies to later pro
     const body = JSON.parse(options.body);
     if (url.includes('generativelanguage.googleapis.com')) {
       assert.equal(options.headers['x-goog-api-key'], 'gemini-test-key');
+      assert.ok(body.systemInstruction.parts[0].text.includes('Cyrillic script'));
+      assert.ok(body.systemInstruction.parts[0].text.includes('never guess or claim their status'));
       return {
         ok: true,
         json: async () => ({
@@ -111,6 +113,7 @@ test('admin AI room runs a roundtable and passes earlier AI replies to later pro
     if (url === 'https://openrouter.ai/api/v1/chat/completions') {
       assert.equal(options.headers.Authorization, 'Bearer openrouter-test-key');
       assert.equal(body.model, 'openrouter/free');
+      assert.ok(body.messages[0].content.includes('Cyrillic script'));
       assert.ok(body.messages.at(-1).content.includes('[Gemini]: Gemini opening thought.'));
       return {
         ok: true,
@@ -146,6 +149,47 @@ test('admin AI room runs a roundtable and passes earlier AI replies to later pro
     ]);
     assert.equal(response.payload.results[2].answer, 'Groq adds another perspective.');
     assert.equal(calls.length, 4);
+  } finally {
+    globalThis.fetch = originalFetch;
+    restoreEnvironment();
+  }
+});
+
+test('admin AI room reports provider status codes without exposing provider response bodies', async () => {
+  const restoreEnvironment = setEnvironment({
+    SUPABASE_URL: 'https://supabase.example',
+    SUPABASE_ANON_KEY: 'test-anon-key',
+    GEMINI_API_KEY: 'gemini-test-key',
+    OPENROUTER_API_KEY: undefined,
+    GROQ_API_KEY: undefined
+  });
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async url => {
+    if (url === 'https://supabase.example/auth/v1/user') {
+      return { ok: true, json: async () => ({ id: ADMIN_USER_ID }) };
+    }
+    return {
+      ok: false,
+      status: 429,
+      json: async () => ({ error: { message: 'Provider private error detail' } })
+    };
+  };
+
+  try {
+    const response = createResponse();
+    await handler(createRequest(
+      [{ role: 'user', text: 'Hello' }],
+      'admin-session-token',
+      'direct'
+    ), response);
+
+    assert.equal(response.statusCode, 503);
+    assert.deepEqual(response.payload, {
+      error: 'provider_unavailable',
+      provider: 'Gemini',
+      reason: 'rate_limited'
+    });
+    assert.equal(JSON.stringify(response.payload).includes('Provider private error detail'), false);
   } finally {
     globalThis.fetch = originalFetch;
     restoreEnvironment();
