@@ -31,6 +31,13 @@ function markOrderCancelled(table, orderId) {
     .eq('status', 'pending');
 }
 
+function getInvoiceId(data) {
+  const invoiceId = data?.id ?? data?.invoice_id;
+  return invoiceId === undefined || invoiceId === null || String(invoiceId).trim() === ''
+    ? null
+    : String(invoiceId);
+}
+
 async function createSubscriptionInvoice(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -114,11 +121,12 @@ async function createSubscriptionInvoice(req, res) {
       signal: AbortSignal.timeout(15000)
     });
     const data = await response.json();
+    const invoiceId = getInvoiceId(data);
 
-    if (response.ok && data.invoice_url && data.invoice_id !== undefined && data.invoice_id !== null) {
+    if (response.ok && typeof data?.invoice_url === 'string' && data.invoice_url && invoiceId) {
       const { error: invoiceUpdateError } = await supabase
         .from('subscription_orders')
-        .update({ invoice_id: String(data.invoice_id) })
+        .update({ invoice_id: invoiceId })
         .eq('order_id', orderId)
         .eq('status', 'pending');
       if (invoiceUpdateError) {
@@ -132,7 +140,11 @@ async function createSubscriptionInvoice(req, res) {
     if (cancelError) {
       console.error('Failed to cancel subscription order after invoice failure:', cancelError.message);
     }
-    console.error('NOWPayments invoice creation failed:', data.message || `HTTP ${response.status}`);
+    console.error('NOWPayments invoice creation failed:', {
+      status: response.status,
+      message: data?.message,
+      responseFields: isObject(data) ? Object.keys(data) : []
+    });
     return res.status(502).json({ error: 'Failed to create payment invoice' });
   } catch (error) {
     console.error('Subscription invoice creation failed:', error.message);
@@ -188,11 +200,12 @@ async function createDonationInvoice(req, res) {
       signal: AbortSignal.timeout(15000)
     });
     const data = await response.json();
+    const invoiceId = getInvoiceId(data);
 
-    if (response.ok && data.invoice_url && data.invoice_id !== undefined && data.invoice_id !== null) {
+    if (response.ok && typeof data?.invoice_url === 'string' && data.invoice_url && invoiceId) {
       const { error: invoiceUpdateError } = await supabase
         .from('donation_orders')
-        .update({ invoice_id: String(data.invoice_id) })
+        .update({ invoice_id: invoiceId })
         .eq('order_id', orderId)
         .eq('status', 'pending');
       if (invoiceUpdateError) {
@@ -206,7 +219,11 @@ async function createDonationInvoice(req, res) {
     if (cancelError) {
       console.error('Failed to cancel donation order after invoice failure:', cancelError.message);
     }
-    console.error('NOWPayments donation invoice creation failed:', data.message || `HTTP ${response.status}`);
+    console.error('NOWPayments donation invoice creation failed:', {
+      status: response.status,
+      message: data?.message,
+      responseFields: isObject(data) ? Object.keys(data) : []
+    });
     return res.status(502).json({ error: 'Failed to create donation invoice' });
   } catch (error) {
     console.error('Donation invoice creation failed:', error.message);
