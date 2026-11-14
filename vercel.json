@@ -5,6 +5,9 @@
     "api/site-assistant.js": {
       "includeFiles": "api/knowledge_base.md",
       "maxDuration": 30
+    },
+    "api/admin-ai-room.js": {
+      "maxDuration": 60
     }
   },
   "rewrites": [

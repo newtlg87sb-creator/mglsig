@@ -11,7 +11,7 @@ const sharedTranslations = {
         "update-modal-title": "Сайтын Шинэчлэлт", 
         "update-modal-desc": "Бид сайтыг өдөр бүр шинэчилж байна. Хэрэв та шинэ өөрчлөлтүүдийг харахгүй байгаа бол хуучин хувилбар хадгалагдсан (Cache) байж болзошгүй тул Refresh хийнэ үү.",
         "last-update-prefix": "Сүүлийн шинэчлэлт:", "btn-login": "Нэвтрэх", "btn-reg": "Бүртгүүлэх",
-        "btn-logout": "Гарах",
+        "btn-logout": "Гарах", "nav-ai-room": "AI Өрөө",
         "recommended-clear-cache": "Зөвлөмж: Кэшийг цэвэрлэх",
         "ctrl-f5": "CTRL + F5"
     },
@@ -25,7 +25,7 @@ const sharedTranslations = {
         "update-info-btn": "About Update", "btn-refresh": "REFRESH NOW", "update-modal-title": "Daily Updates",
         "update-modal-desc": "We update the site daily. If you see old data, please clear your cache.",
         "last-update-prefix": "Last Update:", "btn-login": "Login", "btn-reg": "Register",
-        "btn-logout": "Logout"
+        "btn-logout": "Logout", "nav-ai-room": "AI Room"
     }
 };
 
@@ -174,6 +174,7 @@ const headerHTML = `    <style>
                         </div>
                         <!-- User View (Desktop) -->
                         <div id="desktop-user" class="hidden flex items-center space-x-3">
+                            <a id="desktop-admin-ai-room" href="/admin_ai_room.html" data-i18n="nav-ai-room" class="hidden text-[10px] font-bold text-brand-gold hover:text-white transition uppercase">AI Room</a>
                             <span id="user-display-name" class="text-[10px] font-bold text-brand-gold uppercase tracking-wider">User</span>
                             <button onclick="handleLogout()" data-i18n="btn-logout" class="text-[10px] font-bold text-gray-500 hover:text-white transition uppercase ml-2">Logout</button>
                         </div>
@@ -236,6 +237,7 @@ const headerHTML = `    <style>
                         <i class="fas fa-user text-brand-gold"></i>
                         <span id="mobile-user-name" class="text-white text-sm font-bold uppercase">User</span>
                     </div>
+                    <a id="mobile-admin-ai-room" href="/admin_ai_room.html" data-i18n="nav-ai-room" class="hidden text-center py-2 border border-brand-gold/40 rounded text-brand-gold text-xs font-bold uppercase">AI Room</a>
                     <button onclick="handleLogout()" data-i18n="btn-logout" class="text-center py-2 border border-brand-border rounded text-red-500 text-xs font-bold uppercase hover:bg-red-500/10 transition">Logout</button>
                 </div>
                 <a href="/main_contact.html" class="text-center text-[10px] font-bold uppercase pt-2"><span data-i18n="foot-contact" class="mgl-spotlight-text text-gray-500">Холбоо барих</span></a>
@@ -374,6 +376,10 @@ async function checkUserLogin() {
     if (userStr && userStr !== "undefined") {
         try {
             const user = JSON.parse(userStr);
+            if (user.id === "21f19ae0-b35e-4984-b8dc-dc8e463b0155") {
+                document.getElementById('desktop-admin-ai-room')?.classList.remove('hidden');
+                document.getElementById('mobile-admin-ai-room')?.classList.remove('hidden');
+            }
             const getStatusHTML = (username, type, expiresAt) => {
                 const mType = (type || '').toLowerCase().trim();
                 if (mType === 'alpha' && expiresAt) {
