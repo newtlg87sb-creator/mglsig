@@ -102,14 +102,15 @@
                         <select id="room-provider">
                             <option value="Gemini">Gemini</option>
                             <option value="OpenRouter">OpenRouter</option>
-                            <option value="Groq">Groq</option>
+                            <option value="Llama Free (OpenRouter)">Llama Free (OpenRouter)</option>
                         </select>
                     </label>
                     <button id="clear-room" type="button" class="room-button secondary">Чатыг цэвэрлэх</button>
                 </div>
                 <p class="mt-3 text-xs leading-relaxed text-gray-500">
                     Хэлэлцүүлгийн горимд Gemini эхэлж, дараагийн AI өмнөх хариунуудыг уншаад үргэлжлүүлнэ.
-                    Асуулт provider-уудад дамжина. Нууц үг, API key зэрэг нууц мэдээлэл бүү оруулаарай.
+                    Гурав дахь оролцогч зөвхөн OpenRouter-ийн үнэгүй Llama/router model ашиглана.
+                    Нууц үг, API key зэрэг нууц мэдээлэл бүү оруулаарай.
                     Чат энэ хуудас нээлттэй байх хугацаанд л хадгалагдана.
                 </p>
             </div>
@@ -168,11 +169,8 @@
             }
 
             function describeProviderError(code, provider) {
-                if (code === 'groq_model_retired') {
-                    return 'Llama 3.3 model зогссон. Орлуулалт нь төлбөртэй тул free-only горимд автоматаар солихгүй.';
-                }
-                if (code === 'invalid_response' && provider === 'OpenRouter') {
-                    return 'Хариу JSON биш байсан. Үнэгүй router-оор нэг удаа дахин оролдлоо.';
+                if (code === 'invalid_response' && provider.includes('OpenRouter')) {
+                    return 'Хариу JSON биш байсан. Үнэгүй model/router-оор дахин оролдлоо.';
                 }
                 const messages = {
                     not_configured: 'API key тохируулаагүй байна (Vercel Environment Variables шалгана уу).',
@@ -263,7 +261,7 @@
                 addMessage('user', 'Та', text);
                 input.value = '';
                 statusElement.textContent = modeSelect.value === 'roundtable'
-                    ? 'Gemini, OpenRouter, Groq дарааллаар хэлэлцүүлж байна...'
+                    ? 'Gemini, OpenRouter, Llama Free дарааллаар хэлэлцүүлж байна...'
                     : `${providerSelect.value} хариулж байна...`;
                 setBusy(true);
 

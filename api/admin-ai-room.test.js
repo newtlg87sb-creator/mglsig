@@ -85,7 +85,7 @@ test('admin AI room runs a roundtable and passes earlier AI replies to later pro
     SUPABASE_ANON_KEY: 'test-anon-key',
     GEMINI_API_KEY: 'gemini-test-key',
     OPENROUTER_API_KEY: 'openrouter-test-key',
-    GROQ_API_KEY: 'groq-test-key'
+    GROQ_API_KEY: undefined
   });
   const originalFetch = globalThis.fetch;
   const calls = [];
@@ -113,8 +113,14 @@ test('admin AI room runs a roundtable and passes earlier AI replies to later pro
 
     if (url === 'https://openrouter.ai/api/v1/chat/completions') {
       assert.equal(options.headers.Authorization, 'Bearer openrouter-test-key');
-      assert.equal(body.model, 'openrouter/free');
       assert.ok(body.messages[0].content.includes('Cyrillic script'));
+      if (body.model === 'meta-llama/llama-3.2-3b-instruct:free') {
+        assert.ok(body.messages.at(-1).content.includes('[Gemini]: Gemini opening thought.'));
+        assert.ok(body.messages.at(-1).content.includes('[OpenRouter]: OpenRouter agrees with Gemini.'));
+        return { ok: false, status: 404 };
+      }
+
+      assert.equal(body.model, 'openrouter/free');
       openRouterAttempts += 1;
       if (openRouterAttempts === 1) {
         return {
@@ -125,25 +131,24 @@ test('admin AI room runs a roundtable and passes earlier AI replies to later pro
         };
       }
       assert.ok(body.messages.at(-1).content.includes('[Gemini]: Gemini opening thought.'));
+      if (openRouterAttempts === 2) {
+        return {
+          ok: true,
+          text: async () => JSON.stringify({
+            choices: [{ message: { content: [{ type: 'text', text: 'OpenRouter agrees with Gemini.' }] } }]
+          })
+        };
+      }
+      assert.ok(body.messages.at(-1).content.includes('[OpenRouter]: OpenRouter agrees with Gemini.'));
       return {
         ok: true,
         text: async () => JSON.stringify({
-          choices: [{ message: { content: [{ type: 'text', text: 'OpenRouter agrees with Gemini.' }] } }]
+          choices: [{ message: { content: 'Free Llama adds another perspective.' } }]
         })
       };
     }
 
-    assert.equal(url, 'https://api.groq.com/openai/v1/chat/completions');
-    assert.equal(options.headers.Authorization, 'Bearer groq-test-key');
-    assert.equal(body.model, 'llama-3.3-70b-versatile');
-    assert.ok(body.messages.at(-1).content.includes('[Gemini]: Gemini opening thought.'));
-    assert.ok(body.messages.at(-1).content.includes('[OpenRouter]: OpenRouter agrees with Gemini.'));
-    return {
-      ok: true,
-      text: async () => JSON.stringify({
-        choices: [{ message: { content: 'Groq adds another perspective.' } }]
-      })
-    };
+    assert.fail(`Unexpected provider URL: ${url}`);
   };
 
   try {
@@ -155,11 +160,12 @@ test('admin AI room runs a roundtable and passes earlier AI replies to later pro
     assert.deepEqual(response.payload.results.map(result => result.provider), [
       'Gemini',
       'OpenRouter',
-      'Groq'
+      'Llama Free (OpenRouter)'
     ]);
-    assert.equal(response.payload.results[2].answer, 'Groq adds another perspective.');
-    assert.equal(openRouterAttempts, 2);
-    assert.equal(calls.length, 5);
+    assert.equal(response.payload.results[2].answer, 'Free Llama adds another perspective.');
+    assert.equal(openRouterAttempts, 3);
+    assert.equal(calls.length, 6);
+    assert.equal(response.payload.errors.length, 0);
   } finally {
     globalThis.fetch = originalFetch;
     restoreEnvironment();
@@ -207,19 +213,26 @@ test('admin AI room reports provider status codes without exposing provider resp
   }
 });
 
-test('admin AI room does not switch a retired Groq model to a paid replacement', async () => {
+test('admin AI room keeps the legacy Groq choice on free OpenRouter models only', async () => {
   const restoreEnvironment = setEnvironment({
     SUPABASE_URL: 'https://supabase.example',
     SUPABASE_ANON_KEY: 'test-anon-key',
-    GROQ_API_KEY: 'groq-test-key'
+    OPENROUTER_API_KEY: 'openrouter-test-key',
+    GROQ_API_KEY: undefined
   });
   const originalFetch = globalThis.fetch;
   const calledUrls = [];
-  globalThis.fetch = async url => {
+  globalThis.fetch = async (url, options) => {
     calledUrls.push(url);
     if (url === 'https://supabase.example/auth/v1/user') {
       return { ok: true, json: async () => ({ id: ADMIN_USER_ID }) };
     }
+    assert.equal(url, 'https://openrouter.ai/api/v1/chat/completions');
+    const body = JSON.parse(options.body);
+    assert.ok([
+      'meta-llama/llama-3.2-3b-instruct:free',
+      'openrouter/free'
+    ].includes(body.model));
     return { ok: false, status: 404 };
   };
 
@@ -233,10 +246,12 @@ test('admin AI room does not switch a retired Groq model to a paid replacement',
     ), response);
 
     assert.equal(response.statusCode, 503);
-    assert.equal(response.payload.reason, 'groq_model_retired');
+    assert.equal(response.payload.provider, 'Llama Free (OpenRouter)');
+    assert.equal(response.payload.reason, 'model_unavailable');
     assert.deepEqual(calledUrls, [
       'https://supabase.example/auth/v1/user',
-      'https://api.groq.com/openai/v1/chat/completions'
+      'https://openrouter.ai/api/v1/chat/completions',
+      'https://openrouter.ai/api/v1/chat/completions'
     ]);
   } finally {
     globalThis.fetch = originalFetch;

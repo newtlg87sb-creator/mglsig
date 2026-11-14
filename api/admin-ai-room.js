@@ -1,6 +1,6 @@
 const ADMIN_USER_ID = '21f19ae0-b35e-4984-b8dc-dc8e463b0155';
 const OPENROUTER_MODEL = 'openrouter/free';
-const GROQ_MODEL = 'llama-3.3-70b-versatile';
+const LLAMA_FREE_MODEL = 'meta-llama/llama-3.2-3b-instruct:free';
 const MAX_MESSAGES = 20;
 const MAX_MESSAGE_LENGTH = 60000;
 const MAX_TOTAL_LENGTH = 200000;
@@ -18,12 +18,14 @@ const providerDefinitions = [
   {
     name: 'OpenRouter',
     apiKey: () => (process.env.OPENROUTER_API_KEY || '').trim(),
-    url: 'https://openrouter.ai/api/v1/chat/completions'
+    url: 'https://openrouter.ai/api/v1/chat/completions',
+    models: [OPENROUTER_MODEL, OPENROUTER_MODEL]
   },
   {
-    name: 'Groq',
-    apiKey: () => (process.env.GROQ_API_KEY || '').trim(),
-    url: 'https://api.groq.com/openai/v1/chat/completions'
+    name: 'Llama Free (OpenRouter)',
+    apiKey: () => (process.env.OPENROUTER_API_KEY || '').trim(),
+    url: 'https://openrouter.ai/api/v1/chat/completions',
+    models: [LLAMA_FREE_MODEL, OPENROUTER_MODEL]
   }
 ];
 
@@ -48,7 +50,9 @@ function getMessages(body) {
 
     const text = message.text.trim();
     if (!text || text.length > MAX_MESSAGE_LENGTH) return null;
-    if (message.role === 'assistant' && !providerDefinitions.some(provider => provider.name === message.provider)) {
+    if (message.role === 'assistant' &&
+        !providerDefinitions.some(provider => provider.name === message.provider) &&
+        message.provider !== 'Groq') {
       return null;
     }
 
@@ -222,25 +226,26 @@ async function askProvider(provider, messages) {
   const headers = isGemini
     ? { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey }
     : { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` };
-  if (provider.name === 'OpenRouter') {
+  if (!isGemini) {
     headers['HTTP-Referer'] = 'https://mglsignal.com';
     headers['X-Title'] = 'MGL Signal Admin AI Room';
   }
 
-  const body = isGemini
+  const bodyForModel = model => isGemini
     ? {
         systemInstruction: { parts: [{ text: systemInstruction }] },
         contents: buildGeminiContents(messages),
         generationConfig: { maxOutputTokens: 700, temperature: 0.6 }
       }
     : {
-        model: provider.name === 'OpenRouter' ? OPENROUTER_MODEL : GROQ_MODEL,
+        model,
         messages: buildOpenAiMessages(provider.name, messages),
         max_tokens: 700,
         temperature: 0.6
       };
 
-  const maxAttempts = provider.name === 'OpenRouter' ? 2 : 1;
+  const models = provider.models || [OPENROUTER_MODEL];
+  const maxAttempts = models.length;
   let lastError = 'provider_error';
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     let response;
@@ -248,7 +253,7 @@ async function askProvider(provider, messages) {
       response = await fetch(provider.url, {
         method: 'POST',
         headers,
-        body: JSON.stringify(body),
+        body: JSON.stringify(bodyForModel(models[attempt])),
         signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS)
       });
     } catch (error) {
@@ -262,10 +267,9 @@ async function askProvider(provider, messages) {
 
     if (!response.ok) {
       console.error(`${provider.name} admin-room request returned HTTP ${response.status}`);
-      lastError = provider.name === 'Groq' && response.status === 404
-        ? 'groq_model_retired'
-        : getProviderError(response.status);
-      if (attempt + 1 < maxAttempts && ['provider_error', 'model_unavailable'].includes(lastError)) {
+      lastError = getProviderError(response.status);
+      if (attempt + 1 < maxAttempts &&
+          ['provider_error', 'model_unavailable', 'rate_limited'].includes(lastError)) {
         continue;
       }
       return { error: lastError };
@@ -286,7 +290,7 @@ async function askProvider(provider, messages) {
       result = JSON.parse(responseText);
     } catch (error) {
       const contentType = response.headers?.get?.('content-type') || '';
-      if (provider.name === 'OpenRouter' && contentType.startsWith('text/plain') && responseText.trim()) {
+      if (!isGemini && contentType.startsWith('text/plain') && responseText.trim()) {
         return { answer: responseText.trim() };
       }
       console.error(`${provider.name} admin-room response was not valid JSON`);
@@ -342,7 +346,8 @@ export default async function handler(req, res) {
   }
 
   if (mode === 'direct') {
-    const provider = providerDefinitions.find(item => item.name === body.provider);
+    const requestedProvider = body.provider === 'Groq' ? 'Llama Free (OpenRouter)' : body.provider;
+    const provider = providerDefinitions.find(item => item.name === requestedProvider);
     if (!provider) return sendJson(res, 400, { error: 'invalid_provider' });
     if (!provider.apiKey()) {
       return sendJson(res, 503, { error: 'provider_not_configured', provider: provider.name });
