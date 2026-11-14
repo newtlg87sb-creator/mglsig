@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#05070a">
     <title>Trading Tunnel - MGL Signal</title>
     <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -10,11 +11,11 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: { brand: { 'dark': '#05070a', 'dark-blue': '#0f1217', 'gold': '#c5a059', 'border': '#1f242d' } },
-                    fontFamily: { 'inter': ['Inter', 'sans-serif'] }
+                    colors: { brand: { dark: '#05070a', 'dark-blue': '#0f1217', gold: '#c5a059', border: '#1f242d' } },
+                    fontFamily: { inter: ['Inter', 'sans-serif'] }
                 }
             }
-        }
+        };
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/main_style.css">
@@ -23,19 +24,93 @@
     <script src="/static/js/header.js"></script>
 
     <main class="flex-grow pt-20 pb-12 px-4 md:px-6">
-        <div class="max-w-7xl mx-auto flex flex-col gap-4">
-            <script src="/static/js/control.js"></script>
+        <div class="max-w-7xl mx-auto flex flex-col gap-5">
+            <header class="flex flex-wrap items-end justify-between gap-3">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-black uppercase tracking-tight">Trading <span class="text-brand-gold italic">Tunnel</span></h1>
+                    <p class="mt-1 text-[10px] font-bold uppercase tracking-[0.25em] text-gray-500">RSI reversal levels · confirmed candles</p>
+                </div>
+                <div class="text-right">
+                    <div class="flex items-center justify-end gap-2 text-[10px] font-black uppercase tracking-wider">
+                        <span id="ws-dot" class="h-2 w-2 rounded-full bg-gray-500"></span>
+                        <span id="ws-text" class="text-gray-400">Connecting</span>
+                    </div>
+                    <div id="current-pair-display" class="mt-1 text-lg font-black">BTCUSDT</div>
+                </div>
+            </header>
 
-            <div class="data-grid sm:grid-cols-2 lg:grid-cols-4">
-                <div class="data-card"><div class="label">Spot Price</div><div id="spot-price-display" class="value price">--</div></div>
-                <div class="data-card"><div class="label">Future Price</div><div id="futures-price-display" class="value price">--</div></div>
-                <div class="data-card"><div class="label">Upper Tunnel</div><div id="val-upper" class="value down">--</div></div>
-                <div class="data-card"><div class="label">Lower Tunnel</div><div id="val-lower" class="value up">--</div></div>
-            </div>
+            <section class="flex flex-wrap items-center gap-3 rounded-xl border border-brand-border bg-brand-dark-blue p-3 md:p-4" aria-label="Chart controls">
+                <label class="flex items-center gap-2 text-[10px] font-bold uppercase text-gray-500">
+                    Market
+                    <select id="market" class="rounded border border-brand-border bg-brand-dark px-2 py-1.5 text-xs text-white">
+                        <option value="spot">Spot</option>
+                        <option value="futures" selected>Futures</option>
+                    </select>
+                </label>
+                <label class="flex items-center gap-2 text-[10px] font-bold uppercase text-gray-500">
+                    Time
+                    <select id="interval" class="rounded border border-brand-border bg-brand-dark px-2 py-1.5 text-xs text-white">
+                        <option value="1m" selected>1m</option>
+                        <option value="3m">3m</option>
+                        <option value="5m">5m</option>
+                        <option value="15m">15m</option>
+                        <option value="30m">30m</option>
+                        <option value="1h">1h</option>
+                        <option value="2h">2h</option>
+                        <option value="4h">4h</option>
+                        <option value="6h">6h</option>
+                        <option value="8h">8h</option>
+                        <option value="12h">12h</option>
+                        <option value="1d">1d</option>
+                        <option value="3d">3d</option>
+                        <option value="1w">1w</option>
+                        <option value="1M">1M</option>
+                    </select>
+                </label>
+                <label class="flex items-center gap-2 text-[10px] font-bold uppercase text-gray-500">
+                    Pair
+                    <input id="symbol" type="text" value="BTCUSDT" maxlength="24" autocomplete="off" spellcheck="false"
+                        class="w-28 rounded border border-brand-border bg-brand-dark px-2 py-1.5 text-xs font-bold uppercase text-white">
+                </label>
+                <label class="flex items-center gap-2 text-[10px] font-bold uppercase text-gray-500">
+                    RSI
+                    <input id="rsi-period" type="number" value="14" min="2" max="100"
+                        class="w-16 rounded border border-brand-border bg-brand-dark px-2 py-1.5 text-xs text-white">
+                </label>
+                <button id="reload" type="button" class="rounded border border-brand-gold bg-brand-gold px-3 py-1.5 text-xs font-black text-black hover:brightness-110">
+                    <i class="fa-solid fa-rotate-right mr-1"></i> Reload
+                </button>
+                <p id="chart-message" class="w-full text-xs text-gray-400" role="status" aria-live="polite"></p>
+            </section>
 
-            <!-- Engine Scripts -->
-            <script src="/static/js/data.js"></script>
-            <script src="/static/js/candle.js"></script>
+            <section class="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Tunnel values">
+                <div class="rounded-xl border border-brand-border bg-brand-dark-blue p-4">
+                    <div class="text-[10px] font-bold uppercase text-gray-500">Live price</div>
+                    <div id="price-display" class="mt-1 font-mono text-lg font-black text-white">--</div>
+                </div>
+                <div class="rounded-xl border border-brand-border bg-brand-dark-blue p-4">
+                    <div class="text-[10px] font-bold uppercase text-gray-500">RSI (closed)</div>
+                    <div id="rsi-display" class="mt-1 font-mono text-lg font-black text-brand-gold">--</div>
+                </div>
+                <div class="rounded-xl border border-brand-border bg-brand-dark-blue p-4">
+                    <div class="text-[10px] font-bold uppercase text-gray-500">Upper tunnel · RSI 70</div>
+                    <div id="val-upper" class="mt-1 font-mono text-lg font-black text-red-400">--</div>
+                </div>
+                <div class="rounded-xl border border-brand-border bg-brand-dark-blue p-4">
+                    <div class="text-[10px] font-bold uppercase text-gray-500">Lower tunnel · RSI 30</div>
+                    <div id="val-lower" class="mt-1 font-mono text-lg font-black text-green-400">--</div>
+                </div>
+            </section>
+
+            <section id="chart-wrapper" class="relative h-[55vh] min-h-[380px] max-h-[760px] overflow-hidden rounded-xl border border-brand-border bg-brand-dark-blue shadow-xl">
+                <canvas id="chart" class="block h-full w-full touch-none cursor-crosshair" role="img" aria-label="BTCUSDT candlestick chart"></canvas>
+                <div class="pointer-events-none absolute bottom-3 left-4 flex gap-4 rounded-lg bg-black/50 px-3 py-2 text-[9px] font-bold uppercase">
+                    <span class="text-red-400"><i class="fa-solid fa-minus mr-1"></i>Upper</span>
+                    <span class="text-green-400"><i class="fa-solid fa-minus mr-1"></i>Lower</span>
+                    <span class="text-gray-400"><i class="fa-solid fa-ellipsis mr-1"></i>Mid tunnel</span>
+                </div>
+            </section>
+            <p class="text-center text-[10px] text-gray-600">Drag to pan · Drag price scale to adjust · Scroll to zoom · Double-click to reset</p>
         </div>
     </main>
 
@@ -43,91 +118,503 @@
     <script src="/static/lock.js"></script>
 
     <script>
-    /**
-     * TUNNEL PLUGIN - Зөвхөн стратегийн логик
-     */
-    window.onChartDrawOverlay = function(ctx, engine) {
-        const { priceToY, candleWidth, padding, visibleData, visibleStartIndex, allData } = engine;
-        
-        // 1. RSI тооцоолох логик (Скриптийг бие даасан болгов)
-        const calculateRSI = (data, period = 14) => {
-            if (data.length <= period) return new Array(data.length).fill(null);
-            const rsi = new Array(data.length).fill(null);
-            let gains = 0, losses = 0;
-            
+    document.addEventListener("DOMContentLoaded", () => {
+        const canvas = document.getElementById("chart");
+        const ctx = canvas.getContext("2d");
+        const marketEl = document.getElementById("market");
+        const intervalEl = document.getElementById("interval");
+        const symbolEl = document.getElementById("symbol");
+        const periodEl = document.getElementById("rsi-period");
+        const statusText = document.getElementById("ws-text");
+        const statusDot = document.getElementById("ws-dot");
+        const messageEl = document.getElementById("chart-message");
+        const priceEl = document.getElementById("price-display");
+        const rsiEl = document.getElementById("rsi-display");
+        const upperEl = document.getElementById("val-upper");
+        const lowerEl = document.getElementById("val-lower");
+
+        let allData = [];
+        let socket = null;
+        let reconnectTimer = null;
+        let connectionId = 0;
+        let visibleCount = 80;
+        let offset = 0;
+        let priceScale = 1;
+        let priceOffset = 0;
+        let lastPriceRange = 0;
+        let lastChartHeight = 0;
+        let pointer = null;
+        let dragMode = null;
+        let lastPointer = null;
+        const minVisible = 20;
+        const maxVisible = 200;
+
+        const setStatus = (text, state) => {
+            statusText.textContent = text;
+            statusText.className = "text-[10px] font-black uppercase " +
+                (state === "live" ? "text-green-500" : state === "error" ? "text-red-500" : "text-gray-400");
+            statusDot.className = "h-2 w-2 rounded-full " +
+                (state === "live" ? "bg-green-500" : state === "error" ? "bg-red-500" : "bg-yellow-500");
+        };
+
+        const setMessage = (text, isError) => {
+            messageEl.textContent = text;
+            messageEl.className = "w-full text-xs " + (isError ? "text-red-400" : "text-gray-400");
+        };
+
+        const formatPrice = value => {
+            if (!Number.isFinite(value)) return "--";
+            if (value >= 1000) return value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (value >= 1) return value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+            return value.toFixed(8).replace(/0+$/, "").replace(/\.$/, "");
+        };
+
+        const calculateRsi = (candles, period) => {
+            const values = new Array(candles.length).fill(null);
+            if (candles.length <= period) return values;
+
+            let gainSum = 0;
+            let lossSum = 0;
             for (let i = 1; i <= period; i++) {
-                const change = data[i][4] - data[i-1][4];
-                if (change >= 0) gains += change; else losses -= change;
+                const change = candles[i][4] - candles[i - 1][4];
+                gainSum += Math.max(change, 0);
+                lossSum += Math.max(-change, 0);
             }
-            
-            let avgGain = gains / period;
-            let avgLoss = losses / period;
-            rsi[period] = 100 - (100 / (1 + (avgGain / (avgLoss || 0.0001))));
+            let averageGain = gainSum / period;
+            let averageLoss = lossSum / period;
+            const toRsi = () => {
+                if (averageGain === 0 && averageLoss === 0) return 50;
+                if (averageLoss === 0) return 100;
+                if (averageGain === 0) return 0;
+                return 100 - 100 / (1 + averageGain / averageLoss);
+            };
+            values[period] = toRsi();
 
-            for (let i = period + 1; i < data.length; i++) {
-                const change = data[i][4] - data[i-1][4];
-                avgGain = (avgGain * (period - 1) + (change > 0 ? change : 0)) / period;
-                avgLoss = (avgLoss * (period - 1) + (change < 0 ? -change : 0)) / period;
-                rsi[i] = 100 - (100 / (1 + (avgGain / (avgLoss || 0.0001))));
+            for (let i = period + 1; i < candles.length; i++) {
+                const change = candles[i][4] - candles[i - 1][4];
+                averageGain = (averageGain * (period - 1) + Math.max(change, 0)) / period;
+                averageLoss = (averageLoss * (period - 1) + Math.max(-change, 0)) / period;
+                values[i] = toRsi();
             }
-            return rsi;
+            return values;
         };
 
-        const rsiValues = calculateRSI(allData, 14);
-        if (!rsiValues || rsiValues.length < 2) return;
-
-        let current_long = null, current_short = null;
-        const upperHistory = new Array(allData.length).fill(null);
-        const lowerHistory = new Array(allData.length).fill(null);
-        const avgHistory = new Array(allData.length).fill(null);
-
-        for (let i = 2; i < allData.length; i++) {
-            const r0 = rsiValues[i];
-            const r1 = rsiValues[i-1];
-
-            if (r0 !== null && r1 !== null) {
-                if (r1 < 30 && r0 >= 30) current_long = Math.min(allData[i][3], allData[i-1][3], allData[i-2][3]);
-                if (r1 > 70 && r0 <= 70) current_short = Math.max(allData[i][2], allData[i-1][2], allData[i-2][2]);
+        const buildTunnel = () => {
+            const period = Number(periodEl.value);
+            if (!Number.isInteger(period) || period < 2 || period > 100) {
+                return {
+                    upperHistory: new Array(allData.length).fill(null),
+                    lowerHistory: new Array(allData.length).fill(null),
+                    upper: null,
+                    lower: null,
+                    rsi: null
+                };
             }
-            upperHistory[i] = current_short;
-            lowerHistory[i] = current_long;
-            avgHistory[i] = (current_long !== null && current_short !== null) ? (current_long + current_short) / 2 : null;
-        }
+            const closedIndices = [];
+            const closedCandles = [];
+            allData.forEach((candle, index) => {
+                if (candle[7]) {
+                    closedIndices.push(index);
+                    closedCandles.push(candle);
+                }
+            });
 
-        const drawTunnelLine = (historyArray, color, isDashed = false) => {
-            ctx.strokeStyle = color; ctx.lineWidth = 2;
-            if (isDashed) ctx.setLineDash([5, 5]);
+            const rsiValues = calculateRsi(closedCandles, period);
+            const upperHistory = new Array(allData.length).fill(null);
+            const lowerHistory = new Array(allData.length).fill(null);
+            let upper = null;
+            let lower = null;
+
+            for (let i = 0; i < closedCandles.length; i++) {
+                const currentRsi = rsiValues[i];
+                const previousRsi = i > 0 ? rsiValues[i - 1] : null;
+                if (currentRsi !== null && previousRsi !== null) {
+                    const recent = closedCandles.slice(Math.max(0, i - 2), i + 1);
+                    if (previousRsi < 30 && currentRsi >= 30) {
+                        lower = Math.min(...recent.map(candle => candle[3]));
+                    }
+                    if (previousRsi > 70 && currentRsi <= 70) {
+                        upper = Math.max(...recent.map(candle => candle[2]));
+                    }
+                }
+                const index = closedIndices[i];
+                upperHistory[index] = upper;
+                lowerHistory[index] = lower;
+            }
+
+            if (closedIndices.length && allData.length > closedIndices[closedIndices.length - 1] + 1) {
+                const lastIndex = allData.length - 1;
+                upperHistory[lastIndex] = upper;
+                lowerHistory[lastIndex] = lower;
+            }
+
+            return {
+                upperHistory,
+                lowerHistory,
+                upper,
+                lower,
+                rsi: rsiValues.length ? rsiValues[rsiValues.length - 1] : null
+            };
+        };
+
+        const updateMetrics = tunnel => {
+            const lastCandle = allData[allData.length - 1];
+            priceEl.textContent = lastCandle ? formatPrice(lastCandle[4]) : "--";
+            rsiEl.textContent = tunnel.rsi === null ? "--" : tunnel.rsi.toFixed(2);
+            upperEl.textContent = tunnel.upper === null ? "--" : formatPrice(tunnel.upper);
+            lowerEl.textContent = tunnel.lower === null ? "--" : formatPrice(tunnel.lower);
+        };
+
+        const drawLine = (history, color, dashed, start, data, padding, candleWidth, priceToY) => {
             ctx.beginPath();
-            let first = true;
-            for (let i = 0; i < visibleData.length; i++) {
-                const val = historyArray[visibleStartIndex + i];
-                if (!val) continue;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1.7;
+            ctx.setLineDash(dashed ? [5, 5] : []);
+            let penDown = false;
+            for (let i = 0; i < data.length; i++) {
+                const value = history[start + i];
+                if (value === null || !Number.isFinite(value)) {
+                    penDown = false;
+                    continue;
+                }
                 const x = padding + i * candleWidth + candleWidth / 2;
-                const y = priceToY(val);
-                if (first) { ctx.moveTo(x, y); first = false; } else ctx.lineTo(x, y);
+                const y = priceToY(value);
+                if (!penDown) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+                penDown = true;
             }
-            ctx.stroke(); ctx.setLineDash([]);
+            ctx.stroke();
+            ctx.setLineDash([]);
         };
 
-        drawTunnelLine(upperHistory, "#ef4444");
-        drawTunnelLine(lowerHistory, "#10b981");
-        drawTunnelLine(avgHistory, "rgba(255,255,255,0.2)", true);
+        const draw = () => {
+            const width = canvas.clientWidth;
+            const height = canvas.clientHeight;
+            if (!width || !height) return;
+            const pixelRatio = window.devicePixelRatio || 1;
+            if (canvas.width !== Math.round(width * pixelRatio) || canvas.height !== Math.round(height * pixelRatio)) {
+                canvas.width = Math.round(width * pixelRatio);
+                canvas.height = Math.round(height * pixelRatio);
+            }
+            ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+            ctx.clearRect(0, 0, width, height);
+            if (!allData.length) {
+                priceEl.textContent = "--";
+                rsiEl.textContent = "--";
+                upperEl.textContent = "--";
+                lowerEl.textContent = "--";
+                return;
+            }
 
-        // UI мэдээлэл шинэчлэх
-        const lastPrice = allData[allData.length - 1][4];
-        const market = document.getElementById('market')?.value || 'futures';
-        const spotEl = document.getElementById('spot-price-display');
-        const futureEl = document.getElementById('futures-price-display');
-        
-        if (market === 'spot') {
-            if (spotEl) spotEl.textContent = '$' + lastPrice.toLocaleString();
-        } else {
-            if (futureEl) futureEl.textContent = '$' + lastPrice.toLocaleString();
-        }
+            const isMobile = width < 600;
+            const padding = isMobile ? 16 : 38;
+            const priceWidth = isMobile ? 62 : 82;
+            const timeHeight = 24;
+            const chartHeight = Math.max(1, height - padding * 2 - timeHeight);
+            const chartWidth = Math.max(1, width - padding - priceWidth);
+            const end = Math.max(0, allData.length - offset);
+            const start = Math.max(0, end - visibleCount);
+            const data = allData.slice(start, end);
+            if (!data.length) return;
 
-        if (document.getElementById('val-upper')) document.getElementById('val-upper').textContent = current_short?.toLocaleString() || '--';
-        if (document.getElementById('val-lower')) document.getElementById('val-lower').textContent = current_long?.toLocaleString() || '--';
-    };
+            const tunnel = buildTunnel();
+            updateMetrics(tunnel);
+            const prices = data.flatMap(candle => [candle[2], candle[3]]);
+            const visibleUpper = tunnel.upperHistory.slice(start, end).filter(Number.isFinite);
+            const visibleLower = tunnel.lowerHistory.slice(start, end).filter(Number.isFinite);
+            prices.push(...visibleUpper, ...visibleLower);
+            let maxPrice = Math.max(...prices);
+            let minPrice = Math.min(...prices);
+            if (maxPrice === minPrice) {
+                maxPrice += Math.abs(maxPrice * 0.001) || 1;
+                minPrice -= Math.abs(minPrice * 0.001) || 1;
+            }
+            const baseRange = maxPrice - minPrice;
+            const midpoint = (maxPrice + minPrice) / 2;
+            const halfRange = baseRange * priceScale / 2;
+            maxPrice = midpoint + halfRange + priceOffset;
+            minPrice = midpoint - halfRange + priceOffset;
+            lastPriceRange = maxPrice - minPrice;
+            lastChartHeight = chartHeight;
+            const priceToY = price => padding + (maxPrice - price) / lastPriceRange * chartHeight;
+            const candleWidth = chartWidth / data.length;
+
+            ctx.font = isMobile ? "9px Arial" : "10px Arial";
+            ctx.textAlign = "left";
+            for (let i = 0; i <= 5; i++) {
+                const price = minPrice + i / 5 * lastPriceRange;
+                const y = priceToY(price);
+                ctx.strokeStyle = "#202833";
+                ctx.fillStyle = "#76808d";
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(padding + chartWidth, y);
+                ctx.stroke();
+                ctx.fillText(formatPrice(price), padding + chartWidth + 5, y + 3);
+            }
+
+            const tickStep = Math.max(1, Math.ceil(data.length / Math.max(2, Math.floor(chartWidth / 110))));
+            ctx.textAlign = "center";
+            for (let i = 0; i < data.length; i += tickStep) {
+                const x = padding + i * candleWidth + candleWidth / 2;
+                const date = new Date(data[i][0]);
+                const label = intervalEl.value.endsWith("d") || intervalEl.value.endsWith("w") || intervalEl.value === "1M"
+                    ? date.toLocaleDateString()
+                    : date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+                ctx.strokeStyle = "#18202a";
+                ctx.beginPath();
+                ctx.moveTo(x, padding);
+                ctx.lineTo(x, padding + chartHeight);
+                ctx.stroke();
+                ctx.fillStyle = "#76808d";
+                ctx.fillText(label, x, padding + chartHeight + 16);
+            }
+            ctx.textAlign = "left";
+
+            data.forEach((candle, i) => {
+                const openY = priceToY(candle[1]);
+                const closeY = priceToY(candle[4]);
+                const x = padding + i * candleWidth;
+                const bull = candle[4] >= candle[1];
+                ctx.strokeStyle = ctx.fillStyle = bull ? "#0ecb81" : "#f6465d";
+                ctx.beginPath();
+                ctx.moveTo(x + candleWidth / 2, priceToY(candle[2]));
+                ctx.lineTo(x + candleWidth / 2, priceToY(candle[3]));
+                ctx.stroke();
+                ctx.fillRect(x + candleWidth * 0.2, Math.min(openY, closeY), Math.max(1, candleWidth * 0.6), Math.max(1, Math.abs(openY - closeY)));
+            });
+
+            drawLine(tunnel.upperHistory, "#ef4444", false, start, data, padding, candleWidth, priceToY);
+            drawLine(tunnel.lowerHistory, "#10b981", false, start, data, padding, candleWidth, priceToY);
+            const midHistory = tunnel.upperHistory.map((upper, index) =>
+                upper !== null && tunnel.lowerHistory[index] !== null ? (upper + tunnel.lowerHistory[index]) / 2 : null);
+            drawLine(midHistory, "rgba(255,255,255,0.5)", true, start, data, padding, candleWidth, priceToY);
+
+            const livePrice = allData[allData.length - 1][4];
+            const liveY = priceToY(livePrice);
+            ctx.setLineDash([4, 4]);
+            ctx.strokeStyle = "#c5a059";
+            ctx.beginPath();
+            ctx.moveTo(padding, liveY);
+            ctx.lineTo(padding + chartWidth, liveY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = "#c5a059";
+            ctx.font = "bold 10px Arial";
+            ctx.fillText(formatPrice(livePrice), padding + chartWidth + 5, liveY - 5);
+
+            if (pointer && pointer.x >= padding && pointer.x <= padding + chartWidth &&
+                pointer.y >= padding && pointer.y <= padding + chartHeight) {
+                const candleIndex = Math.min(data.length - 1, Math.floor((pointer.x - padding) / candleWidth));
+                const candle = data[candleIndex];
+                const x = padding + candleIndex * candleWidth + candleWidth / 2;
+                ctx.strokeStyle = "rgba(220,225,230,0.4)";
+                ctx.beginPath();
+                ctx.moveTo(x, padding);
+                ctx.lineTo(x, padding + chartHeight);
+                ctx.moveTo(padding, pointer.y);
+                ctx.lineTo(padding + chartWidth, pointer.y);
+                ctx.stroke();
+                const candleTime = new Date(candle[0]).toLocaleString();
+                ctx.fillStyle = "#d1d5db";
+                ctx.font = "10px Arial";
+                ctx.fillText(`${candleTime}  O ${formatPrice(candle[1])}  H ${formatPrice(candle[2])}  L ${formatPrice(candle[3])}  C ${formatPrice(candle[4])}`, padding + 4, padding + 12);
+            }
+        };
+
+        const closeSocket = () => {
+            if (reconnectTimer) {
+                clearTimeout(reconnectTimer);
+                reconnectTimer = null;
+            }
+            if (socket) {
+                socket.onclose = null;
+                socket.close();
+                socket = null;
+            }
+        };
+
+        const startWebSocket = token => {
+            if (token !== connectionId) return;
+            const market = marketEl.value;
+            const host = market === "futures" ? "fstream.binance.com" : "stream.binance.com";
+            const streamSymbol = symbolEl.value.trim().toLowerCase();
+            socket = new WebSocket(`wss://${host}/ws/${streamSymbol}@kline_${intervalEl.value}`);
+            setStatus("Connecting", "connecting");
+
+            socket.onopen = () => {
+                if (token === connectionId) setStatus(`${market.toUpperCase()} LIVE`, "live");
+            };
+            socket.onerror = () => {
+                if (token === connectionId) setStatus("Connection error", "error");
+            };
+            socket.onclose = () => {
+                if (token !== connectionId) return;
+                setStatus("Reconnecting", "connecting");
+                reconnectTimer = setTimeout(() => startWebSocket(token), 3000);
+            };
+            socket.onmessage = event => {
+                if (token !== connectionId) return;
+                try {
+                    const message = JSON.parse(event.data);
+                    if (!message.k) return;
+                    const kline = message.k;
+                    const candle = [
+                        Number(kline.t), Number(kline.o), Number(kline.h), Number(kline.l),
+                        Number(kline.c), Number(kline.v), Number(kline.T), Boolean(kline.x)
+                    ];
+                    const last = allData[allData.length - 1];
+                    if (last && last[0] === candle[0]) allData[allData.length - 1] = candle;
+                    else {
+                        allData.push(candle);
+                        if (allData.length > 500) allData.shift();
+                    }
+                    draw();
+                } catch (error) {
+                    console.error("Could not process Binance kline update:", error);
+                }
+            };
+        };
+
+        const loadCandles = async () => {
+            connectionId++;
+            const token = connectionId;
+            closeSocket();
+            allData = [];
+            offset = 0;
+            draw();
+
+            const rawSymbol = symbolEl.value.trim().toUpperCase();
+            const symbol = rawSymbol.replace(/[^A-Z0-9]/g, "");
+            if (!symbol || symbol !== rawSymbol || !/^[A-Z0-9]{5,24}$/.test(symbol)) {
+                setStatus("Invalid pair", "error");
+                setMessage("Enter a valid trading pair, for example BTCUSDT.", true);
+                symbolEl.focus();
+                return;
+            }
+
+            const period = Number(periodEl.value);
+            if (!Number.isInteger(period) || period < 2 || period > 100) {
+                setStatus("Invalid RSI length", "error");
+                setMessage("RSI length must be between 2 and 100.", true);
+                periodEl.focus();
+                return;
+            }
+
+            setStatus("Loading", "connecting");
+            setMessage("Loading candle data...", false);
+            draw();
+
+            const market = marketEl.value;
+            const baseUrl = market === "futures"
+                ? "https://fapi.binance.com/fapi/v1/klines"
+                : "https://api.binance.com/api/v3/klines";
+            const url = `${baseUrl}?symbol=${encodeURIComponent(symbol)}&interval=${encodeURIComponent(intervalEl.value)}&limit=500`;
+
+            try {
+                const response = await fetch(url);
+                const candles = await response.json();
+                if (!response.ok) throw new Error(candles.msg || `Binance returned ${response.status}`);
+                if (!Array.isArray(candles) || !candles.length) throw new Error("No candle data returned for this pair and interval.");
+                if (token !== connectionId) return;
+
+                allData = candles.map(row => [
+                    Number(row[0]), Number(row[1]), Number(row[2]), Number(row[3]),
+                    Number(row[4]), Number(row[5]), Number(row[6]), Number(row[6]) < Date.now()
+                ]);
+                document.getElementById("current-pair-display").textContent = symbol;
+                canvas.setAttribute("aria-label", `${symbol} ${intervalEl.value} candlestick chart`);
+                setMessage("", false);
+                draw();
+                startWebSocket(token);
+            } catch (error) {
+                if (token !== connectionId) return;
+                console.error("Could not load Binance candles:", error);
+                setStatus("Data error", "error");
+                setMessage(error.message || "Could not load market data.", true);
+            }
+        };
+
+        const resize = () => draw();
+        if ("ResizeObserver" in window) new ResizeObserver(resize).observe(canvas.parentElement);
+        else window.addEventListener("resize", resize);
+
+        const triggerUpdate = () => loadCandles();
+        marketEl.addEventListener("change", triggerUpdate);
+        intervalEl.addEventListener("change", triggerUpdate);
+        document.getElementById("reload").addEventListener("click", triggerUpdate);
+        symbolEl.addEventListener("change", triggerUpdate);
+        symbolEl.addEventListener("keydown", event => {
+            if (event.key === "Enter") triggerUpdate();
+        });
+        periodEl.addEventListener("change", () => {
+            const period = Number(periodEl.value);
+            if (!Number.isInteger(period) || period < 2 || period > 100) {
+                setStatus("Invalid RSI length", "error");
+                setMessage("RSI length must be between 2 and 100.", true);
+                draw();
+                return;
+            }
+            setMessage("", false);
+            if (socket && socket.readyState === WebSocket.OPEN) setStatus(`${marketEl.value.toUpperCase()} LIVE`, "live");
+            draw();
+        });
+
+        canvas.addEventListener("pointerdown", event => {
+            const rect = canvas.getBoundingClientRect();
+            lastPointer = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+            const scaleStartX = canvas.clientWidth - (canvas.clientWidth < 600 ? 16 : 38) - (canvas.clientWidth < 600 ? 62 : 82);
+            dragMode = lastPointer.x >= scaleStartX ? "price" : "pan";
+            canvas.setPointerCapture(event.pointerId);
+        });
+        canvas.addEventListener("pointermove", event => {
+            const rect = canvas.getBoundingClientRect();
+            pointer = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+            if (dragMode && lastPointer) {
+                const dx = pointer.x - lastPointer.x;
+                const dy = pointer.y - lastPointer.y;
+                if (dragMode === "price") {
+                    priceScale = Math.min(10, Math.max(0.1, priceScale * (1 + dy * 0.005)));
+                } else {
+                    const chartWidth = canvas.clientWidth - (canvas.clientWidth < 600 ? 78 : 120);
+                    offset = Math.max(0, Math.min(allData.length - visibleCount, offset + Math.round(dx / Math.max(1, chartWidth / visibleCount))));
+                    if (lastChartHeight > 0) priceOffset += dy * (lastPriceRange / lastChartHeight);
+                }
+                lastPointer = { x: pointer.x, y: pointer.y };
+            }
+            canvas.style.cursor = dragMode ? "grabbing" : "crosshair";
+            draw();
+        });
+        const endDrag = () => {
+            dragMode = null;
+            lastPointer = null;
+            canvas.style.cursor = "crosshair";
+        };
+        canvas.addEventListener("pointerup", endDrag);
+        canvas.addEventListener("pointercancel", endDrag);
+        canvas.addEventListener("pointerleave", () => {
+            if (!dragMode) {
+                pointer = null;
+                draw();
+            }
+        });
+        canvas.addEventListener("wheel", event => {
+            event.preventDefault();
+            visibleCount = Math.max(minVisible, Math.min(maxVisible, visibleCount + (event.deltaY > 0 ? 10 : -10)));
+            offset = Math.min(offset, Math.max(0, allData.length - visibleCount));
+            draw();
+        }, { passive: false });
+        canvas.addEventListener("dblclick", () => {
+            visibleCount = 80;
+            offset = 0;
+            priceScale = 1;
+            priceOffset = 0;
+            draw();
+        });
+        window.addEventListener("pagehide", closeSocket);
+
+        loadCandles();
+    });
     </script>
 </body>
 </html>

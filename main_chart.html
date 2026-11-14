@@ -127,6 +127,83 @@
             display: none;
         }
 
+        .trade-settings {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+            margin-top: 5px;
+            padding: 6px 8px;
+            border: 1px solid #222b38;
+            border-radius: 8px;
+            background: #10151d;
+        }
+
+        .trade-actions {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .chart-app .trade-action {
+            min-width: 46px;
+            min-height: 27px;
+            border-color: #344151;
+            background: #18212c;
+            color: #a7b3c2;
+        }
+
+        .chart-app .trade-action[data-active="true"] {
+            border-color: currentColor;
+            background: #202a35;
+            box-shadow: inset 0 0 0 1px currentColor;
+        }
+
+        .chart-app .trade-action[data-action="buy"],
+        .chart-app .trade-action[data-action="long"] {
+            color: #38d996;
+        }
+
+        .chart-app .trade-action[data-action="sell"],
+        .chart-app .trade-action[data-action="short"] {
+            color: #ff6874;
+        }
+
+        .trade-field {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #a7b3c2;
+            font-size: 9px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .trade-field input {
+            width: 76px;
+            min-height: 27px;
+            text-align: right;
+        }
+
+        .trade-field select {
+            min-height: 27px;
+        }
+
+        .trade-field .trade-leverage-input {
+            width: 52px;
+        }
+
+        .trade-settings-status {
+            flex: 1 1 100%;
+            min-height: 12px;
+            color: #708095;
+            font-size: 9px;
+        }
+
+        .trade-settings-status[data-state="error"] {
+            color: #ff7b82;
+        }
+
         .chart-app select,
         .chart-app input,
         .chart-app button {
@@ -402,7 +479,66 @@
             <label class="indicator-period" title="RSI Period">
                 P <input id="rsiPeriod" type="number" min="1" max="500" value="14" aria-label="RSI Period">
             </label>
+            <label class="indicator-toggle" title="EMA 1 үзүүлэлт">
+                <input id="showEMA1" type="checkbox" checked>
+                <span style="color:#f0b90b">EMA 1</span>
+            </label>
+            <label class="indicator-period" title="EMA 1 Period">
+                P <input id="emaPeriod1" type="number" min="1" max="500" value="20" aria-label="EMA 1 Period">
+            </label>
+            <label class="indicator-toggle" title="EMA 2 үзүүлэлт">
+                <input id="showEMA2" type="checkbox" checked>
+                <span style="color:#38bdf8">EMA 2</span>
+            </label>
+            <label class="indicator-period" title="EMA 2 Period">
+                P <input id="emaPeriod2" type="number" min="1" max="500" value="50" aria-label="EMA 2 Period">
+            </label>
+            <label class="indicator-toggle" title="Moving Average 1 үзүүлэлт">
+                <input id="showMA1" type="checkbox" checked>
+                <span style="color:#f472b6">MA 1</span>
+            </label>
+            <label class="indicator-period" title="Moving Average 1 Period">
+                P <input id="maPeriod1" type="number" min="1" max="500" value="20" aria-label="Moving Average 1 Period">
+            </label>
+            <label class="indicator-toggle" title="Moving Average 2 үзүүлэлт">
+                <input id="showMA2" type="checkbox" checked>
+                <span style="color:#a3e635">MA 2</span>
+            </label>
+            <label class="indicator-period" title="Moving Average 2 Period">
+                P <input id="maPeriod2" type="number" min="1" max="500" value="50" aria-label="Moving Average 2 Period">
+            </label>
             <button id="applyIndicators" type="button" aria-label="Үзүүлэлт хэрэглэх" title="Үзүүлэлт хэрэглэх">✓</button>
+        </section>
+
+        <section id="trade-settings" class="trade-settings" aria-label="Арилжааны тохиргоо">
+            <div class="trade-actions" role="group" aria-label="Арилжааны чиглэл">
+                <button class="trade-action" type="button" data-action="buy" aria-pressed="false">BUY</button>
+                <button class="trade-action" type="button" data-action="sell" aria-pressed="false">SELL</button>
+                <button class="trade-action" type="button" data-action="long" aria-pressed="false">LONG</button>
+                <button class="trade-action" type="button" data-action="short" aria-pressed="false">SHORT</button>
+            </div>
+            <label class="trade-field" for="trade-side">Side
+                <select id="trade-side">
+                    <option value="long">Long</option>
+                    <option value="short">Short</option>
+                    <option value="both">Long + Short</option>
+                </select>
+            </label>
+            <label class="trade-field" for="account-balance">Balance
+                <input id="account-balance" type="number" min="0" step="any" inputmode="decimal" placeholder="0.00" aria-label="Account balance in USDT">
+                <span>USDT</span>
+            </label>
+            <label class="trade-field" for="trade-margin">Margin
+                <input id="trade-margin" type="number" min="0" step="any" inputmode="decimal" placeholder="0.00" aria-label="Trade margin in USDT">
+                <span>USDT</span>
+            </label>
+            <label class="trade-field" for="trade-leverage">Leverage
+                <input id="trade-leverage" class="trade-leverage-input" type="number" min="1" max="125" step="1" placeholder="1" aria-label="Leverage">
+                <span>x</span>
+            </label>
+            <p id="trade-settings-status" class="trade-settings-status" role="status" aria-live="polite">
+                UI тохиргоо · Захиалга илгээхгүй
+            </p>
         </section>
 
         <div class="status-row" aria-label="Графикийн төлөв">
@@ -449,11 +585,25 @@
             const countdownElement = document.getElementById("candle-countdown");
             const showMacdInput = document.getElementById("showMACD");
             const showRsiInput = document.getElementById("showRSI");
+            const showEma1Input = document.getElementById("showEMA1");
+            const showEma2Input = document.getElementById("showEMA2");
+            const showMa1Input = document.getElementById("showMA1");
+            const showMa2Input = document.getElementById("showMA2");
+            const tradeActionButtons = Array.from(document.querySelectorAll(".trade-action"));
+            const tradeSideInput = document.getElementById("trade-side");
+            const balanceInput = document.getElementById("account-balance");
+            const marginInput = document.getElementById("trade-margin");
+            const leverageInput = document.getElementById("trade-leverage");
+            const tradeSettingsStatus = document.getElementById("trade-settings-status");
             const indicatorInputs = {
                 fast: document.getElementById("macdFast"),
                 slow: document.getElementById("macdSlow"),
                 signal: document.getElementById("macdSignal"),
-                rsi: document.getElementById("rsiPeriod")
+                rsi: document.getElementById("rsiPeriod"),
+                ema1: document.getElementById("emaPeriod1"),
+                ema2: document.getElementById("emaPeriod2"),
+                ma1: document.getElementById("maPeriod1"),
+                ma2: document.getElementById("maPeriod2")
             };
             const ohlcElements = {
                 symbol: document.getElementById("ohlc-symbol"),
@@ -472,8 +622,8 @@
                 offset: 0,
                 priceScale: 1,
                 priceShift: 0,
-                periods: { fast: 12, slow: 26, signal: 9, rsi: 14 },
-                indicators: { macd: [], signal: [], histogram: [], rsi: [] },
+                periods: { fast: 12, slow: 26, signal: 9, rsi: 14, ema1: 20, ema2: 50, ma1: 20, ma2: 50 },
+                indicators: { macd: [], signal: [], histogram: [], rsi: [], ema1: [], ema2: [], ma1: [], ma2: [] },
                 hover: null,
                 drag: null,
                 layout: null,
@@ -485,10 +635,36 @@
             };
 
             const symbolsCache = new Map();
+            let selectedTradeAction = null;
 
             function setStatus(message, stateName = "") {
                 statusElement.textContent = message;
                 statusElement.dataset.state = stateName;
+            }
+
+            function updateTradeSettings() {
+                const balance = balanceInput.value === "" ? null : Number(balanceInput.value);
+                const margin = marginInput.value === "" ? null : Number(marginInput.value);
+                const leverage = leverageInput.value === "" ? null : Number(leverageInput.value);
+                let error = "";
+
+                if (balance !== null && (!Number.isFinite(balance) || balance < 0)) {
+                    error = "Balance 0 буюу түүнээс их байх ёстой.";
+                } else if (margin !== null && (!Number.isFinite(margin) || margin < 0)) {
+                    error = "Margin 0 буюу түүнээс их байх ёстой.";
+                } else if (balance !== null && margin !== null && margin > balance) {
+                    error = "Margin нь Balance-аас их байж болохгүй.";
+                } else if (leverage !== null && (!Number.isInteger(leverage) || leverage < 1 || leverage > 125)) {
+                    error = "Leverage 1–125 бүхэл тоо байх ёстой.";
+                }
+
+                tradeSettingsStatus.dataset.state = error ? "error" : "";
+                tradeSettingsStatus.textContent = error ||
+                    `UI only · ${selectedTradeAction ? selectedTradeAction.toUpperCase() : "Action сонгоогүй"} · ` +
+                    `Side: ${tradeSideInput.options[tradeSideInput.selectedIndex].text} · ` +
+                    `Balance: ${balance === null ? "—" : `${balance} USDT`} · ` +
+                    `Margin: ${margin === null ? "—" : `${margin} USDT`} · ` +
+                    `Leverage: ${leverage === null ? "—" : `${leverage}x`} · Захиалга илгээхгүй`;
             }
 
             function formatPrice(value) {
@@ -663,16 +839,34 @@
                 return result;
             }
 
+            function calculateSma(values, period) {
+                const result = new Array(values.length).fill(null);
+                let sum = 0;
+                for (let index = 0; index < values.length; index++) {
+                    sum += values[index];
+                    if (index >= period) sum -= values[index - period];
+                    if (index >= period - 1) result[index] = sum / period;
+                }
+                return result;
+            }
+
             function calculateIndicators() {
                 const closes = state.candles.map(candle => candle[4]);
                 if (!closes.length) {
-                    state.indicators = { macd: [], signal: [], histogram: [], rsi: [] };
+                    state.indicators = { macd: [], signal: [], histogram: [], rsi: [], ema1: [], ema2: [], ma1: [], ma2: [] };
                     return;
                 }
 
-                const { fast, slow, signal: signalPeriod, rsi: rsiPeriod } = state.periods;
+                const {
+                    fast, slow, signal: signalPeriod, rsi: rsiPeriod,
+                    ema1: ema1Period, ema2: ema2Period, ma1: ma1Period, ma2: ma2Period
+                } = state.periods;
                 const fastEma = calculateEma(closes, fast);
                 const slowEma = calculateEma(closes, slow);
+                const ema1 = calculateEma(closes, ema1Period);
+                const ema2 = calculateEma(closes, ema2Period);
+                const ma1 = calculateSma(closes, ma1Period);
+                const ma2 = calculateSma(closes, ma2Period);
                 const macd = fastEma.map((value, index) => value - slowEma[index]);
                 const signal = calculateEma(macd, signalPeriod);
                 const rsi = new Array(closes.length).fill(50);
@@ -705,7 +899,11 @@
                     macd,
                     signal,
                     histogram: macd.map((value, index) => value - signal[index]),
-                    rsi
+                    rsi,
+                    ema1,
+                    ema2,
+                    ma1,
+                    ma2
                 };
             }
 
@@ -1005,8 +1203,13 @@
                 if (!candles.length) return;
 
                 const barWidth = plotWidth / candles.length;
-                let minPrice = Math.min(...candles.map(candle => candle[3]));
-                let maxPrice = Math.max(...candles.map(candle => candle[2]));
+                const rangePrices = candles.flatMap(candle => [candle[2], candle[3]]);
+                if (showEma1Input.checked) rangePrices.push(...state.indicators.ema1.slice(start, end).filter(Number.isFinite));
+                if (showEma2Input.checked) rangePrices.push(...state.indicators.ema2.slice(start, end).filter(Number.isFinite));
+                if (showMa1Input.checked) rangePrices.push(...state.indicators.ma1.slice(start, end).filter(Number.isFinite));
+                if (showMa2Input.checked) rangePrices.push(...state.indicators.ma2.slice(start, end).filter(Number.isFinite));
+                let minPrice = Math.min(...rangePrices);
+                let maxPrice = Math.max(...rangePrices);
                 if (maxPrice === minPrice) {
                     const padding = Math.max(maxPrice * 0.001, 0.001);
                     maxPrice += padding;
@@ -1073,6 +1276,29 @@
                     const bodyWidth = Math.max(0.5, barWidth - Math.min(1.2, barWidth * 0.12));
                     ctx.fillRect(x - bodyWidth / 2, Math.min(openY, closeY), bodyWidth, Math.max(1, Math.abs(closeY - openY)));
                 });
+
+                const drawAverage = (values, color) => {
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 1.6;
+                    ctx.beginPath();
+                    let drawing = false;
+                    values.slice(start, start + candles.length).forEach((value, index) => {
+                        if (!Number.isFinite(value)) {
+                            drawing = false;
+                            return;
+                        }
+                        const x = plotLeft + (index + 0.5) * barWidth;
+                        const y = priceToY(value);
+                        if (drawing) ctx.lineTo(x, y);
+                        else ctx.moveTo(x, y);
+                        drawing = true;
+                    });
+                    ctx.stroke();
+                };
+                if (showEma1Input.checked) drawAverage(state.indicators.ema1, "#f0b90b");
+                if (showEma2Input.checked) drawAverage(state.indicators.ema2, "#38bdf8");
+                if (showMa1Input.checked) drawAverage(state.indicators.ma1, "#f472b6");
+                if (showMa2Input.checked) drawAverage(state.indicators.ma2, "#a3e635");
 
                 const latest = candles[candles.length - 1][4];
                 const latestY = priceToY(latest);
@@ -1264,19 +1490,37 @@
 
             showMacdInput.addEventListener("change", draw);
             showRsiInput.addEventListener("change", draw);
+            showEma1Input.addEventListener("change", draw);
+            showEma2Input.addEventListener("change", draw);
+            showMa1Input.addEventListener("change", draw);
+            showMa2Input.addEventListener("change", draw);
+            tradeActionButtons.forEach(button => {
+                button.addEventListener("click", () => {
+                    selectedTradeAction = button.dataset.action;
+                    tradeActionButtons.forEach(actionButton => {
+                        const selected = actionButton === button;
+                        actionButton.dataset.active = String(selected);
+                        actionButton.setAttribute("aria-pressed", String(selected));
+                    });
+                    updateTradeSettings();
+                });
+            });
+            tradeSideInput.addEventListener("change", updateTradeSettings);
+            [balanceInput, marginInput, leverageInput].forEach(input => {
+                input.addEventListener("input", updateTradeSettings);
+            });
+            updateTradeSettings();
+
             applyIndicatorsButton.addEventListener("click", () => {
-                const periods = Object.values(indicatorInputs).map(input => Number(input.value));
-                if (!periods.every(period => Number.isInteger(period) && period >= 1 && period <= 500) ||
-                    Number(indicatorInputs.fast.value) >= Number(indicatorInputs.slow.value)) {
+                const periods = Object.fromEntries(
+                    Object.entries(indicatorInputs).map(([name, input]) => [name, Number(input.value)])
+                );
+                if (!Object.values(periods).every(period => Number.isInteger(period) && period >= 1 && period <= 500) ||
+                    periods.fast >= periods.slow) {
                     setStatus("Indicator-ийн үе 1–500 байх ба MACD Fast нь Slow-оос бага байх ёстой.", "error");
                     return;
                 }
-                state.periods = {
-                    fast: periods[0],
-                    slow: periods[1],
-                    signal: periods[2],
-                    rsi: periods[3]
-                };
+                state.periods = periods;
                 calculateIndicators();
                 draw();
                 setStatus(`${state.symbol} · ${state.market} · ${state.interval} · indicator шинэчлэгдлээ`, "live");

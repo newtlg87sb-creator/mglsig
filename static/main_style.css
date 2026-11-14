@@ -513,3 +513,20 @@ section.in-view {
         font-size: 17px;
     }
 }
+
+main > div > .text-center.mb-16:not(.grid),
+main > div > header.text-center.mb-16 {
+    margin-bottom: clamp(1.5rem, 3.5vw, 2.5rem) !important;
+}
+
+main > div > .text-center.mb-16:not(.grid) > h1,
+main > div > header.text-center.mb-16 > h1 {
+    margin-bottom: 0.5rem !important;
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem) !important;
+    line-height: 1.12 !important;
+}
+
+main > div > .text-center.mb-16:not(.grid) > .w-20.h-1.mt-6,
+main > div > header.text-center.mb-16 > .w-20.h-1.mt-6 {
+    margin-top: 1rem !important;
+}
