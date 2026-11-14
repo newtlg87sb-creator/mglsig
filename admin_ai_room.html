@@ -167,18 +167,24 @@
                 addMessage('system', 'Мэдэгдэл', text);
             }
 
-            function describeProviderError(code) {
+            function describeProviderError(code, provider) {
+                if (code === 'groq_model_retired') {
+                    return 'Llama 3.3 model зогссон. Орлуулалт нь төлбөртэй тул free-only горимд автоматаар солихгүй.';
+                }
+                if (code === 'invalid_response' && provider === 'OpenRouter') {
+                    return 'Хариу JSON биш байсан. Үнэгүй router-оор нэг удаа дахин оролдлоо.';
+                }
                 const messages = {
                     not_configured: 'API key тохируулаагүй байна (Vercel Environment Variables шалгана уу).',
                     invalid_api_key: 'API key хүчингүй эсвэл provider танихгүй байна (401).',
                     billing_required: 'Provider төлбөр эсвэл ашиглах эрх шаардаж байна (402).',
                     access_denied: 'API key энэ model-д эрхгүй байна (403).',
-                    model_unavailable: 'Model/provider олдсонгүй (404).',
+                    model_unavailable: 'Model олдсонгүй эсвэл зогссон (404); төлбөртэй model руу автоматаар шилжүүлээгүй.',
                     rate_limited: 'Provider-ийн rate limit хүрсэн (429).',
                     provider_error: 'Provider талын серверийн алдаа (5xx).',
                     timeout: 'Provider 12 секундэд хариу өгсөнгүй.',
                     network_error: 'Provider-тэй холбогдож чадсангүй.',
-                    invalid_response: 'Provider буруу форматтай хариу өглөө.',
+                    invalid_response: 'Provider-ийн хариуг JSON хэлбэрээр уншиж чадсангүй.',
                     empty_response: 'Provider хоосон хариу өглөө.',
                     request_rejected: 'Provider хүсэлтийг хүлээж авсангүй.'
                 };
@@ -292,13 +298,13 @@
                         }
                         if (result.errors?.length) {
                             result.errors.forEach(item => showSystemMessage(
-                                `${item.provider}: ${describeProviderError(item.error)}`
+                                `${item.provider}: ${describeProviderError(item.error, item.provider)}`
                             ));
                         } else if (result.error === 'provider_unavailable') {
-                            statusElement.textContent = `${result.provider}: ${describeProviderError(result.reason)}`;
+                            statusElement.textContent = `${result.provider}: ${describeProviderError(result.reason, result.provider)}`;
                         } else {
                             statusElement.textContent = result.error === 'provider_not_configured'
-                                ? `${result.provider}: ${describeProviderError('not_configured')}`
+                                ? `${result.provider}: ${describeProviderError('not_configured', result.provider)}`
                                 : 'AI үйлчилгээ одоогоор хариулах боломжгүй байна.';
                         }
                         return;
@@ -313,7 +319,7 @@
                         addMessage('assistant', item.provider, item.answer);
                     }
                     for (const item of result.errors || []) {
-                        showSystemMessage(`${item.provider}: ${describeProviderError(item.error)}`);
+                        showSystemMessage(`${item.provider}: ${describeProviderError(item.error, item.provider)}`);
                     }
                     trimConversation();
                     statusElement.textContent = result.results?.length

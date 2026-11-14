@@ -23,11 +23,11 @@ function createResponse() {
   };
 }
 
-function createRequest(messages, token = 'admin-session-token', mode = 'roundtable') {
+function createRequest(messages, token = 'admin-session-token', mode = 'roundtable', provider = 'Gemini') {
   return {
     method: 'POST',
     headers: token ? { authorization: `Bearer ${token}` } : {},
-    body: { mode, provider: 'Gemini', messages }
+    body: { mode, provider, messages }
   };
 }
 
@@ -89,6 +89,7 @@ test('admin AI room runs a roundtable and passes earlier AI replies to later pro
   });
   const originalFetch = globalThis.fetch;
   const calls = [];
+  let openRouterAttempts = 0;
   globalThis.fetch = async (url, options) => {
     calls.push({ url, options });
     if (url === 'https://supabase.example/auth/v1/user') {
@@ -104,7 +105,7 @@ test('admin AI room runs a roundtable and passes earlier AI replies to later pro
       assert.ok(body.systemInstruction.parts[0].text.includes('never guess or claim their status'));
       return {
         ok: true,
-        json: async () => ({
+        text: async () => JSON.stringify({
           candidates: [{ content: { parts: [{ text: 'Gemini opening thought.' }] } }]
         })
       };
@@ -114,11 +115,20 @@ test('admin AI room runs a roundtable and passes earlier AI replies to later pro
       assert.equal(options.headers.Authorization, 'Bearer openrouter-test-key');
       assert.equal(body.model, 'openrouter/free');
       assert.ok(body.messages[0].content.includes('Cyrillic script'));
+      openRouterAttempts += 1;
+      if (openRouterAttempts === 1) {
+        return {
+          ok: true,
+          status: 200,
+          headers: { get: () => 'application/json' },
+          text: async () => '<upstream response was not JSON>'
+        };
+      }
       assert.ok(body.messages.at(-1).content.includes('[Gemini]: Gemini opening thought.'));
       return {
         ok: true,
-        json: async () => ({
-          choices: [{ message: { content: 'OpenRouter agrees with Gemini.' } }]
+        text: async () => JSON.stringify({
+          choices: [{ message: { content: [{ type: 'text', text: 'OpenRouter agrees with Gemini.' }] } }]
         })
       };
     }
@@ -130,7 +140,7 @@ test('admin AI room runs a roundtable and passes earlier AI replies to later pro
     assert.ok(body.messages.at(-1).content.includes('[OpenRouter]: OpenRouter agrees with Gemini.'));
     return {
       ok: true,
-      json: async () => ({
+      text: async () => JSON.stringify({
         choices: [{ message: { content: 'Groq adds another perspective.' } }]
       })
     };
@@ -148,7 +158,8 @@ test('admin AI room runs a roundtable and passes earlier AI replies to later pro
       'Groq'
     ]);
     assert.equal(response.payload.results[2].answer, 'Groq adds another perspective.');
-    assert.equal(calls.length, 4);
+    assert.equal(openRouterAttempts, 2);
+    assert.equal(calls.length, 5);
   } finally {
     globalThis.fetch = originalFetch;
     restoreEnvironment();
@@ -171,7 +182,7 @@ test('admin AI room reports provider status codes without exposing provider resp
     return {
       ok: false,
       status: 429,
-      json: async () => ({ error: { message: 'Provider private error detail' } })
+      text: async () => JSON.stringify({ error: { message: 'Provider private error detail' } })
     };
   };
 
@@ -190,6 +201,43 @@ test('admin AI room reports provider status codes without exposing provider resp
       reason: 'rate_limited'
     });
     assert.equal(JSON.stringify(response.payload).includes('Provider private error detail'), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+    restoreEnvironment();
+  }
+});
+
+test('admin AI room does not switch a retired Groq model to a paid replacement', async () => {
+  const restoreEnvironment = setEnvironment({
+    SUPABASE_URL: 'https://supabase.example',
+    SUPABASE_ANON_KEY: 'test-anon-key',
+    GROQ_API_KEY: 'groq-test-key'
+  });
+  const originalFetch = globalThis.fetch;
+  const calledUrls = [];
+  globalThis.fetch = async url => {
+    calledUrls.push(url);
+    if (url === 'https://supabase.example/auth/v1/user') {
+      return { ok: true, json: async () => ({ id: ADMIN_USER_ID }) };
+    }
+    return { ok: false, status: 404 };
+  };
+
+  try {
+    const response = createResponse();
+    await handler(createRequest(
+      [{ role: 'user', text: 'Hello' }],
+      'admin-session-token',
+      'direct',
+      'Groq'
+    ), response);
+
+    assert.equal(response.statusCode, 503);
+    assert.equal(response.payload.reason, 'groq_model_retired');
+    assert.deepEqual(calledUrls, [
+      'https://supabase.example/auth/v1/user',
+      'https://api.groq.com/openai/v1/chat/completions'
+    ]);
   } finally {
     globalThis.fetch = originalFetch;
     restoreEnvironment();

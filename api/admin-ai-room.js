@@ -167,13 +167,38 @@ function getAnswer(providerName, result) {
       .trim();
   }
 
-  const content = result?.choices?.[0]?.message?.content;
-  if (typeof content === 'string') return content.trim();
-  if (Array.isArray(content)) {
-    return content
-      .map(part => typeof part?.text === 'string' ? part.text : '')
+  const message = result?.choices?.[0]?.message;
+  const content = getText(message?.content) || getText(message?.refusal);
+  if (content) return content;
+
+  if (typeof result?.output_text === 'string') return result.output_text.trim();
+  if (Array.isArray(result?.output)) {
+    return result.output
+      .filter(item => item?.type === 'message')
+      .map(item => getText(item.content))
+      .filter(Boolean)
+      .join('\n')
+      .trim();
+  }
+
+  return getText(result?.choices?.[0]?.text);
+}
+
+function getText(value) {
+  if (typeof value === 'string') return value.trim();
+  if (Array.isArray(value)) {
+    return value
+      .map(part => {
+        if (typeof part === 'string') return part;
+        if (typeof part?.text === 'string') return part.text;
+        return '';
+      })
+      .filter(Boolean)
       .join('')
       .trim();
+  }
+  if (value && typeof value === 'object' && typeof value.text === 'string') {
+    return value.text.trim();
   }
   return '';
 }
@@ -215,42 +240,79 @@ async function askProvider(provider, messages) {
         temperature: 0.6
       };
 
-  let response;
-  try {
-    response = await fetch(provider.url, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS)
-    });
-  } catch (error) {
-    console.error(`${provider.name} admin-room request failed:`, error);
-    return {
-      error: error.name === 'TimeoutError' || error.name === 'AbortError'
+  const maxAttempts = provider.name === 'OpenRouter' ? 2 : 1;
+  let lastError = 'provider_error';
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    let response;
+    try {
+      response = await fetch(provider.url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS)
+      });
+    } catch (error) {
+      console.error(`${provider.name} admin-room request failed:`, error);
+      lastError = error.name === 'TimeoutError' || error.name === 'AbortError'
         ? 'timeout'
-        : 'network_error'
-    };
+        : 'network_error';
+      if (attempt + 1 < maxAttempts) continue;
+      return { error: lastError };
+    }
+
+    if (!response.ok) {
+      console.error(`${provider.name} admin-room request returned HTTP ${response.status}`);
+      lastError = provider.name === 'Groq' && response.status === 404
+        ? 'groq_model_retired'
+        : getProviderError(response.status);
+      if (attempt + 1 < maxAttempts && ['provider_error', 'model_unavailable'].includes(lastError)) {
+        continue;
+      }
+      return { error: lastError };
+    }
+
+    let responseText;
+    try {
+      responseText = await response.text();
+    } catch (error) {
+      console.error(`${provider.name} admin-room response could not be read:`, error);
+      lastError = 'invalid_response';
+      if (attempt + 1 < maxAttempts) continue;
+      return { error: lastError };
+    }
+
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch (error) {
+      const contentType = response.headers?.get?.('content-type') || '';
+      if (provider.name === 'OpenRouter' && contentType.startsWith('text/plain') && responseText.trim()) {
+        return { answer: responseText.trim() };
+      }
+      console.error(`${provider.name} admin-room response was not valid JSON`);
+      lastError = 'invalid_response';
+      if (attempt + 1 < maxAttempts) continue;
+      return { error: lastError };
+    }
+
+    if (result?.error) {
+      const errorCode = Number(result.error.code || result.error.status);
+      lastError = Number.isInteger(errorCode) ? getProviderError(errorCode) : 'provider_error';
+      console.error(`${provider.name} admin-room response contained a provider error`);
+      if (attempt + 1 < maxAttempts && lastError === 'provider_error') continue;
+      return { error: lastError };
+    }
+
+    const answer = getAnswer(provider.name, result);
+    if (answer) return { answer };
+
+    console.error(`${provider.name} admin-room response contained no displayable text`);
+    lastError = 'empty_response';
+    if (attempt + 1 < maxAttempts) continue;
+    return { error: lastError };
   }
 
-  if (!response.ok) {
-    console.error(`${provider.name} admin-room request returned HTTP ${response.status}`);
-    return { error: getProviderError(response.status) };
-  }
-
-  let result;
-  try {
-    result = await response.json();
-  } catch (error) {
-    console.error(`${provider.name} admin-room response was invalid:`, error);
-    return { error: 'invalid_response' };
-  }
-
-  const answer = getAnswer(provider.name, result);
-  if (!answer) {
-    console.error(`${provider.name} admin-room response contained no answer text`);
-    return { error: 'empty_response' };
-  }
-  return { answer };
+  return { error: lastError };
 }
 
 export default async function handler(req, res) {
