@@ -3,12 +3,15 @@ import { readFileSync } from 'node:fs';
 const knowledgeBase = readFileSync(new URL('./knowledge_base.md', import.meta.url), 'utf8').trim();
 
 const GEMINI_MODEL = 'gemini-3.5-flash-lite';
+const OPENROUTER_MODEL = 'openrouter/free';
+const GROQ_MODEL = 'llama-3.3-70b-versatile';
 const MAX_MESSAGES = 8;
 const MAX_MESSAGE_LENGTH = 1000;
 const MAX_TOTAL_LENGTH = 4000;
 const REQUESTS_PER_MINUTE = 6;
 const RATE_WINDOW_MS = 60 * 1000;
 const MAX_RATE_LIMIT_ENTRIES = 5000;
+const PROVIDER_TIMEOUT_MS = 8000;
 const rateLimitBuckets = new Map();
 let nextRateLimitCleanup = 0;
 
@@ -104,6 +107,18 @@ function sendJson(res, status, payload) {
   return res.status(status).json(payload);
 }
 
+function getProviderAnswer(providerName, result) {
+  if (providerName === 'Gemini') {
+    return result?.candidates?.[0]?.content?.parts
+      ?.map(part => typeof part.text === 'string' ? part.text : '')
+      .join('')
+      .trim();
+  }
+
+  const content = result?.choices?.[0]?.message?.content;
+  return typeof content === 'string' ? content.trim() : '';
+}
+
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') {
@@ -116,12 +131,6 @@ export default async function handler(req, res) {
     return sendJson(res, 413, { error: 'request_too_large' });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    console.error('GEMINI_API_KEY is not configured');
-    return sendJson(res, 503, { error: 'not_configured' });
-  }
-
   const messages = getMessages(req.body);
   if (!messages) return sendJson(res, 400, { error: 'invalid_messages' });
 
@@ -130,59 +139,109 @@ export default async function handler(req, res) {
     return sendJson(res, 429, { error: 'rate_limited' });
   }
 
-  let providerResponse;
-  try {
-    providerResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': apiKey
-        },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: systemInstruction }] },
-          contents: messages.map(({ role, text }) => ({
-            role,
-            parts: [{ text }]
-          })),
-          generationConfig: {
-            maxOutputTokens: 512,
-            temperature: 0.3
-          }
-        }),
-        signal: AbortSignal.timeout(20000)
-      }
-    );
-  } catch (error) {
-    console.error('Gemini request failed:', error);
-    return sendJson(res, 503, { error: 'assistant_unavailable' });
-  }
-
-  let result;
-  try {
-    result = await providerResponse.json();
-  } catch (error) {
-    console.error('Gemini returned an invalid response:', error);
-    return sendJson(res, 502, { error: 'invalid_provider_response' });
-  }
-
-  if (!providerResponse.ok) {
-    console.error('Gemini request returned HTTP', providerResponse.status);
-    if (providerResponse.status === 429) {
-      return sendJson(res, 503, { error: 'provider_quota_exceeded' });
+  const openAiMessages = [
+    { role: 'system', content: systemInstruction },
+    ...messages.map(({ role, text }) => ({
+      role: role === 'model' ? 'assistant' : 'user',
+      content: text
+    }))
+  ];
+  const providers = [
+    {
+      name: 'Gemini',
+      apiKey: (process.env.GEMINI_API_KEY || '').trim(),
+      url: `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+      headers: apiKey => ({
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey
+      }),
+      body: () => ({
+        systemInstruction: { parts: [{ text: systemInstruction }] },
+        contents: messages.map(({ role, text }) => ({
+          role,
+          parts: [{ text }]
+        })),
+        generationConfig: {
+          maxOutputTokens: 512,
+          temperature: 0.3
+        }
+      })
+    },
+    {
+      name: 'OpenRouter',
+      apiKey: (process.env.OPENROUTER_API_KEY || '').trim(),
+      url: 'https://openrouter.ai/api/v1/chat/completions',
+      headers: apiKey => ({
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+        'HTTP-Referer': 'https://mglsignal.com',
+        'X-Title': 'MGL Signal AI Assistant'
+      }),
+      body: () => ({
+        model: OPENROUTER_MODEL,
+        messages: openAiMessages,
+        max_tokens: 512,
+        temperature: 0.3
+      })
+    },
+    {
+      name: 'Groq',
+      apiKey: (process.env.GROQ_API_KEY || '').trim(),
+      url: 'https://api.groq.com/openai/v1/chat/completions',
+      headers: apiKey => ({
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`
+      }),
+      body: () => ({
+        model: GROQ_MODEL,
+        messages: openAiMessages,
+        max_tokens: 512,
+        temperature: 0.3
+      })
     }
-    return sendJson(res, 503, { error: 'assistant_unavailable' });
+  ].filter(provider => typeof provider.apiKey === 'string' && provider.apiKey.trim());
+
+  if (providers.length === 0) {
+    console.error('No AI provider API keys are configured');
+    return sendJson(res, 503, { error: 'not_configured' });
   }
 
-  const answer = result?.candidates?.[0]?.content?.parts
-    ?.map(part => typeof part.text === 'string' ? part.text : '')
-    .join('')
-    .trim();
-  if (!answer) {
-    console.error('Gemini response contained no answer text');
-    return sendJson(res, 502, { error: 'empty_provider_response' });
+  for (const provider of providers) {
+    let providerResponse;
+    try {
+      providerResponse = await fetch(provider.url, {
+        method: 'POST',
+        headers: provider.headers(provider.apiKey),
+        body: JSON.stringify(provider.body()),
+        signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS)
+      });
+    } catch (error) {
+      console.error(`${provider.name} request failed:`, error);
+      continue;
+    }
+
+    if (!providerResponse.ok) {
+      console.error(`${provider.name} request returned HTTP ${providerResponse.status}`);
+      continue;
+    }
+
+    let result;
+    try {
+      result = await providerResponse.json();
+    } catch (error) {
+      console.error(`${provider.name} returned an invalid response:`, error);
+      continue;
+    }
+
+    const answer = getProviderAnswer(provider.name, result);
+    if (!answer) {
+      console.error(`${provider.name} response contained no answer text`);
+      continue;
+    }
+
+    return sendJson(res, 200, { answer });
   }
 
-  return sendJson(res, 200, { answer });
+  console.error('All configured AI providers failed');
+  return sendJson(res, 503, { error: 'assistant_unavailable' });
 }

@@ -3,7 +3,8 @@
   "regions": ["sin1"],
   "functions": {
     "api/site-assistant.js": {
-      "includeFiles": "api/knowledge_base.md"
+      "includeFiles": "api/knowledge_base.md",
+      "maxDuration": 30
     }
   },
   "rewrites": [

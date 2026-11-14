@@ -31,10 +31,14 @@ function createRequest(messages, ip = '192.0.2.40') {
 
 test('site assistant validates requests, calls Gemini, and limits requests per client', async () => {
   const originalApiKey = process.env.GEMINI_API_KEY;
+  const originalOpenRouterApiKey = process.env.OPENROUTER_API_KEY;
+  const originalGroqApiKey = process.env.GROQ_API_KEY;
   const originalFetch = globalThis.fetch;
   let providerCalls = 0;
   let providerStatus = 200;
   process.env.GEMINI_API_KEY = 'test-secret';
+  delete process.env.OPENROUTER_API_KEY;
+  delete process.env.GROQ_API_KEY;
   globalThis.fetch = async (url, options) => {
     providerCalls += 1;
     assert.match(url, /models\/gemini-3\.5-flash-lite:generateContent$/);
@@ -88,7 +92,7 @@ test('site assistant validates requests, calls Gemini, and limits requests per c
     const providerLimitResponse = createResponse();
     await handler(createRequest(messages, '192.0.2.41'), providerLimitResponse);
     assert.equal(providerLimitResponse.statusCode, 503);
-    assert.equal(providerLimitResponse.payload.error, 'provider_quota_exceeded');
+    assert.equal(providerLimitResponse.payload.error, 'assistant_unavailable');
 
     const methodResponse = createResponse();
     await handler({ method: 'GET', headers: {} }, methodResponse);
@@ -98,5 +102,114 @@ test('site assistant validates requests, calls Gemini, and limits requests per c
     globalThis.fetch = originalFetch;
     if (originalApiKey === undefined) delete process.env.GEMINI_API_KEY;
     else process.env.GEMINI_API_KEY = originalApiKey;
+    if (originalOpenRouterApiKey === undefined) delete process.env.OPENROUTER_API_KEY;
+    else process.env.OPENROUTER_API_KEY = originalOpenRouterApiKey;
+    if (originalGroqApiKey === undefined) delete process.env.GROQ_API_KEY;
+    else process.env.GROQ_API_KEY = originalGroqApiKey;
+  }
+});
+
+test('site assistant falls back from Gemini to OpenRouter and Groq', async () => {
+  const originalKeys = {
+    gemini: process.env.GEMINI_API_KEY,
+    openRouter: process.env.OPENROUTER_API_KEY,
+    groq: process.env.GROQ_API_KEY
+  };
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+  process.env.GEMINI_API_KEY = 'gemini-test-key';
+  process.env.OPENROUTER_API_KEY = 'openrouter-test-key';
+  process.env.GROQ_API_KEY = 'groq-test-key';
+
+  globalThis.fetch = async (url, options) => {
+    calls.push({ url, options });
+    if (url.includes('generativelanguage.googleapis.com')) {
+      assert.equal(options.headers['x-goog-api-key'], 'gemini-test-key');
+      return { ok: false, status: 503 };
+    }
+
+    const requestBody = JSON.parse(options.body);
+    assert.equal(requestBody.messages[0].role, 'system');
+    assert.ok(requestBody.messages[0].content.includes('MGL Signal'));
+
+    if (url === 'https://openrouter.ai/api/v1/chat/completions') {
+      assert.equal(options.headers.Authorization, 'Bearer openrouter-test-key');
+      assert.equal(requestBody.model, 'openrouter/free');
+      return { ok: false, status: 429 };
+    }
+
+    assert.equal(url, 'https://api.groq.com/openai/v1/chat/completions');
+    assert.equal(options.headers.Authorization, 'Bearer groq-test-key');
+    assert.equal(requestBody.model, 'llama-3.3-70b-versatile');
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({
+        choices: [{ message: { content: 'Groq fallback response.' } }]
+      })
+    };
+  };
+
+  try {
+    const response = createResponse();
+    await handler(createRequest([{ role: 'user', text: 'MGL Signal гэж юу вэ?' }], '192.0.2.42'), response);
+
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.payload.answer, 'Groq fallback response.');
+    assert.deepEqual(calls.map(call => call.url), [
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent',
+      'https://openrouter.ai/api/v1/chat/completions',
+      'https://api.groq.com/openai/v1/chat/completions'
+    ]);
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalKeys.gemini === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = originalKeys.gemini;
+    if (originalKeys.openRouter === undefined) delete process.env.OPENROUTER_API_KEY;
+    else process.env.OPENROUTER_API_KEY = originalKeys.openRouter;
+    if (originalKeys.groq === undefined) delete process.env.GROQ_API_KEY;
+    else process.env.GROQ_API_KEY = originalKeys.groq;
+  }
+});
+
+test('site assistant uses a configured fallback when Gemini has no API key', async () => {
+  const originalKeys = {
+    gemini: process.env.GEMINI_API_KEY,
+    openRouter: process.env.OPENROUTER_API_KEY,
+    groq: process.env.GROQ_API_KEY
+  };
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+  delete process.env.GEMINI_API_KEY;
+  process.env.OPENROUTER_API_KEY = 'openrouter-test-key';
+  delete process.env.GROQ_API_KEY;
+  globalThis.fetch = async (url, options) => {
+    calls.push(url);
+    assert.equal(url, 'https://openrouter.ai/api/v1/chat/completions');
+    assert.equal(JSON.parse(options.body).model, 'openrouter/free');
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({
+        choices: [{ message: { content: 'OpenRouter response.' } }]
+      })
+    };
+  };
+
+  try {
+    const response = createResponse();
+    await handler(createRequest([{ role: 'user', text: 'Question' }], '192.0.2.43'), response);
+
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.payload.answer, 'OpenRouter response.');
+    assert.deepEqual(calls, ['https://openrouter.ai/api/v1/chat/completions']);
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalKeys.gemini === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = originalKeys.gemini;
+    if (originalKeys.openRouter === undefined) delete process.env.OPENROUTER_API_KEY;
+    else process.env.OPENROUTER_API_KEY = originalKeys.openRouter;
+    if (originalKeys.groq === undefined) delete process.env.GROQ_API_KEY;
+    else process.env.GROQ_API_KEY = originalKeys.groq;
   }
 });
