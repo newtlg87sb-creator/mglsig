@@ -61,13 +61,20 @@ function calculateSignalStates(klines, fast, slow) {
         }
         processedThrough = index - 1;
 
-        if (previousMacdLine < macdPeakValue && previous2MacdLine > macdPeakValue) {
+        if (
+            previousMacdLine < macdPeakValue &&
+            previous2MacdLine > macdPeakValue &&
+            previousMacdLine < previous2MacdLine
+        ) {
             state = "short";
-        } else if (previousMacdLine > macdTroughValue && previous2MacdLine < macdTroughValue) {
-            state = "long";
-        } else if (previousMacdLine > previous2MacdLine) {
+        } else if (
+            previousMacdLine > macdTroughValue &&
+            previous2MacdLine < macdTroughValue &&
+            previousMacdLine > previous2MacdLine
+        ) {
             state = "long";
         }
+
         states[index] = state;
     }
 
