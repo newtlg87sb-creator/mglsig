@@ -13,6 +13,18 @@
     {
       "source": "/mydata",
       "destination": "/mydata.html"
+    },
+    {
+      "source": "/api/create-invoice",
+      "destination": "/api/payments?action=subscription"
+    },
+    {
+      "source": "/api/donation-invoice",
+      "destination": "/api/payments?action=donation"
+    },
+    {
+      "source": "/api/nowpayments",
+      "destination": "/api/payments?action=webhook"
     }
   ],
   "headers": [

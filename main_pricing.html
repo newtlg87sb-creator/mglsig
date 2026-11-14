@@ -360,7 +360,7 @@
                             return;
                         }
 
-                        const response = await fetch('/api/create-invoice', {
+                        const response = await fetch('/api/payments?action=subscription', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',

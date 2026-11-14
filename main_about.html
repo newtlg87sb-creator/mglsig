@@ -271,7 +271,7 @@
                 try {
                     // 3. Төлбөрийн API-г дуудах (Pricing-тэй адил нэг суваг ашиглах нь найдвартай)
                     // ЗӨВХӨН ХАНДИВЫН API-Г ДУУДАХААР ӨӨРЧЛӨВ
-                    const response = await fetch('/api/donation-invoice', {
+                    const response = await fetch('/api/payments?action=donation', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
