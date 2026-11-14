@@ -26,7 +26,7 @@
     <div id="main-footer-placeholder"></div>
   </div>
   <script src="/static/json/main.js"></script>
-  <script src="/static/lock.js"></script>
+  <script src="/static/js/access_control.js"></script>
   <script>
     const canvas = document.getElementById('chartCanvas');
     const ctx = canvas.getContext('2d');

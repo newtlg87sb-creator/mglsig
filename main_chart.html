@@ -105,8 +105,8 @@
             display: flex;
             flex-direction: column;
             width: min(100%, 1600px);
-            height: clamp(480px, calc(100vh - 260px), 900px);
-            height: clamp(480px, calc(100dvh - 260px), 900px);
+            height: clamp(560px, calc(100vh - 160px), 1100px);
+            height: clamp(560px, calc(100dvh - 160px), 1100px);
             margin: 0 auto;
         }
 
@@ -363,16 +363,55 @@
         }
 
         .ohlc {
-            position: absolute;
-            z-index: 1;
-            top: 4px;
-            left: 12px;
             display: flex;
             align-items: center;
             gap: 7px;
+            min-width: 0;
+            overflow: hidden;
             pointer-events: none;
             color: #a7b3c2;
             font: 9px/16px ui-monospace, Consolas, monospace;
+        }
+
+        .chart-topbar {
+            position: absolute;
+            z-index: 2;
+            top: 4px;
+            right: 12px;
+            left: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            pointer-events: none;
+        }
+
+        .chart-panel-toggles {
+            display: flex;
+            flex: 0 0 auto;
+            align-items: center;
+            gap: 4px;
+            pointer-events: auto;
+        }
+
+        .chart-app .chart-panel-toggle {
+            min-width: 0;
+            min-height: 22px;
+            padding: 0 7px;
+            border-color: #344151;
+            background: #18212c;
+            color: #c4d0de;
+            font-size: 9px;
+            line-height: 1;
+        }
+
+        .chart-app .chart-panel-toggle[aria-expanded="false"] {
+            color: #8b98a8;
+        }
+
+        .toolbar[hidden],
+        .trade-settings[hidden] {
+            display: none;
         }
 
         .ohlc span {
@@ -425,8 +464,25 @@
             }
 
             .ohlc {
-                gap: 5px;
+                gap: 4px;
+                font-size: 7px;
+            }
+
+            .chart-topbar {
+                right: 6px;
+                left: 6px;
+                gap: 4px;
+            }
+
+            .chart-app .chart-panel-toggle {
+                padding: 0 5px;
                 font-size: 8px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            #ohlc-symbol {
+                display: none;
             }
         }
     </style>
@@ -436,7 +492,7 @@
     <main class="chart-page">
       <h1 class="sr-only">Зах зээлийн график</h1>
       <div class="chart-app">
-        <section class="toolbar" aria-label="Графикийн тохиргоо">
+        <section id="chart-settings" class="toolbar" aria-label="Графикийн тохиргоо">
             <select id="market" aria-label="Зах зээл" title="Зах зээл">
                 <option value="spot">Spot</option>
                 <option value="futures">Futures</option>
@@ -547,12 +603,20 @@
             <span id="status" class="status" role="status" aria-live="polite">График ачаалж байна...</span>
         </div>
         <section class="chart-frame" aria-label="Үнийн лаан график">
-            <div class="ohlc" aria-label="Лааны O H L C үнэ" aria-live="polite">
-                <span id="ohlc-symbol">BTCUSDT</span>
-                <span><b>O</b> <span id="ohlc-open">—</span></span>
-                <span><b>H</b> <span id="ohlc-high">—</span></span>
-                <span><b>L</b> <span id="ohlc-low">—</span></span>
-                <span><b>C</b> <span id="ohlc-close">—</span></span>
+            <div class="chart-topbar">
+                <div class="ohlc" aria-label="Лааны O H L C үнэ" aria-live="polite">
+                    <span id="ohlc-symbol">BTCUSDT</span>
+                    <span><b>O</b> <span id="ohlc-open">—</span></span>
+                    <span><b>H</b> <span id="ohlc-high">—</span></span>
+                    <span><b>L</b> <span id="ohlc-low">—</span></span>
+                    <span><b>C</b> <span id="ohlc-close">—</span></span>
+                </div>
+                <div class="chart-panel-toggles" role="group" aria-label="Тохиргооны хэсгүүд">
+                    <button class="chart-panel-toggle" id="toggle-chart-settings" type="button"
+                        aria-controls="chart-settings" aria-expanded="true">Chart Set</button>
+                    <button class="chart-panel-toggle" id="toggle-trade-settings" type="button"
+                        aria-controls="trade-settings" aria-expanded="true">Trade Set</button>
+                </div>
             </div>
             <canvas id="chart" role="img" aria-label="BTCUSDT үнийн график"></canvas>
         </section>
@@ -581,6 +645,10 @@
             const intervalInput = document.getElementById("interval");
             const reloadButton = document.getElementById("reload");
             const applyIndicatorsButton = document.getElementById("applyIndicators");
+            const chartSettingsPanel = document.getElementById("chart-settings");
+            const tradeSettingsPanel = document.getElementById("trade-settings");
+            const toggleChartSettingsButton = document.getElementById("toggle-chart-settings");
+            const toggleTradeSettingsButton = document.getElementById("toggle-trade-settings");
             const statusElement = document.getElementById("status");
             const countdownElement = document.getElementById("candle-countdown");
             const showMacdInput = document.getElementById("showMACD");
@@ -636,6 +704,17 @@
 
             const symbolsCache = new Map();
             let selectedTradeAction = null;
+
+            function bindPanelToggle(button, panel) {
+                button.addEventListener("click", () => {
+                    const isExpanded = button.getAttribute("aria-expanded") === "true";
+                    panel.hidden = isExpanded;
+                    button.setAttribute("aria-expanded", String(!isExpanded));
+                });
+            }
+
+            bindPanelToggle(toggleChartSettingsButton, chartSettingsPanel);
+            bindPanelToggle(toggleTradeSettingsButton, tradeSettingsPanel);
 
             function setStatus(message, stateName = "") {
                 statusElement.textContent = message;

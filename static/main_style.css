@@ -514,19 +514,45 @@ section.in-view {
     }
 }
 
+main.flex-grow[class~="pt-32"]:not(.items-center),
+main.flex-grow[class~="pt-36"]:not(.items-center) {
+    padding-top: 6rem !important;
+}
+
 main > div > .text-center.mb-16:not(.grid),
 main > div > header.text-center.mb-16 {
-    margin-bottom: clamp(1.5rem, 3.5vw, 2.5rem) !important;
+    margin-bottom: 1rem !important;
+    text-align: left !important;
 }
 
 main > div > .text-center.mb-16:not(.grid) > h1,
-main > div > header.text-center.mb-16 > h1 {
+main > div > header.text-center.mb-16 > h1,
+main.flex-grow:not(.items-center) > div > header h1,
+main.flex-grow:not(.items-center) h1.text-3xl {
+    margin-bottom: 0.25rem !important;
+    font-size: 1.875rem !important;
+    letter-spacing: -0.05em !important;
+    line-height: 1.12 !important;
+    text-align: left !important;
+}
+
+body > .max-w-3xl > h1 {
     margin-bottom: 0.5rem !important;
-    font-size: clamp(1.75rem, 3.5vw, 2.5rem) !important;
+    font-size: 1.875rem !important;
+    letter-spacing: -0.05em !important;
     line-height: 1.12 !important;
 }
 
-main > div > .text-center.mb-16:not(.grid) > .w-20.h-1.mt-6,
-main > div > header.text-center.mb-16 > .w-20.h-1.mt-6 {
-    margin-top: 1rem !important;
+main > div > .text-center.mb-16:not(.grid) > p,
+main > div > header.text-center.mb-16 > p {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    text-align: left !important;
+}
+
+main > div > .text-center.mb-16:not(.grid) > .w-20.h-1,
+main > div > .text-center.mb-16:not(.grid) > .w-12,
+main > div > header.text-center.mb-16 > .w-20.h-1,
+main > div > header.text-center.mb-16 > .w-12 {
+    display: none !important;
 }
