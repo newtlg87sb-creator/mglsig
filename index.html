@@ -88,6 +88,20 @@
             mn: {
                 "admin-notif-title": "Админы мэдэгдэл",
                 "admin-notif-msg": "MGL Signal-н хөгжүүлэлт 80%-тай үргэлжилж байна. Шинэ хэрэгслүүд удахгүй нэмэгдэнэ! 🚀",
+                "assistant-tab-admin": "Мэдэгдэл",
+                "assistant-tab-chat": "AI туслах",
+                "assistant-greeting": "Сайн байна уу! MGL Signal-ийн үйлчилгээ, хэрэгслүүдийн талаар асуугаарай.",
+                "assistant-disclaimer": "AI-ийн хариулт алдаатай байж болно. Арилжааны зөвлөгөө биш. Нууц мэдээлэл бүү оруул.",
+                "assistant-privacy": "Асуултыг Gemini-д илгээнэ. Үнэгүй түвшний мэдээллийг Google бүтээгдэхүүнээ сайжруулахад ашиглаж болзошгүй.",
+                "assistant-question-about": "MGL Signal гэж юу вэ?",
+                "assistant-question-services": "Ямар үйлчилгээ, хэрэгслүүд байдаг вэ?",
+                "assistant-question-plans": "Багц болон үнийн мэдээллийг хаанаас харах вэ?",
+                "assistant-placeholder": "Асуултаа бичнэ үү...",
+                "assistant-send": "Илгээх",
+                "assistant-loading": "Хариулт бэлдэж байна...",
+                "assistant-error": "Одоогоор хариулах боломжгүй байна. Түр хүлээгээд дахин оролдоно уу.",
+                "assistant-rate-limit": "Түр хязгаарт хүрлээ. Нэг минутын дараа дахин оролдоно уу.",
+                "assistant-setup-error": "AI туслах одоогоор тохируулагдаагүй байна.",
                 "hero-title1": "ИТГЭЛТЭЙГЭЭР",
                 "hero-title2": "АРИЛЖ",
                 "hero-desc": "Мэргэжлийн түвшний дата шинжилгээнд суурилсан Forex болон Crypto сигналууд.",
@@ -151,6 +165,20 @@
             en: {
                 "admin-notif-title": "Admin Message",
                 "admin-notif-msg": "MGL Signal development is 80% complete. New tools coming soon! 🚀",
+                "assistant-tab-admin": "Announcement",
+                "assistant-tab-chat": "AI Assistant",
+                "assistant-greeting": "Hi! Ask me about MGL Signal's services and tools.",
+                "assistant-disclaimer": "AI can make mistakes. This is not trading advice. Do not share sensitive information.",
+                "assistant-privacy": "Questions are sent to Gemini. Google may use free-tier data to improve its products.",
+                "assistant-question-about": "What is MGL Signal?",
+                "assistant-question-services": "What services and tools are available?",
+                "assistant-question-plans": "Where can I see plans and pricing?",
+                "assistant-placeholder": "Type your question...",
+                "assistant-send": "Send",
+                "assistant-loading": "Preparing an answer...",
+                "assistant-error": "I can't answer right now. Please wait a moment and try again.",
+                "assistant-rate-limit": "You've reached the temporary limit. Please try again in one minute.",
+                "assistant-setup-error": "The AI assistant is not configured yet.",
                 "hero-title1": "TRADE WITH",
                 "hero-title2": "CONFIDENCE",
                 "hero-desc": "Professional data-driven Forex and Crypto signals.",
@@ -226,16 +254,20 @@
         </button>
 
         <!-- Message Card -->
-        <div id="admin-notif-card" class="hidden absolute bottom-16 right-0 w-72 md:w-80 bg-brand-dark-blue border border-brand-border rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
-            <div class="bg-brand-gold/10 p-4 border-b border-brand-border flex justify-between items-center">
-                <h3 data-i18n="admin-notif-title" class="text-[10px] font-black uppercase tracking-widest text-brand-gold flex items-center">
-                    <i class="fas fa-user-shield mr-2"></i> Admin Message
+        <div id="admin-notif-card" class="hidden absolute bottom-16 right-0 bg-brand-dark-blue border border-brand-border rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300 flex flex-col" style="width:min(85vw,24rem);max-height:min(80vh,620px)">
+            <div class="bg-brand-gold/10 p-4 border-b border-brand-border flex justify-between items-center shrink-0">
+                <h3 class="text-[10px] font-black uppercase tracking-widest text-brand-gold flex items-center">
+                    <i class="fas fa-user-shield mr-2"></i><span id="admin-notif-heading" data-i18n="admin-notif-title">Admin Message</span>
                 </h3>
-                <button id="admin-notif-close" class="text-gray-500 hover:text-white transition">
+                <button id="admin-notif-close" aria-label="Close" class="text-gray-500 hover:text-white transition">
                     <i class="fas fa-times text-xs"></i>
                 </button>
             </div>
-            <div class="p-5">
+            <div class="grid grid-cols-2 border-b border-brand-border shrink-0">
+                <button id="admin-tab-button" type="button" data-i18n="assistant-tab-admin" aria-pressed="true" class="px-3 py-2 text-[10px] font-bold text-brand-gold border-b-2 border-brand-gold">Announcement</button>
+                <button id="assistant-tab-button" type="button" data-i18n="assistant-tab-chat" aria-pressed="false" class="px-3 py-2 text-[10px] font-bold text-gray-400 border-b-2 border-transparent hover:text-white">AI Assistant</button>
+            </div>
+            <div id="admin-notif-content" class="p-5 overflow-y-auto">
                 <p data-i18n="admin-notif-msg" class="text-xs text-gray-300 leading-relaxed mb-6">
                     MGL Signal development is 80% complete. New tools coming soon! 🚀
                 </p>
@@ -252,6 +284,24 @@
                     </div>
                 </div>
             </div>
+            <section id="site-assistant-content" class="hidden p-3 overflow-y-auto" aria-label="MGL Signal AI assistant">
+                <div id="assistant-messages" role="log" aria-live="polite" aria-relevant="additions" class="space-y-3 overflow-y-auto max-h-56 mb-3">
+                    <p data-i18n="assistant-greeting" class="text-xs text-gray-200 leading-relaxed whitespace-pre-wrap"></p>
+                </div>
+                <div id="assistant-suggestions" class="flex flex-wrap gap-2 mb-3">
+                    <button type="button" data-question-mn="MGL Signal гэж юу вэ?" data-question-en="What is MGL Signal?" class="rounded-full border border-brand-border px-2.5 py-1 text-[10px] text-gray-300 hover:border-brand-gold hover:text-brand-gold" data-i18n="assistant-question-about">What is MGL Signal?</button>
+                    <button type="button" data-question-mn="Ямар үйлчилгээ, хэрэгслүүд байдаг вэ?" data-question-en="What services and tools are available?" class="rounded-full border border-brand-border px-2.5 py-1 text-[10px] text-gray-300 hover:border-brand-gold hover:text-brand-gold" data-i18n="assistant-question-services">What services and tools are available?</button>
+                    <button type="button" data-question-mn="Багц болон үнийн мэдээллийг хаанаас харах вэ?" data-question-en="Where can I see plans and pricing?" class="rounded-full border border-brand-border px-2.5 py-1 text-[10px] text-gray-300 hover:border-brand-gold hover:text-brand-gold" data-i18n="assistant-question-plans">Where can I see plans and pricing?</button>
+                </div>
+                <form id="site-assistant-form" class="flex gap-2">
+                    <label class="sr-only" for="site-assistant-input" data-i18n="assistant-placeholder">Type your question...</label>
+                    <textarea id="site-assistant-input" data-i18n-placeholder="assistant-placeholder" maxlength="1000" rows="2" required class="min-w-0 flex-1 resize-none rounded-lg border border-brand-border bg-brand-dark px-3 py-2 text-xs text-white placeholder-gray-500 focus:border-brand-gold focus:outline-none" placeholder="Type your question..."></textarea>
+                    <button id="site-assistant-send" type="submit" data-i18n="assistant-send" class="self-end rounded-lg bg-brand-gold px-3 py-2 text-[10px] font-black text-black hover:bg-white disabled:cursor-not-allowed disabled:opacity-50">Send</button>
+                </form>
+                <p id="site-assistant-status" role="status" aria-live="polite" class="mt-2 min-h-4 text-[10px] text-gray-400"></p>
+                <p data-i18n="assistant-disclaimer" class="mt-1 text-[9px] leading-relaxed text-gray-500"></p>
+                <p data-i18n="assistant-privacy" class="mt-1 text-[9px] leading-relaxed text-gray-500"></p>
+            </section>
         </div>
     </div>
 
@@ -775,6 +825,134 @@
             adminCard.classList.add('hidden');
         });
 
+        const adminTabButton = document.getElementById('admin-tab-button');
+        const assistantTabButton = document.getElementById('assistant-tab-button');
+        const adminNotifHeading = document.getElementById('admin-notif-heading');
+        const adminContent = document.getElementById('admin-notif-content');
+        const assistantContent = document.getElementById('site-assistant-content');
+        const assistantForm = document.getElementById('site-assistant-form');
+        const assistantInput = document.getElementById('site-assistant-input');
+        const assistantSend = document.getElementById('site-assistant-send');
+        const assistantMessagesEl = document.getElementById('assistant-messages');
+        const assistantStatus = document.getElementById('site-assistant-status');
+        const assistantConversation = [];
+        const MAX_ASSISTANT_MESSAGES = 8;
+        let assistantStatusKey = '';
+
+        function setAssistantTab(activeTab) {
+            const showAssistant = activeTab === 'assistant';
+            adminContent.classList.toggle('hidden', showAssistant);
+            assistantContent.classList.toggle('hidden', !showAssistant);
+            adminTabButton.setAttribute('aria-pressed', String(!showAssistant));
+            assistantTabButton.setAttribute('aria-pressed', String(showAssistant));
+            adminTabButton.classList.toggle('text-brand-gold', !showAssistant);
+            adminTabButton.classList.toggle('border-brand-gold', !showAssistant);
+            adminTabButton.classList.toggle('text-gray-400', showAssistant);
+            adminTabButton.classList.toggle('border-transparent', showAssistant);
+            assistantTabButton.classList.toggle('text-brand-gold', showAssistant);
+            assistantTabButton.classList.toggle('border-brand-gold', showAssistant);
+            assistantTabButton.classList.toggle('text-gray-400', !showAssistant);
+            assistantTabButton.classList.toggle('border-transparent', !showAssistant);
+            adminNotifHeading.textContent = assistantTranslation(
+                showAssistant ? 'assistant-tab-chat' : 'admin-notif-title'
+            );
+            if (showAssistant) assistantInput.focus();
+        }
+
+        function currentAssistantLanguage() {
+            return localStorage.getItem('lang') === 'en' ? 'en' : 'mn';
+        }
+
+        function assistantTranslation(key) {
+            const lang = currentAssistantLanguage();
+            return window.translations?.[lang]?.[key] || window.translations?.en?.[key] || key;
+        }
+
+        function setAssistantStatus(key) {
+            assistantStatusKey = key;
+            assistantStatus.textContent = key ? assistantTranslation(key) : '';
+        }
+
+        function addAssistantMessage(role, text) {
+            const bubble = document.createElement('p');
+            bubble.className = role === 'user'
+                ? 'ml-auto max-w-[90%] rounded-lg bg-brand-gold/15 px-3 py-2 text-xs text-white whitespace-pre-wrap'
+                : 'max-w-[90%] rounded-lg border border-brand-border bg-brand-dark px-3 py-2 text-xs text-gray-200 whitespace-pre-wrap';
+            bubble.textContent = text;
+            assistantMessagesEl.appendChild(bubble);
+            assistantMessagesEl.scrollTop = assistantMessagesEl.scrollHeight;
+        }
+
+        assistantTabButton.addEventListener('click', () => setAssistantTab('assistant'));
+        adminTabButton.addEventListener('click', () => setAssistantTab('admin'));
+
+        document.querySelectorAll('#assistant-suggestions button').forEach(button => {
+            button.addEventListener('click', () => {
+                const question = currentAssistantLanguage() === 'en'
+                    ? button.dataset.questionEn
+                    : button.dataset.questionMn;
+                assistantInput.value = question;
+                assistantForm.requestSubmit();
+            });
+        });
+
+        assistantForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const message = assistantInput.value.trim();
+            if (!message || assistantSend.disabled) return;
+
+            assistantConversation.push({ role: 'user', text: message });
+            while (assistantConversation.length > MAX_ASSISTANT_MESSAGES) {
+                assistantConversation.splice(0, 2);
+            }
+            addAssistantMessage('user', message);
+            document.getElementById('assistant-suggestions').classList.add('hidden');
+            assistantInput.value = '';
+            assistantSend.disabled = true;
+            assistantInput.disabled = true;
+            setAssistantStatus('assistant-loading');
+
+            try {
+                const response = await fetch('/api/site-assistant', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ messages: assistantConversation.slice(-8) })
+                });
+                const result = await response.json();
+                if (!response.ok) {
+                    const errorKey = response.status === 429
+                        ? 'assistant-rate-limit'
+                        : result.error === 'not_configured'
+                            ? 'assistant-setup-error'
+                            : 'assistant-error';
+                    assistantConversation.pop();
+                    setAssistantStatus(errorKey);
+                    return;
+                }
+
+                if (typeof result.answer !== 'string' || !result.answer.trim()) {
+                    assistantConversation.pop();
+                    setAssistantStatus('assistant-error');
+                    return;
+                }
+
+                assistantConversation.push({ role: 'model', text: result.answer });
+                while (assistantConversation.length > MAX_ASSISTANT_MESSAGES) {
+                    assistantConversation.splice(0, 2);
+                }
+                addAssistantMessage('model', result.answer);
+                setAssistantStatus('');
+            } catch (error) {
+                console.error('Site assistant request failed:', error);
+                assistantConversation.pop();
+                setAssistantStatus('assistant-error');
+            } finally {
+                assistantSend.disabled = false;
+                assistantInput.disabled = false;
+                if (!assistantContent.classList.contains('hidden')) assistantInput.focus();
+            }
+        });
+
         function handleReaction(btn) {
             const valEl = document.getElementById('react-val');
             let count = parseInt(valEl.textContent);
@@ -799,6 +977,12 @@
         window.changeLang = function(lang) {
             if (originalChangeLang) originalChangeLang(lang);
             if (latestNewsItem) renderLatestNews(latestNewsItem, lang);
+            adminNotifHeading.textContent = assistantTranslation(
+                assistantContent.classList.contains('hidden')
+                    ? 'admin-notif-title'
+                    : 'assistant-tab-chat'
+            );
+            if (assistantStatusKey) assistantStatus.textContent = assistantTranslation(assistantStatusKey);
         };
 
         fetchMarketData();
