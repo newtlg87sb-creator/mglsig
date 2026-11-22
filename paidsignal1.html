@@ -2,17 +2,41 @@
 <html lang="mn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iceberg - MGL Signal</title>
-    <meta name="description" content="Iceberg interactive market chart with futures position sizing and MACD/RSI tools.">
-    <link rel="icon" type="image/png" href="static/new/images/logogo1.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#05070a">
+    <meta name="description" content="MGL Signal-ийн крипто графикаар Binance Spot болон Futures зах зээлийн лаа, MACD, RSI үзүүлэлтүүдийг хараарай.">
+    <meta name="keywords" content="крипто график, crypto chart, Binance, Spot, Futures, MACD, RSI, MGL Signal">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
+    <meta name="bingbot" content="noindex, nofollow">
+    <link rel="canonical" href="https://mglsignal.com/main_chart.html">
+
+    <title>Зах зээлийн график | MGL Signal</title>
+    <meta property="og:title" content="Зах зээлийн график | MGL Signal">
+    <meta property="og:description" content="Binance Spot болон Futures зах зээлийн лаа, MACD, RSI график.">
+    <meta property="og:image" content="https://mglsignal.com/static/new/images/logogo1.png">
+    <meta property="og:url" content="https://mglsignal.com/main_chart.html">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="mn_MN">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Зах зээлийн график | MGL Signal">
+    <meta name="twitter:description" content="Binance Spot болон Futures зах зээлийн лаа, MACD, RSI график.">
+    <meta name="twitter:image" content="https://mglsignal.com/static/new/images/logogo1.png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
+    <link rel="apple-touch-icon" href="/static/new/images/logogo1.png">
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q1FKYGV6Z1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-Q1FKYGV6Z1');
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -24,1227 +48,1796 @@
                     fontFamily: { 'inter': ['Inter', 'sans-serif'] }
                 }
             }
-        };
+        }
     </script>
-    <link rel="stylesheet" href="static/main_style.css">
-    <link rel="stylesheet" href="static/chart_style.css">
-</head>
-<body class="chart-page bg-brand-dark text-white font-inter flex flex-col min-h-screen">
-    <script>
-        const pageTranslations = {
-            mn: {
-                "iceberg-page-title": "Iceberg график",
-                "iceberg-page-subtitle": "Зах зээлийн график болон фьючерсийн байрлалын хэмжээг шинжлээрэй.",
-                "signal-guide-title": "Ашиглах заавар",
-                "signal-guide-intro": "Лааны өнгө чиглэлийг, ногоон дөрвөлжин боломжит ашиг авах цэгийг харуулна.",
-                "signal-guide-long-title": "Цэнхэр лаа · Long",
-                "signal-guide-long-text": "Цэнхэр лаа Long нээх дохио. Long нээсэн бол ногоон дөрвөлжин доторх түвшин позициос гарах боломжит цэгийг заана. Лаа улаан болж өөрчлөгдвөл Long-оо хаах эсэхээ шийдээрэй. MAX PROFIT нь тухайн хөдөлгөөний дээд цэг хүртэл барьсан бол авах байсан тооцоолсон ашгийг харуулна.",
-                "signal-guide-short-title": "Улаан лаа · Short",
-                "signal-guide-short-text": "Улаан лаа Short нээх дохио. Short нээсэн бол ногоон дөрвөлжин доторх түвшин позициос гарах боломжит цэгийг заана. Үнэ цааш буурна гэж үзвэл Short-оо үргэлжлүүлэн барих эсэхээ өөрөө шийдэж болно. Ногоон дөрвөлжин тухайн хөдөлгөөний боломжит ашгийг харуулна.",
-                "signal-guide-about-title": "Iceberg сигнал",
-                "signal-guide-about-text": "Iceberg нь түүхэн үнийн өгөгдөлд тулгуурлан чиглэл болон гарах цэгийг тооцоолдог. Сигналыг Long, Short тус бүрээр эсвэл hedge байдлаар ашиглаж болно. MAX PROFIT нь margin болон leverage-д суурилсан тооцоолсон ашгийг харуулна.",
-                "chart-label": "ГРАФИК",
-                "market-spot": "СПОТ",
-                "market-futures": "ФЬЮЧЕРС",
-                "coin-placeholder": "BTCUSDT",
-                "market-type-label": "Зах зээлийн төрөл",
-                "pair-label": "Арилжааны хослол",
-                "margin-input-label": "Margin USDT",
-                "leverage-input-label": "Хөшүүргийн хэмжээ",
-                "interval-input-label": "Лааны хугацаа",
-                "margin-label": "Margin",
-                "margin-help": "(таны ашиглах хөрөнгө)",
-                "leverage-label": "Хөшүүрэг",
-                "position-explanation": "Position нь margin болон leverage-д суурилсан нийт арилжааны хэмжээг харуулна. MAX PROFIT нь график дээрх хөдөлгөөнд суурилсан тооцоолсон ашгийг харуулна.",
-                "time-label": "ХУГАЦАА:",
-                "chart-settings-label": "Графикийн тохиргоо",
-                "macd-label": "MACD",
-                "rsi-label": "RSI",
-                "rsi-period-label": "RSI:",
-                "macd-period-label": "MACD:",
-                "apply-indicators": "Хэрэглэх",
-                "position-size-invalid": "Margin 0-ээс их, хөшүүрэг 1x–125x байх ёстой"
-            },
-            en: {
-                "iceberg-page-title": "Iceberg Chart",
-                "iceberg-page-subtitle": "Analyze the market chart and your estimated futures position size.",
-                "signal-guide-title": "How to use this chart",
-                "signal-guide-intro": "Candle colors show direction; the green box marks a potential profit-taking point.",
-                "signal-guide-long-title": "Cyan candle · Long",
-                "signal-guide-long-text": "A cyan candle signals a possible Long entry. If you enter Long, the level inside the green box shows a potential exit point. If the candle turns red, decide whether to close your Long. MAX PROFIT shows the estimated profit available if held to the move's high.",
-                "signal-guide-short-title": "Red candle · Short",
-                "signal-guide-short-text": "A red candle signals a possible Short entry. If you enter Short, the level inside the green box shows a potential exit point. If you expect the price to keep falling, you can decide whether to continue holding your Short. The green box shows the potential profit for that move.",
-                "signal-guide-about-title": "Iceberg signal",
-                "signal-guide-about-text": "Iceberg uses historical price data to calculate direction and exit points. You can use the signal for Long or Short positions, or in a hedge. MAX PROFIT shows the estimated gain based on margin and leverage.",
-                "chart-label": "CHART",
-                "market-spot": "SPOT",
-                "market-futures": "FUTURES",
-                "coin-placeholder": "BTCUSDT",
-                "market-type-label": "Market type",
-                "pair-label": "Trading pair",
-                "margin-input-label": "Margin in USDT",
-                "leverage-input-label": "Leverage",
-                "interval-input-label": "Candle interval",
-                "margin-label": "Margin",
-                "margin-help": "(your funds used)",
-                "leverage-label": "Leverage",
-                "position-explanation": "Position shows the total trade value based on margin and leverage. MAX PROFIT shows the estimated gain based on the chart movement.",
-                "time-label": "TIME:",
-                "chart-settings-label": "Chart settings",
-                "macd-label": "MACD",
-                "rsi-label": "RSI",
-                "rsi-period-label": "RSI:",
-                "macd-period-label": "MACD:",
-                "apply-indicators": "Apply",
-                "position-size-invalid": "Margin must be over 0 and leverage must be 1x–125x"
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/main_style.css">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Зах зээлийн график | MGL Signal",
+        "url": "https://mglsignal.com/main_chart.html",
+        "description": "Binance Spot болон Futures зах зээлийн лаа, MACD, RSI график.",
+        "isPartOf": {
+            "@type": "WebSite",
+            "name": "MGL Signal",
+            "url": "https://mglsignal.com"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "MGL Signal",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://mglsignal.com/static/new/images/logogo1.png"
             }
-        };
-        if (!window.translations) window.translations = {};
-        if (!window.translations.mn) window.translations.mn = {};
-        if (!window.translations.en) window.translations.en = {};
-        Object.keys(pageTranslations).forEach(lang => Object.assign(window.translations[lang], pageTranslations[lang]));
+        }
+    }
     </script>
-    <script src="static/js/header.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            background: #05070a;
+            color: #e6edf5;
+            font-synthesis: none;
+        }
 
-    <main class="chart-main flex-grow px-3 md:px-6">
-        <div class="chart-page-content">
-            <header class="chart-page-heading">
-                <h1 data-i18n="iceberg-page-title">Iceberg график</h1>
-                <p data-i18n="iceberg-page-subtitle">Зах зээлийн график болон фьючерсийн байрлалын хэмжээг шинжлээрэй.</p>
-            </header>
+        * {
+            box-sizing: border-box;
+        }
 
-            <section class="chart-panel" aria-label="Iceberg chart">
-                <div class="section-title chart-title">
-                    <div class="chart-primary-controls">
-                        <span data-i18n="chart-label" class="chart-brand-label">ГРАФИК</span>
-                        <select id="market" class="chart-interval-select" aria-label="Market type" data-i18n-aria-label="market-type-label">
-                            <option value="spot" data-i18n="market-spot">СПОТ</option>
-                            <option value="futures" selected data-i18n="market-futures">ФЬЮЧЕРС</option>
-                        </select>
-                        <input type="text" id="coin" value="BTCUSDT" list="coinList" class="chart-coin-input" placeholder="BTCUSDT" data-i18n-placeholder="coin-placeholder" aria-label="Trading pair" data-i18n-aria-label="pair-label">
-                        <datalist id="coinList"></datalist>
-                    </div>
+        body {
+            min-width: 320px;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            background: #05070a;
+        }
 
-                    <div class="position-sizing-controls" aria-label="Futures position size calculator">
-                        <label class="position-sizing-field">
-                            <span><span data-i18n="margin-label">Margin</span> <small data-i18n="margin-help">(таны ашиглах хөрөнгө)</small></span>
-                            <span class="position-sizing-input-wrap">
-                                <input id="positionMargin" type="number" min="0.01" step="0.01" value="10" inputmode="decimal" aria-label="Margin in USDT" data-i18n-aria-label="margin-input-label">
-                                <span>USDT</span>
-                            </span>
-                        </label>
-                        <span class="position-sizing-times" aria-hidden="true">×</span>
-                        <label class="position-sizing-field">
-                            <span data-i18n="leverage-label">Хөшүүрэг</span>
-                            <span class="position-sizing-input-wrap">
-                                <input id="positionLeverage" type="number" min="1" max="125" step="1" value="20" inputmode="numeric" aria-label="Leverage" data-i18n-aria-label="leverage-input-label">
-                                <span>x</span>
-                            </span>
-                        </label>
-                        <output id="positionSizeEstimate" class="position-sizing-result" aria-live="polite">
-                            10.00 USDT margin × 20x = 200.00 USDT position
-                        </output>
-                        <span data-i18n="position-explanation" class="position-sizing-note">Position нь арилжааны нийт хэмжээ болохоос ашиг биш. MAX PROFIT нь шимтгэл, funding хасаагүй тооцоо; хөшүүрэг ашиг, алдагдлыг хоёуланг өсгөнө.</span>
-                    </div>
+        .chart-page {
+            flex: 1 0 auto;
+            min-width: 0;
+            padding: 96px 16px 16px;
+        }
 
-                    <div class="chart-tools">
-                        <span id="candleCountdown" class="chart-countdown">--:--</span>
-                        <label for="interval" data-i18n="time-label" class="chart-interval-label">ХУГАЦАА:</label>
-                        <select id="interval" class="chart-interval-select" aria-label="Candle interval" data-i18n-aria-label="interval-input-label">
-                            <option value="1s">1s</option>
-                            <option value="1m" selected>1m</option>
-                            <option value="5m">5m</option>
-                            <option value="15m">15m</option>
-                            <option value="1h">1h</option>
-                            <option value="4h">4h</option>
-                            <option value="1d">1d</option>
-                        </select>
-                        <button id="toggleChartSettings" class="chart-tool" aria-expanded="false" aria-label="Chart settings" data-i18n-aria-label="chart-settings-label">⚙️</button>
-                    </div>
-                </div>
+        .chart-app {
+            display: flex;
+            flex-direction: column;
+            width: min(100%, 1600px);
+            height: clamp(560px, calc(100vh - 160px), 1100px);
+            height: clamp(560px, calc(100dvh - 160px), 1100px);
+            margin: 0 auto;
+        }
 
-                <div id="chartSettings" class="chart-settings" style="display: none;">
-                    <div class="chart-setting-group">
-                        <label><input type="checkbox" id="showMACD" checked> <span data-i18n="macd-label">MACD</span></label>
-                        <label><input type="checkbox" id="showRSI" checked> <span data-i18n="rsi-label">RSI</span></label>
-                    </div>
-                    <div class="chart-setting-group">
-                        <label for="rsiPeriod" data-i18n="rsi-period-label">RSI:</label>
-                        <input type="number" id="rsiPeriod" value="14" min="1" style="width: 48px;">
-                    </div>
-                    <div class="chart-setting-group">
-                        <label data-i18n="macd-period-label">MACD:</label>
-                        <input type="number" id="macdFast" value="12" min="1" aria-label="MACD fast" style="width: 42px;">
-                        <span>/</span>
-                        <input type="number" id="macdSlow" value="26" min="2" aria-label="MACD slow" style="width: 42px;">
-                        <span>/</span>
-                        <input type="number" id="macdSignal" value="9" min="1" aria-label="MACD signal" style="width: 42px;">
-                    </div>
-                    <button id="applyIndicators" class="chart-apply-button" data-i18n="apply-indicators">Хэрэглэх</button>
-                </div>
+        .toolbar {
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: center;
+            gap: 2px;
+            padding: 6px;
+            overflow-x: auto;
+            border: 1px solid #222b38;
+            border-radius: 8px;
+            background: #10151d;
+            scrollbar-width: none;
+        }
 
-                <div class="chart-workspace">
-                    <div id="metaChartContainer" aria-label="Interactive market chart"></div>
-                </div>
-            </section>
+        .toolbar::-webkit-scrollbar {
+            display: none;
+        }
 
-            <section class="signal-guide" aria-labelledby="signalGuideTitle">
-                <h2 id="signalGuideTitle" data-i18n="signal-guide-title">Ашиглах заавар</h2>
-                <p class="signal-guide-intro" data-i18n="signal-guide-intro">Лааны өнгө чиглэлийг, ногоон дөрвөлжин боломжит ашиг авах цэгийг харуулна.</p>
-                <div class="signal-guide-grid">
-                    <article class="signal-guide-card signal-guide-long">
-                        <h3 data-i18n="signal-guide-long-title">Цэнхэр лаа · Long</h3>
-                        <p data-i18n="signal-guide-long-text">Цэнхэр лаа Long нээх дохио. Long нээсэн бол ногоон дөрвөлжин доторх түвшин позициос гарах боломжит цэгийг заана. Лаа улаан болж өөрчлөгдвөл Long-оо хаах эсэхээ шийдээрэй. MAX PROFIT нь тухайн хөдөлгөөний дээд цэг хүртэл барьсан бол авах байсан тооцоолсон ашгийг харуулна.</p>
-                    </article>
-                    <article class="signal-guide-card signal-guide-short">
-                        <h3 data-i18n="signal-guide-short-title">Улаан лаа · Short</h3>
-                        <p data-i18n="signal-guide-short-text">Улаан лаа Short нээх дохио. Short нээсэн бол ногоон дөрвөлжин доторх түвшин позициос гарах боломжит цэгийг заана. Үнэ цааш буурна гэж үзвэл Short-оо үргэлжлүүлэн барих эсэхээ өөрөө шийдэж болно. Ногоон дөрвөлжин тухайн хөдөлгөөний боломжит ашгийг харуулна.</p>
-                    </article>
-                </div>
-                <aside class="signal-guide-info">
-                    <h3 data-i18n="signal-guide-about-title">Iceberg сигнал</h3>
-                    <p data-i18n="signal-guide-about-text">Iceberg нь түүхэн үнийн өгөгдөлд тулгуурлан чиглэл болон гарах цэгийг тооцоолдог. Сигналыг Long, Short тус бүрээр эсвэл hedge байдлаар ашиглаж болно. MAX PROFIT нь margin болон leverage-д суурилсан тооцоолсон ашгийг харуулна.</p>
-                </aside>
-            </section>
+        .trade-settings {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+            margin-top: 5px;
+            padding: 6px 8px;
+            border: 1px solid #222b38;
+            border-radius: 8px;
+            background: #10151d;
+        }
+
+        .trade-actions {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .chart-app .trade-action {
+            min-width: 46px;
+            min-height: 27px;
+            border-color: #344151;
+            background: #18212c;
+            color: #a7b3c2;
+        }
+
+        .chart-app .trade-action[data-active="true"] {
+            border-color: currentColor;
+            background: #202a35;
+            box-shadow: inset 0 0 0 1px currentColor;
+        }
+
+        .chart-app .trade-action[data-action="buy"],
+        .chart-app .trade-action[data-action="long"] {
+            color: #38d996;
+        }
+
+        .chart-app .trade-action[data-action="sell"],
+        .chart-app .trade-action[data-action="short"] {
+            color: #ff6874;
+        }
+
+        .trade-field {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #a7b3c2;
+            font-size: 9px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .trade-field input {
+            width: 76px;
+            min-height: 27px;
+            text-align: right;
+        }
+
+        .trade-field select {
+            min-height: 27px;
+        }
+
+        .trade-field .trade-leverage-input {
+            width: 52px;
+        }
+
+        .trade-settings-status {
+            flex: 1 1 100%;
+            min-height: 12px;
+            color: #708095;
+            font-size: 9px;
+        }
+
+        .trade-settings-status[data-state="error"] {
+            color: #ff7b82;
+        }
+
+        .chart-app select,
+        .chart-app input,
+        .chart-app button {
+            min-height: 28px;
+            border: 1px solid #2a3544;
+            border-radius: 5px;
+            background: #0a0f16;
+            color: #e6edf5;
+            font-family: inherit;
+            font-size: 11px;
+        }
+
+        .chart-app select,
+        .chart-app input {
+            padding: 0 7px;
+        }
+
+        .chart-app select,
+        .chart-app button {
+            cursor: pointer;
+        }
+
+        #market {
+            width: 66px;
+        }
+
+        #symbol {
+            width: 78px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        #interval {
+            width: 52px;
+        }
+
+        .chart-app button {
+            min-width: 24px;
+            padding: 0 5px;
+            border-color: #9c7a3c;
+            background: #b89452;
+            color: #080b10;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .chart-app button:hover {
+            background: #d3b36f;
+        }
+
+        .chart-app button:disabled {
+            cursor: wait;
+            opacity: .65;
+        }
+
+        .toolbar-divider {
+            flex: 0 0 1px;
+            height: 20px;
+            margin: 0 1px;
+            background: #2a3544;
+        }
+
+        .indicator-toggle,
+        .indicator-period {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            color: #a7b3c2;
+            font-size: 9px;
+            white-space: nowrap;
+        }
+
+        .indicator-toggle input {
+            width: 13px;
+            min-height: 13px;
+            margin: 0;
+            accent-color: #c5a059;
+        }
+
+        .indicator-period input {
+            width: 36px;
+            min-height: 25px;
+            padding: 0 3px;
+            text-align: center;
+        }
+
+        #reload {
+            border-color: #344151;
+            background: #18212c;
+            color: #d5be88;
+        }
+
+        #reload:hover {
+            background: #263445;
+        }
+
+        #applyIndicators {
+            min-height: 27px;
+            border-color: #344151;
+            background: #18212c;
+            color: #c4d0de;
+            font-size: 10px;
+        }
+
+        #applyIndicators:hover {
+            background: #263445;
+        }
+
+        .symbols-status {
+            flex: 0 0 auto;
+            color: #708095;
+            font-size: 10px;
+            white-space: nowrap;
+        }
+
+        .countdown {
+            flex: 0 0 auto;
+            color: #64c8dc;
+            font: 10px ui-monospace, Consolas, monospace;
+            white-space: nowrap;
+        }
+
+        .status-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-height: 26px;
+            padding: 3px 8px;
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: none;
+        }
+
+        .status-row::-webkit-scrollbar {
+            display: none;
+        }
+
+        .status {
+            flex: 0 0 auto;
+            min-height: 0;
+            padding: 0;
+            color: #9aa8b8;
+            font-size: 10px;
+        }
+
+        .status[data-state="error"] {
+            color: #ff7b82;
+        }
+
+        .status[data-state="live"] {
+            color: #56d69a;
+        }
+
+        #status {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ohlc {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            min-width: 0;
+            overflow: hidden;
+            pointer-events: none;
+            color: #a7b3c2;
+            font: 9px/16px ui-monospace, Consolas, monospace;
+        }
+
+        .chart-topbar {
+            position: absolute;
+            z-index: 2;
+            top: 4px;
+            right: 12px;
+            left: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            pointer-events: none;
+        }
+
+        .chart-panel-toggles {
+            display: flex;
+            flex: 0 0 auto;
+            align-items: center;
+            gap: 4px;
+            pointer-events: auto;
+        }
+
+        .chart-app .chart-panel-toggle {
+            min-width: 0;
+            min-height: 22px;
+            padding: 0 7px;
+            border-color: #344151;
+            background: #18212c;
+            color: #c4d0de;
+            font-size: 9px;
+            line-height: 1;
+        }
+
+        .chart-app .chart-panel-toggle[aria-expanded="false"] {
+            color: #8b98a8;
+        }
+
+        .toolbar[hidden],
+        .trade-settings[hidden] {
+            display: none;
+        }
+
+        .ohlc span {
+            white-space: nowrap;
+        }
+
+        .ohlc b {
+            color: #647386;
+            font-weight: 500;
+        }
+
+        .ohlc [data-value="up"] {
+            color: #38d996;
+        }
+
+        .ohlc [data-value="down"] {
+            color: #ff6874;
+        }
+
+        .chart-frame {
+            position: relative;
+            flex: 1 1 auto;
+            min-height: 220px;
+            overflow: hidden;
+            border: 1px solid #222b38;
+            border-radius: 10px;
+            background: #080b10;
+        }
+
+        .chart-frame canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+            touch-action: none;
+        }
+
+        @media (max-width: 640px) {
+            .chart-page {
+                padding: 88px 8px 12px;
+            }
+
+            .toolbar {
+                gap: 2px;
+                padding: 5px;
+            }
+
+            .chart-frame {
+                min-height: 200px;
+            }
+
+            .ohlc {
+                gap: 4px;
+                font-size: 7px;
+            }
+
+            .chart-topbar {
+                right: 6px;
+                left: 6px;
+                gap: 4px;
+            }
+
+            .chart-app .chart-panel-toggle {
+                padding: 0 5px;
+                font-size: 8px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            #ohlc-symbol {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-brand-dark text-white font-inter flex flex-col min-h-screen">
+    <script src="/static/js/header.js"></script>
+    <main class="chart-page">
+      <h1 class="sr-only">Зах зээлийн график</h1>
+      <div class="chart-app">
+        <section id="chart-settings" class="toolbar" aria-label="Графикийн тохиргоо">
+            <select id="market" aria-label="Зах зээл" title="Зах зээл">
+                <option value="spot">Spot</option>
+                <option value="futures">Futures</option>
+            </select>
+            <input id="symbol" type="text" value="BTCUSDT" list="symbol-suggestions" maxlength="20"
+                autocomplete="off" spellcheck="false" aria-label="Хослол" title="Хослол">
+            <datalist id="symbol-suggestions"></datalist>
+            <select id="interval" aria-label="Хугацаа" title="Хугацаа">
+                <option value="1m">1m</option>
+                <option value="3m">3m</option>
+                <option value="5m">5m</option>
+                <option value="15m">15m</option>
+                <option value="30m">30m</option>
+                <option value="1h">1h</option>
+                <option value="2h">2h</option>
+                <option value="4h">4h</option>
+                <option value="6h">6h</option>
+                <option value="12h">12h</option>
+                <option value="1d">1d</option>
+                <option value="1w">1w</option>
+                <option value="1M">1M</option>
+            </select>
+            <button id="reload" type="button" aria-label="Шинэчлэх" title="Шинэчлэх">↻</button>
+            <span class="toolbar-divider" aria-hidden="true"></span>
+            <label class="indicator-toggle" title="Идэвхжүүлээд график дээр эхлэлээс төгсгөл хүртэл чирнэ">
+                <input id="showVolumeProfile" type="checkbox" aria-label="Volume Profile"> VP
+            </label>
+            <label class="indicator-toggle" title="MACD үзүүлэлт">
+                <input id="showMACD" type="checkbox" checked> MACD
+            </label>
+            <label class="indicator-period" title="MACD Fast">
+                F <input id="macdFast" type="number" min="1" max="500" value="12" aria-label="MACD Fast">
+            </label>
+            <label class="indicator-period" title="MACD Slow">
+                S <input id="macdSlow" type="number" min="2" max="500" value="26" aria-label="MACD Slow">
+            </label>
+            <label class="indicator-period" title="MACD Signal">
+                Sig <input id="macdSignal" type="number" min="1" max="500" value="9" aria-label="MACD Signal">
+            </label>
+            <label class="indicator-toggle" title="RSI үзүүлэлт">
+                <input id="showRSI" type="checkbox" checked> RSI
+            </label>
+            <label class="indicator-period" title="RSI Period">
+                P <input id="rsiPeriod" type="number" min="1" max="500" value="14" aria-label="RSI Period">
+            </label>
+            <label class="indicator-toggle" title="EMA 1 үзүүлэлт">
+                <input id="showEMA1" type="checkbox" checked>
+                <span style="color:#f0b90b">EMA 1</span>
+            </label>
+            <label class="indicator-period" title="EMA 1 Period">
+                P <input id="emaPeriod1" type="number" min="1" max="500" value="20" aria-label="EMA 1 Period">
+            </label>
+            <label class="indicator-toggle" title="EMA 2 үзүүлэлт">
+                <input id="showEMA2" type="checkbox" checked>
+                <span style="color:#38bdf8">EMA 2</span>
+            </label>
+            <label class="indicator-period" title="EMA 2 Period">
+                P <input id="emaPeriod2" type="number" min="1" max="500" value="50" aria-label="EMA 2 Period">
+            </label>
+            <label class="indicator-toggle" title="Moving Average 1 үзүүлэлт">
+                <input id="showMA1" type="checkbox" checked>
+                <span style="color:#f472b6">MA 1</span>
+            </label>
+            <label class="indicator-period" title="Moving Average 1 Period">
+                P <input id="maPeriod1" type="number" min="1" max="500" value="20" aria-label="Moving Average 1 Period">
+            </label>
+            <label class="indicator-toggle" title="Moving Average 2 үзүүлэлт">
+                <input id="showMA2" type="checkbox" checked>
+                <span style="color:#a3e635">MA 2</span>
+            </label>
+            <label class="indicator-period" title="Moving Average 2 Period">
+                P <input id="maPeriod2" type="number" min="1" max="500" value="50" aria-label="Moving Average 2 Period">
+            </label>
+            <button id="applyIndicators" type="button" aria-label="Үзүүлэлт хэрэглэх" title="Үзүүлэлт хэрэглэх">✓</button>
+        </section>
+
+        <section id="trade-settings" class="trade-settings" aria-label="Арилжааны тохиргоо">
+            <div class="trade-actions" role="group" aria-label="Арилжааны чиглэл">
+                <button class="trade-action" type="button" data-action="buy" aria-pressed="false">BUY</button>
+                <button class="trade-action" type="button" data-action="sell" aria-pressed="false">SELL</button>
+                <button class="trade-action" type="button" data-action="long" aria-pressed="false">LONG</button>
+                <button class="trade-action" type="button" data-action="short" aria-pressed="false">SHORT</button>
+            </div>
+            <label class="trade-field" for="trade-side">Side
+                <select id="trade-side">
+                    <option value="long">Long</option>
+                    <option value="short">Short</option>
+                    <option value="both">Long + Short</option>
+                </select>
+            </label>
+            <label class="trade-field" for="account-balance">Balance
+                <input id="account-balance" type="number" min="0" step="any" inputmode="decimal" placeholder="0.00" aria-label="Account balance in USDT">
+                <span>USDT</span>
+            </label>
+            <label class="trade-field" for="trade-margin">Margin
+                <input id="trade-margin" type="number" min="0" step="any" inputmode="decimal" placeholder="0.00" aria-label="Trade margin in USDT">
+                <span>USDT</span>
+            </label>
+            <label class="trade-field" for="trade-leverage">Leverage
+                <input id="trade-leverage" class="trade-leverage-input" type="number" min="1" max="125" step="1" placeholder="1" aria-label="Leverage">
+                <span>x</span>
+            </label>
+            <p id="trade-settings-status" class="trade-settings-status" role="status" aria-live="polite">
+                UI тохиргоо · Захиалга илгээхгүй
+            </p>
+        </section>
+
+        <div class="status-row" aria-label="Графикийн төлөв">
+            <span class="countdown"><span>Дараагийн лаа</span> <b id="candle-countdown">--:--</b></span>
+            <span id="symbols-status" class="symbols-status" role="status" aria-live="polite"></span>
+            <span id="volume-profile-status" class="symbols-status" role="status" aria-live="polite"></span>
+            <span id="status" class="status" role="status" aria-live="polite">График ачаалж байна...</span>
         </div>
+        <section class="chart-frame" aria-label="Үнийн лаан график">
+            <div class="chart-topbar">
+                <div class="ohlc" aria-label="Лааны O H L C үнэ" aria-live="polite">
+                    <span id="ohlc-symbol">BTCUSDT</span>
+                    <span><b>O</b> <span id="ohlc-open">—</span></span>
+                    <span><b>H</b> <span id="ohlc-high">—</span></span>
+                    <span><b>L</b> <span id="ohlc-low">—</span></span>
+                    <span><b>C</b> <span id="ohlc-close">—</span></span>
+                </div>
+                <div class="chart-panel-toggles" role="group" aria-label="Тохиргооны хэсгүүд">
+                    <button class="chart-panel-toggle" id="toggle-chart-settings" type="button"
+                        aria-controls="chart-settings" aria-expanded="true">Chart Set</button>
+                    <button class="chart-panel-toggle" id="toggle-trade-settings" type="button"
+                        aria-controls="trade-settings" aria-expanded="true">Trade Set</button>
+                </div>
+            </div>
+            <canvas id="chart" role="img" aria-label="BTCUSDT үнийн график"></canvas>
+        </section>
+      </div>
     </main>
 
-    <script src="static/js/footer.js"></script>
-    <script src="static/js/access_control.js"></script>
-    <script src="static/lock.js"></script>
     <script>
-(function(){
- const c=document.getElementById("metaChartContainer");
- if(!c)return console.error("[META CHART] #metaChartContainer not found");
- c.innerHTML=`<div id="chart-wrapper" style="position:relative;width:100%;height:100%;min-height:600px;background:#07090d;overflow:hidden;"><canvas id="chart" style="display:block;width:100%;height:100%;cursor:crosshair;"></canvas></div>`;
-})();
-
-window.dispatchChartUpdate=function(){};
-window.macdMode='normal';   // 'normal' | 'max' | 'min'
-window.rsiMode='normal';
-
-function formatPrice(p){
- p=Number(p);
- if(!Number.isFinite(p))return "-";
- if(p>=100)return p.toFixed(2);
- if(p>=1)return p.toFixed(4);
- if(p>=0.001)return p.toFixed(6);
- return p.toPrecision(4);
-}
-
-const pad2=n=>String(n).padStart(2,"0");
-const TZ8_OFFSET = 8 * 60 * 60 * 1000; // Улаанбаатарын цагийн бүс (UTC+8)
-
-function timeLabel(ts, interval) {
-    const d = new Date(Number(ts) + TZ8_OFFSET);
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const day = d.getUTCDate();
-    const month = months[d.getUTCMonth()];
-    const hours = pad2(d.getUTCHours());
-    const minutes = pad2(d.getUTCMinutes());
-
-    if (/[dwM]$/.test(interval)) {
-        return d.toLocaleDateString("en-GB", { timeZone: "UTC", year: "numeric", month: "2-digit", day: "2-digit" });
-    }
-    return `${day}${month} ${hours}:${minutes}`;
-}
-
-function drawLabels(ctx,x,y,items){
- ctx.font="11px Inter, sans-serif";
- ctx.textBaseline="top";
- items.forEach(([label,val,color])=>{
-  ctx.fillStyle="#7d8a9c";
-  ctx.fillText(label,x,y);
-  x+=ctx.measureText(label).width;
-  ctx.fillStyle=color||"#e8edf5";
-  ctx.fillText(val+"  ",x,y);
-  x+=ctx.measureText(val+"  ").width;
- });
-}
-
-function activeIndex(m,padding,chartWidth,candleWidth,len){
- if(m&&m.x!==null&&m.x>padding&&m.x<padding+chartWidth){
-  const i=Math.floor((m.x-padding)/candleWidth);
-  if(i>=0&&i<len)return i;
- }
- return len-1;
-}
-
-function calculateIcebergProfit(state,entry,exit,margin,leverage){
- if(!Number.isFinite(entry)||entry<=0||!Number.isFinite(exit)||
-    !Number.isFinite(margin)||margin<=0||!Number.isFinite(leverage)||leverage<1)return null;
- const positionSize=margin*leverage;
- const priceReturn=state==="up"?(exit-entry)/entry:(entry-exit)/entry;
- return positionSize*priceReturn;
-}
-
-function drawIcebergProfitBoxes(ctx,data,states,start,padding,candleWidth,chartWidth,priceToY){
- if(!Array.isArray(states)||!states.length)return;
- const visibleEnd=start+data.length;
- const margin=Number(document.getElementById("positionMargin")?.value);
- const leverage=Number(document.getElementById("positionLeverage")?.value);
- let localIndex=0;
-
- ctx.save();
- ctx.beginPath();
- ctx.rect(padding,padding,chartWidth,ctx.canvas.height);
- ctx.clip();
-
- while(localIndex<data.length){
-  const globalIndex=start+localIndex;
-  const state=states[globalIndex];
-  if(state!=="up"&&state!=="down"){
-   localIndex++;
-   continue;
-  }
-
-  let segmentEnd=localIndex+1;
-  while(segmentEnd<data.length&&states[start+segmentEnd]===state)segmentEnd++;
-
-  let segmentStart=globalIndex;
-  while(segmentStart>0&&states[segmentStart-1]===state)segmentStart--;
-
-  const entry=Number(window.allData[segmentStart]?.[1]);
-  let favorable=state==="up"?-Infinity:Infinity;
-  let favorableIndex=segmentStart;
-  for(let index=segmentStart;index<start+segmentEnd&&index<visibleEnd;index++){
-   const candle=window.allData[index];
-   if(!candle)continue;
-   const price=state==="up"?Number(candle[2]):Number(candle[3]);
-   if(state==="up"?price>=favorable:price<=favorable){
-    favorable=price;
-    favorableIndex=index;
-   }
-  }
-
-  const isProfitable=state==="up"?favorable>entry:favorable<entry;
-  if(Number.isFinite(entry)&&Number.isFinite(favorable)&&isProfitable){
-   const visibleSegmentStart=Math.max(segmentStart,start);
-   const visibleSegmentEnd=Math.min(start+segmentEnd,visibleEnd);
-   const greenEnd=Math.min(favorableIndex+1,visibleSegmentEnd);
-   const greenX=padding+(visibleSegmentStart-start)*candleWidth;
-   const greenWidth=Math.max(0,(greenEnd-visibleSegmentStart)*candleWidth);
-   const redX=padding+(Math.max(favorableIndex+1,visibleSegmentStart)-start)*candleWidth;
-   const redWidth=Math.max(0,(visibleSegmentEnd-Math.max(favorableIndex+1,visibleSegmentStart))*candleWidth);
-   const entryY=priceToY(entry);
-   const targetY=priceToY(favorable);
-   const top=Math.min(entryY,targetY);
-   const height=Math.max(1,Math.abs(entryY-targetY));
-
-   if(greenWidth>0){
-    ctx.fillStyle="rgba(0,200,83,0.06)";
-    ctx.fillRect(greenX,top,greenWidth,height);
-    ctx.strokeStyle="rgba(0,230,118,0.22)";
-    ctx.lineWidth=1;
-    ctx.strokeRect(greenX,top,greenWidth,height);
-   }
-   if(redWidth>0){
-    ctx.fillStyle="rgba(255,61,87,0.06)";
-    ctx.fillRect(redX,top,redWidth,height);
-    ctx.strokeStyle="rgba(255,82,102,0.22)";
-    ctx.lineWidth=1;
-    ctx.strokeRect(redX,top,redWidth,height);
-   }
-   ctx.fillStyle="#69f0ae";
-   ctx.font="10px Inter, sans-serif";
-   ctx.textAlign="center";
-   ctx.textBaseline="bottom";
-   const peakX=padding+(favorableIndex-start+0.5)*candleWidth;
-   const profit=calculateIcebergProfit(state,entry,favorable,margin,leverage);
-   if(profit!==null){
-    ctx.fillText(`+${profit.toFixed(2)} USDT`,peakX,targetY-3);
-   }
-  }
-
-  localIndex=segmentEnd;
- }
- ctx.restore();
-}
-
-// --- TECHNICAL INDICATORS (RSI & MACD) ---
-function calculateEMA(data, period) {
-    const k = 2 / (period + 1);
-    let emaArray = [];
-    let prevEMA = data[0];
-    emaArray.push(prevEMA);
-    for (let i = 1; i < data.length; i++) {
-        prevEMA = (data[i] * k) + (prevEMA * (1 - k));
-        emaArray.push(prevEMA);
-    }
-    return emaArray;
-}
-
-function calculateRSI(closes, period = 14) {
-    let rsi = new Array(closes.length).fill(50);
-    if (closes.length < period + 1) return rsi;
-
-    let gains = 0;
-    let losses = 0;
-
-    for (let i = 1; i <= period; i++) {
-        const diff = closes[i] - closes[i - 1];
-        if (diff >= 0) gains += diff;
-        else losses -= diff;
-    }
-
-    let avgGain = gains / period;
-    let avgLoss = losses / period;
-
-    for (let i = period; i < closes.length; i++) {
-        if (i > period) {
-            const diff = closes[i] - closes[i - 1];
-            const gain = diff >= 0 ? diff : 0;
-            const loss = diff >= 0 ? 0 : -diff;
-            avgGain = (avgGain * (period - 1) + gain) / period;
-            avgLoss = (avgLoss * (period - 1) + loss) / period;
-        }
-        if (avgLoss === 0) {
-            rsi[i] = 100;
-        } else {
-            const rs = avgGain / avgLoss;
-            rsi[i] = 100 - (100 / (1 + rs));
-        }
-    }
-    return rsi;
-}
-
-function calculateMACD(closes, fastPeriod = 12, slowPeriod = 26, signalPeriod = 9) {
-    const fastEMA = calculateEMA(closes, fastPeriod);
-    const slowEMA = calculateEMA(closes, slowPeriod);
-
-    let macdLine = [];
-    for (let i = 0; i < closes.length; i++) {
-        macdLine.push(fastEMA[i] - slowEMA[i]);
-    }
-
-    const signalLine = calculateEMA(macdLine, signalPeriod);
-
-    let histogram = [];
-    for (let i = 0; i < closes.length; i++) {
-        histogram.push(macdLine[i] - signalLine[i]);
-    }
-
-    return { macdLine, signalLine, histogram };
-}
-
-document.addEventListener("DOMContentLoaded",()=>{
- const canvas=document.getElementById("chart");
- if(!canvas)return;
- const ctx=canvas.getContext("2d");
-
- const marketEl=document.getElementById("market");
- const intervalEl=document.getElementById("interval");
- const coinEl=document.getElementById("coin");
- const coinListEl=document.getElementById("coinList");
- const settingsButton=document.getElementById("toggleChartSettings");
- const settingsPanel=document.getElementById("chartSettings");
- const marginInput=document.getElementById("positionMargin");
- const leverageInput=document.getElementById("positionLeverage");
- const positionEstimate=document.getElementById("positionSizeEstimate");
-
- function updatePositionEstimate(language=localStorage.getItem("lang")||"mn"){
-  if(!marginInput||!leverageInput||!positionEstimate)return;
-  const margin=Number(marginInput.value);
-  const leverage=Number(leverageInput.value);
-  const valid=Number.isFinite(margin)&&margin>0&&Number.isFinite(leverage)&&leverage>=1&&leverage<=125;
-  if(!valid){
-   positionEstimate.textContent=language==="mn"
-    ? "Margin 0-ээс их, хөшүүрэг 1x–125x байх ёстой"
-    : "Margin must be over 0 and leverage must be 1x–125x";
-   return;
-  }
-  positionEstimate.textContent=language==="mn"
-   ? `${margin.toFixed(2)} USDT margin × ${leverage}x = ${(margin*leverage).toFixed(2)} USDT нийт арилжаа`
-   : `${margin.toFixed(2)} USDT margin × ${leverage}x = ${(margin*leverage).toFixed(2)} USDT position`;
- }
- marginInput?.addEventListener("input",updatePositionEstimate);
- leverageInput?.addEventListener("input",updatePositionEstimate);
- updatePositionEstimate();
- const originalChangeLang=window.changeLang;
- window.changeLang=function(language){
-  if(originalChangeLang)originalChangeLang(language);
-  document.querySelectorAll("[data-i18n-aria-label]").forEach(element=>{
-   const key=element.getAttribute("data-i18n-aria-label");
-   const translated=window.translations?.[language]?.[key];
-   if(translated)element.setAttribute("aria-label",translated);
-  });
-  updatePositionEstimate(language);
-  document.title=language==="mn"?"Iceberg график - MGL Signal":"Iceberg Chart - MGL Signal";
- };
- window.changeLang(localStorage.getItem("lang")||"mn");
-
- settingsButton?.addEventListener("click",()=>{
-  const isOpen=settingsPanel.style.display!=="none";
-  settingsPanel.style.display=isOpen?"none":"flex";
-  settingsButton.setAttribute("aria-expanded",String(!isOpen));
- });
-
- ["showRSI","showMACD"].forEach(id=>{
-  document.getElementById(id)?.addEventListener("change",draw);
- });
-
- document.getElementById("applyIndicators")?.addEventListener("click",async event=>{
-  const button=event.currentTarget;
-  button.disabled=true;
-  try{
-   await window.refreshChartIndicators();
-  }catch(error){
-   console.error("[INDICATOR UPDATE ERROR]",error);
-  }finally{
-   button.disabled=false;
-  }
- });
-
- let symbol="BTCUSDT",interval="1m";
-
- window.allData=[];
- window.rsiArrayData = [];
- window.macdArrayData = [];
- window.signalArrayData = [];
- window.histArrayData = [];
- window.signalEvents=[];
-
- let visibleCount=500,offset=0;
- let icebergStateKey=null;
- let icebergRequestKey=null;
- let icebergRequestPromise=null;
- const minVisible=20,maxVisible=10000;
- const mouse={x:null,y:null};
- let dragging=false,lastX=0;
- let priceScale=1,priceOffset=0,draggingPrice=false,lastY=0;
- let lastPriceRange=0,lastChartHeight=0;
-
- const PAD=15,PSW=55;
-
- function resize(){
-  const p=canvas.parentElement;
-  canvas.width=p?p.clientWidth:window.innerWidth;
-  canvas.height=p?p.clientHeight:window.innerHeight;
-  draw();
- }
- window.addEventListener("resize",resize);
- setTimeout(resize,100);
-
- function draw(){
-  if(!window.allData||!window.allData.length)return;
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-
-  const padding=PAD,priceScaleWidth=PSW,timeScaleHeight=30;
-  const chartHeight=canvas.height-padding*2-timeScaleHeight;
-  lastChartHeight=chartHeight;
-  const chartWidth=canvas.width-padding*2-priceScaleWidth;
-
-  const end=window.allData.length-offset;
-  const start=Math.max(0,end-visibleCount);
-  window._chartStartIndex=start;
-  const data=window.allData.slice(start,end);
-  if(!data.length)return;
-
-  const candleWidth=chartWidth/data.length;
-
-  let maxPrice=-Infinity,minPrice=Infinity;
-  data.forEach(d=>{if(d[2]>maxPrice)maxPrice=d[2];if(d[3]<minPrice)minPrice=d[3]});
-
-  if(maxPrice===minPrice){
-   const pp=maxPrice>1?maxPrice*0.001:0.001;
-   maxPrice+=pp;minPrice-=pp;
-  }
-  const buf=(maxPrice-minPrice)*0.05;
-  maxPrice+=buf;minPrice-=buf;
-
-  if(priceScale!==1){
-   const mid=(maxPrice+minPrice)/2,half=(maxPrice-minPrice)/2*priceScale;
-   maxPrice=mid+half;minPrice=mid-half;
-  }
-  lastPriceRange=maxPrice-minPrice;
-  maxPrice+=priceOffset;minPrice+=priceOffset;
-
-  const showMacd = document.getElementById("showMACD")?.checked !== false;
-  const showRsi = document.getElementById("showRSI")?.checked !== false;
-
-  let R = { main: 1, macd: 0, rsi: 0 };
-
-  if (showMacd && showRsi) {
-      if (window.macdMode === 'max') {
-          R = { main: 0.60, macd: 0.40, rsi: 0 };
-      } else if (window.rsiMode === 'max') {
-          R = { main: 0.60, macd: 0, rsi: 0.40 };
-      } else if (window.macdMode === 'min') {
-          R = { main: 0.77, macd: 0.08, rsi: 0.15 };
-      } else if (window.rsiMode === 'min') {
-          R = { main: 0.77, macd: 0.15, rsi: 0.08 };
-      } else {
-          R = { main: 0.70, macd: 0.15, rsi: 0.15 };
-      }
-  } else if (showMacd) {
-      if (window.macdMode === 'max') {
-          R = { main: 0.60, macd: 0.40, rsi: 0 };
-      } else if (window.macdMode === 'min') {
-          R = { main: 0.92, macd: 0.08, rsi: 0 };
-      } else {
-          R = { main: 0.85, macd: 0.15, rsi: 0 };
-      }
-  } else if (showRsi) {
-      if (window.rsiMode === 'max') {
-          R = { main: 0.60, macd: 0, rsi: 0.40 };
-      } else if (window.rsiMode === 'min') {
-          R = { main: 0.92, macd: 0, rsi: 0.08 };
-      } else {
-          R = { main: 0.85, macd: 0, rsi: 0.15 };
-      }
-  }
-
-  const mainRatio = R.main, macdRatio = R.macd, rsiRatio = R.rsi;
-  const mainChartHeight=chartHeight*mainRatio;
-  const priceToY=p=>padding+(maxPrice-p)/(maxPrice-minPrice)*mainChartHeight;
-  const yToPrice=y=>maxPrice-((y-padding)/mainChartHeight)*(maxPrice-minPrice);
-
-  /* PRICE GRID */
-  ctx.font="11px Inter, sans-serif";
-  ctx.strokeStyle="#131822";
-  ctx.fillStyle="#6b7a8c";
-  for(let i=0;i<=6;i++){
-   const price=minPrice+(i/6)*(maxPrice-minPrice),y=priceToY(price);
-   ctx.beginPath();ctx.moveTo(padding,y);ctx.lineTo(padding+chartWidth,y);ctx.stroke();
-   ctx.fillText(formatPrice(price),padding+chartWidth+6,y+4);
-  }
-
-  /* TIME GRID */
-  const numTicks=Math.max(2,Math.floor(chartWidth/100));
-  const step=Math.ceil(data.length/numTicks);
-  ctx.textAlign="center";
-  for(let i=0;i<data.length;i+=step){
-   const x=padding+i*candleWidth+candleWidth/2;
-   ctx.strokeStyle="#131822";
-   ctx.beginPath();ctx.moveTo(x,padding);ctx.lineTo(x,padding+mainChartHeight);ctx.stroke();
-   ctx.fillStyle="#6b7a8c";
-   ctx.fillText(timeLabel(data[i][0],interval),x,padding+chartHeight+20);
-  }
-  ctx.textAlign="left";
-
-  drawIcebergProfitBoxes(ctx,data,window.icebergCandleStates,start,padding,candleWidth,chartWidth,priceToY);
-
-  /* CANDLES */
-  data.forEach((d,i)=>{
-   const [,open,high,low,close]=d;
-   if(!Number.isFinite(open) || !Number.isFinite(high) || !Number.isFinite(low) || !Number.isFinite(close)) return;
-
-   const x=padding+i*candleWidth;
-   const yO=priceToY(open),yC=priceToY(close),yH=priceToY(high),yL=priceToY(low);
-   if(!Number.isFinite(yO) || !Number.isFinite(yC) || !Number.isFinite(yH) || !Number.isFinite(yL)) return;
-
-   const bull=close>=open;
-   const icebergState = window.icebergCandleStates?.[start + i];
-   const candleColor = icebergState === 'up' ? "#00bcd4" :
-       icebergState === 'down' ? "#ff3d57" : bull ? "#00bcd4" : "#ff3d57";
-   const wickColor = icebergState === 'up' ? "#00e5ff" :
-       icebergState === 'down' ? "#ff1744" : bull ? "#00e5ff" : "#ff1744";
-
-   ctx.strokeStyle = wickColor;
-   ctx.lineWidth = 1;
-   ctx.beginPath();
-   ctx.moveTo(x + candleWidth / 2, yH);
-   ctx.lineTo(x + candleWidth / 2, yL);
-   ctx.stroke();
-
-   ctx.fillStyle = candleColor;
-   const bodyWidth = Math.max(1, candleWidth * 0.75);
-   ctx.fillRect(
-        x + (candleWidth - bodyWidth) / 2,
-        Math.min(yO, yC),
-        bodyWidth,
-        Math.max(1, Math.abs(yO - yC))
-   );
-  });
-
-  /* --- RSI AVERAGE LEVEL LINE --- */
-  try {
-      if (typeof calculateAllRsiIndicators === "function" && window.allData && window.allData.length) {
-          const rsiPeriod = document.getElementById("rsiPeriod")?.value || "7";
-          const rsiIndicators = calculateAllRsiIndicators(window.allData, Number(rsiPeriod));
-          const avgPrice = rsiIndicators.average_status;
-
-          if (avgPrice !== null && Number.isFinite(avgPrice)) {
-              const yAvg = priceToY(avgPrice);
-
-              // Хэрэв шугам чартын харагдах хүрээнд байвал зурах
-              if (yAvg >= padding && yAvg <= padding + mainChartHeight) {
-                  ctx.save();
-                  ctx.setLineDash([4, 4]);
-                  ctx.strokeStyle = "#ab47bc"; // Ягаан өнгийн AVG шугам
-                  ctx.lineWidth = 2;
-                  ctx.beginPath();
-                  ctx.moveTo(padding, yAvg);
-                  ctx.lineTo(padding + chartWidth, yAvg);
-                  ctx.stroke();
-                  ctx.restore();
-
-                  // Баруун талын үнийн шкаф (priceScaleWidth) дээр шошго гаргах
-                  ctx.save();
-                  ctx.fillStyle = "#161e2a";
-                  ctx.fillRect(padding + chartWidth, yAvg - 10, priceScaleWidth, 20);
-                  ctx.strokeStyle = "#2b394b";
-                  ctx.strokeRect(padding + chartWidth, yAvg - 10, priceScaleWidth, 20);
-
-                  ctx.fillStyle = "#ab47bc";
-                  ctx.font = "bold 10px Inter, sans-serif";
-                  ctx.textBaseline = "middle";
-                  ctx.fillText("AVG:" + formatPrice(avgPrice), padding + chartWidth + 4, yAvg);
-                  ctx.restore();
-              }
-          }
-      }
-  } catch (err) {
-      // Дата боловсруулахад түр зуур алдаа гарвал чартыг гацаахгүйгээр алгасна
-  }
-
-  /* LAST PRICE LINE */
-  const lastClose=data[data.length-1][4],yLast=priceToY(lastClose);
-  ctx.setLineDash([4,4]);
-  ctx.strokeStyle="#e6b422";
-  ctx.beginPath();ctx.moveTo(padding,yLast);ctx.lineTo(padding+chartWidth,yLast);ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle="#e6b422";
-  ctx.fillText(formatPrice(lastClose),padding+chartWidth+6,yLast-4);
-
-  /* CROSSHAIR & EXACT MOUSE TIME / PRICE */
-  if(mouse.x!==null&&mouse.x>padding&&mouse.x<padding+chartWidth&&
-      mouse.y!==null&&mouse.y>=padding&&mouse.y<=padding+chartHeight){
-   const ci=Math.floor((mouse.x-padding)/candleWidth);
-   if(ci>=0&&ci<data.length){
-    const candle=data[ci];
-    const cx=padding+ci*candleWidth+candleWidth/2;
-
-    // Vertical line
-    ctx.save();
-    ctx.strokeStyle="rgba(255,255,255,0.15)";
-    ctx.lineWidth=1;
-    ctx.setLineDash([3,3]);
-    ctx.beginPath();ctx.moveTo(cx,padding);ctx.lineTo(cx,padding+chartHeight);ctx.stroke();
-    ctx.restore();
-
-    // Horizontal price line
-    if(mouse.y<=padding+mainChartHeight){
-     ctx.save();
-     ctx.strokeStyle="rgba(255,255,255,0.15)";
-     ctx.lineWidth=1;
-     ctx.setLineDash([3,3]);
-     ctx.beginPath();ctx.moveTo(padding,mouse.y);ctx.lineTo(padding+chartWidth,mouse.y);ctx.stroke();
-     ctx.setLineDash([]);
-
-     ctx.fillStyle="#161e2a";
-     ctx.fillRect(padding+chartWidth,mouse.y-10,priceScaleWidth,20);
-     ctx.strokeStyle="#2b394b";
-     ctx.strokeRect(padding+chartWidth,mouse.y-10,priceScaleWidth,20);
-
-     ctx.fillStyle="#f7d56b";
-     ctx.font="bold 11px Inter, sans-serif";
-     ctx.textBaseline="middle";
-     ctx.fillText(formatPrice(yToPrice(mouse.y)),padding+chartWidth+6,mouse.y);
-     ctx.restore();
-    }
-
-    // Exact time label box under crosshair
-    const ts=Number(candle[0]);
-    if(Number.isFinite(ts)){
-     const bw=74,bh=20;
-     const bx=Math.max(padding,Math.min(cx-bw/2,padding+chartWidth-bw));
-     const by=padding+chartHeight+6;
-     ctx.save();
-     ctx.fillStyle="#131b26";
-     ctx.fillRect(bx,by,bw,bh);
-     ctx.strokeStyle="#2b394b";
-     ctx.strokeRect(bx,by,bw,bh);
-     ctx.fillStyle="#e8edf5";
-     ctx.font="10px Inter, sans-serif";
-     ctx.textAlign="center";
-     ctx.textBaseline="middle";
-     ctx.fillText(timeLabel(ts,interval),bx+bw/2,by+bh/2);
-     ctx.restore();
-    }
-   }
-  }
-
-  /* OHLC HEADER */
-  let ac=data[data.length-1];
-  if(mouse.x&&mouse.y&&mouse.x>padding&&mouse.x<padding+chartWidth&&mouse.y>padding&&mouse.y<padding+mainChartHeight){
-   const idx=Math.floor((mouse.x-padding)/candleWidth);
-   if(data[idx])ac=data[idx];
-  }
-  const cc=ac[4]>=ac[1]?"#00c853":"#ff3d57";
-  drawLabels(ctx,padding+10,padding+6,[
-   [currentSymbol()+"  O:",formatPrice(ac[1]),cc],
-   ["H:",formatPrice(ac[2])],
-   ["L:",formatPrice(ac[3])],
-   ["C:",formatPrice(ac[4]),cc]
-  ]);
-
-  if(showMacd)drawMACD(ctx,data,window.macdArrayData,window.signalArrayData,window.histArrayData,padding,chartWidth,chartHeight,candleWidth,mouse,mainChartHeight,macdRatio);
-  if(showRsi)drawRSI(ctx,data,window.rsiArrayData,padding,chartWidth,chartHeight,candleWidth,mouse,mainChartHeight,macdRatio,rsiRatio);
- }
-
- window.redrawChart=draw;
-
- function currentMarketType(){
-  return marketEl ? marketEl.value.toLowerCase() : "spot";
- }
-
- function currentSymbol(){
-  return coinEl && coinEl.value.trim() ? coinEl.value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '') : "BTCUSDT";
- }
-
- function currentIntervalMinutes() {
-    return intervalEl ? intervalEl.value : "1m";
- }
-
- async function loadExchangeSymbols() {
-  try {
-      const marketType = currentMarketType();
-      let url = marketType === "futures"
-          ? "https://fapi.binance.com/fapi/v1/exchangeInfo"
-          : "https://api.binance.com/api/v3/exchangeInfo";
-
-      const res = await fetch(url);
-      if(!res.ok) return;
-      const data = await res.json();
-
-      if(data && data.symbols) {
-          const symbols = data.symbols
-              .filter(s => s.status === "TRADING" && s.quoteAsset === "USDT" &&
-                  (marketType !== "futures" || s.contractType === "PERPETUAL"))
-              .map(s => s.symbol);
-
-          if(coinListEl) {
-              coinListEl.innerHTML = symbols.map(sym => `<option value="${sym}">`).join('');
-          }
-          return symbols;
-      }
-      throw new Error("Invalid Binance exchange info response");
-  } catch(e) {
-      console.error("Failed to load symbols:", e);
-      return [];
-  }
- }
-
- async function selectTopGainer(symbols) {
-  if (!symbols.length) return;
-
-  try {
-      const marketType = currentMarketType();
-      const url = marketType === "futures"
-          ? "https://fapi.binance.com/fapi/v1/ticker/24hr"
-          : "https://api.binance.com/api/v3/ticker/24hr";
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(`Binance ticker API error: HTTP ${response.status}`);
-
-      const tickers = await response.json();
-      if (!Array.isArray(tickers)) throw new Error("Invalid Binance 24-hour ticker response");
-
-      const tradableSymbols = new Set(symbols);
-      const topGainer = tickers
-          .filter(ticker => tradableSymbols.has(ticker.symbol) &&
-              Number.isFinite(Number(ticker.priceChangePercent)) &&
-              Number(ticker.priceChangePercent) > 0)
-          .sort((a, b) => Number(b.priceChangePercent) - Number(a.priceChangePercent))[0];
-
-      if (topGainer) coinEl.value = topGainer.symbol;
-  } catch(error) {
-      console.error("[BINANCE TOP GAINER ERROR]", error);
-  }
- }
-
- async function fetchCandles(){
-  try{
-    symbol = currentSymbol();
-    const intervalVal = currentIntervalMinutes();
-    interval = intervalVal;
-    const marketType = currentMarketType();
-
-    let url = marketType === "futures"
-        ? `https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=${intervalVal}&limit=1000`
-        : `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${intervalVal}&limit=1000`;
-
-    const res = await fetch(url);
-    if(!res.ok) throw new Error(`Binance API error: HTTP ${res.status}`);
-
-    const candleData = await res.json();
-    if(!Array.isArray(candleData)) throw new Error("Invalid format from Binance");
-
-    window.allData = candleData.map(d => [
-        Number(d[0]), Number(d[1]), Number(d[2]), Number(d[3]), Number(d[4]), Number(d[5])
-    ]);
-
-    await window.refreshIndicatorArrays();
-    draw();
-    dispatchChartUpdate();
-    startLivePolling(symbol, intervalVal, marketType);
-  }catch(e){console.error("[BINANCE CHART ERROR]",e)}
- }
-
- window.refreshIndicatorArrays = async function() {
-    if (!window.allData || !window.allData.length) return;
-    const closes = window.allData.map(d => d[4]);
-
-    const rsiPeriod = parseInt(document.getElementById("rsiPeriod")?.value || "14", 10);
-    window.rsiArrayData = calculateRSI(closes, rsiPeriod);
-
-    const macdFast = parseInt(document.getElementById("macdFast")?.value || "12", 10);
-    const macdSlow = parseInt(document.getElementById("macdSlow")?.value || "26", 10);
-    const macdSignal = parseInt(document.getElementById("macdSignal")?.value || "9", 10);
-
-    const macdRes = calculateMACD(closes, macdFast, macdSlow, macdSignal);
-    window.macdArrayData = macdRes.macdLine;
-    window.signalArrayData = macdRes.signalLine;
-    window.histArrayData = macdRes.histogram;
-    await refreshIcebergCandleStates(macdFast, macdSlow, macdSignal);
- };
-
- async function refreshIcebergCandleStates(fast, slow, signal) {
-    const klines = window.allData;
-    if (klines.length < 5) {
-        window.icebergCandleStates = [];
-        return;
-    }
-
-    const key = JSON.stringify([
-        currentSymbol(),
-        currentIntervalMinutes(),
-        currentMarketType(),
-        klines[0][0],
-        klines[klines.length - 2][0],
-        fast,
-        slow,
-        signal
-    ]);
-    if (key === icebergStateKey && window.icebergCandleStates?.length === klines.length) return;
-    if (icebergRequestPromise && key === icebergRequestKey) return icebergRequestPromise;
-
-    icebergRequestKey = key;
-    const request = (async () => {
-        try {
-            if (typeof sb === "undefined" || !sb) {
-                throw new Error("Sign in to verify Iceberg access");
-            }
-            const { data: { session }, error: sessionError } = await sb.auth.getSession();
-            if (sessionError) throw sessionError;
-            if (!session?.access_token) {
-                throw new Error("Sign in to use Iceberg");
-            }
-            if (!window.SUPABASE_API_KEY) {
-                throw new Error("Supabase public API key is unavailable");
+        (() => {
+            "use strict";
+
+            const HISTORY_LIMIT = 1000;
+            const LIVE_POLL_MS = 1000;
+            const MIN_VISIBLE = 20;
+            const MAX_VISIBLE = 500;
+            const LEFT = 12;
+            const RIGHT = 60;
+            const TOP = 28;
+            const BOTTOM = 30;
+
+            const canvas = document.getElementById("chart");
+            const ctx = canvas.getContext("2d");
+            const marketInput = document.getElementById("market");
+            const symbolInput = document.getElementById("symbol");
+            const symbolSuggestions = document.getElementById("symbol-suggestions");
+            const symbolsStatus = document.getElementById("symbols-status");
+            const intervalInput = document.getElementById("interval");
+            const reloadButton = document.getElementById("reload");
+            const applyIndicatorsButton = document.getElementById("applyIndicators");
+            const chartSettingsPanel = document.getElementById("chart-settings");
+            const tradeSettingsPanel = document.getElementById("trade-settings");
+            const toggleChartSettingsButton = document.getElementById("toggle-chart-settings");
+            const toggleTradeSettingsButton = document.getElementById("toggle-trade-settings");
+            const statusElement = document.getElementById("status");
+            const countdownElement = document.getElementById("candle-countdown");
+            const showVolumeProfileInput = document.getElementById("showVolumeProfile");
+            const volumeProfileStatusElement = document.getElementById("volume-profile-status");
+            const showMacdInput = document.getElementById("showMACD");
+            const showRsiInput = document.getElementById("showRSI");
+            const showEma1Input = document.getElementById("showEMA1");
+            const showEma2Input = document.getElementById("showEMA2");
+            const showMa1Input = document.getElementById("showMA1");
+            const showMa2Input = document.getElementById("showMA2");
+            const tradeActionButtons = Array.from(document.querySelectorAll(".trade-action"));
+            const tradeSideInput = document.getElementById("trade-side");
+            const balanceInput = document.getElementById("account-balance");
+            const marginInput = document.getElementById("trade-margin");
+            const leverageInput = document.getElementById("trade-leverage");
+            const tradeSettingsStatus = document.getElementById("trade-settings-status");
+            const indicatorInputs = {
+                fast: document.getElementById("macdFast"),
+                slow: document.getElementById("macdSlow"),
+                signal: document.getElementById("macdSignal"),
+                rsi: document.getElementById("rsiPeriod"),
+                ema1: document.getElementById("emaPeriod1"),
+                ema2: document.getElementById("emaPeriod2"),
+                ma1: document.getElementById("maPeriod1"),
+                ma2: document.getElementById("maPeriod2")
+            };
+            const ohlcElements = {
+                symbol: document.getElementById("ohlc-symbol"),
+                open: document.getElementById("ohlc-open"),
+                high: document.getElementById("ohlc-high"),
+                low: document.getElementById("ohlc-low"),
+                close: document.getElementById("ohlc-close")
+            };
+
+            const state = {
+                candles: [],
+                market: marketInput.value,
+                symbol: symbolInput.value,
+                interval: intervalInput.value,
+                visible: 100,
+                offset: 0,
+                priceScale: 1,
+                priceShift: 0,
+                showVolumeProfile: false,
+                volumeSelection: null,
+                periods: { fast: 12, slow: 26, signal: 9, rsi: 14, ema1: 20, ema2: 50, ma1: 20, ma2: 50 },
+                indicators: { macd: [], signal: [], histogram: [], rsi: [], ema1: [], ema2: [], ma1: [], ma2: [] },
+                hover: null,
+                drag: null,
+                layout: null,
+                loading: false,
+                requestId: 0,
+                controller: null,
+                symbolsRequestId: 0,
+                symbolsController: null
+            };
+
+            const symbolsCache = new Map();
+            let selectedTradeAction = null;
+
+            function bindPanelToggle(button, panel) {
+                button.addEventListener("click", () => {
+                    const isExpanded = button.getAttribute("aria-expanded") === "true";
+                    panel.hidden = isExpanded;
+                    button.setAttribute("aria-expanded", String(!isExpanded));
+                });
             }
 
-            const response = await fetch("/api/paid1_data", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    apikey: window.SUPABASE_API_KEY,
-                    Authorization: `Bearer ${session.access_token}`
-                },
-                body: JSON.stringify({ klines, fast, slow, signal })
+            bindPanelToggle(toggleChartSettingsButton, chartSettingsPanel);
+            bindPanelToggle(toggleTradeSettingsButton, tradeSettingsPanel);
+
+            function setStatus(message, stateName = "") {
+                statusElement.textContent = message;
+                statusElement.dataset.state = stateName;
+            }
+
+            function updateTradeSettings() {
+                const balance = balanceInput.value === "" ? null : Number(balanceInput.value);
+                const margin = marginInput.value === "" ? null : Number(marginInput.value);
+                const leverage = leverageInput.value === "" ? null : Number(leverageInput.value);
+                let error = "";
+
+                if (balance !== null && (!Number.isFinite(balance) || balance < 0)) {
+                    error = "Balance 0 буюу түүнээс их байх ёстой.";
+                } else if (margin !== null && (!Number.isFinite(margin) || margin < 0)) {
+                    error = "Margin 0 буюу түүнээс их байх ёстой.";
+                } else if (balance !== null && margin !== null && margin > balance) {
+                    error = "Margin нь Balance-аас их байж болохгүй.";
+                } else if (leverage !== null && (!Number.isInteger(leverage) || leverage < 1 || leverage > 125)) {
+                    error = "Leverage 1–125 бүхэл тоо байх ёстой.";
+                }
+
+                tradeSettingsStatus.dataset.state = error ? "error" : "";
+                tradeSettingsStatus.textContent = error ||
+                    `UI only · ${selectedTradeAction ? selectedTradeAction.toUpperCase() : "Action сонгоогүй"} · ` +
+                    `Side: ${tradeSideInput.options[tradeSideInput.selectedIndex].text} · ` +
+                    `Balance: ${balance === null ? "—" : `${balance} USDT`} · ` +
+                    `Margin: ${margin === null ? "—" : `${margin} USDT`} · ` +
+                    `Leverage: ${leverage === null ? "—" : `${leverage}x`} · Захиалга илгээхгүй`;
+            }
+
+            function formatPrice(value) {
+                const price = Number(value);
+                if (!Number.isFinite(price)) return "—";
+                const digits = price >= 1000 ? 2 : price >= 1 ? 4 : price >= 0.001 ? 6 : 8;
+                return price.toLocaleString("en-US", {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: digits
+                });
+            }
+
+            function formatTime(timestamp) {
+                const date = new Date(timestamp);
+                const options = /[dwM]$/.test(state.interval)
+                    ? { timeZone: "Asia/Ulaanbaatar", month: "short", day: "2-digit" }
+                    : { timeZone: "Asia/Ulaanbaatar", month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false };
+                return new Intl.DateTimeFormat("en-GB", options).format(date);
+            }
+
+            function calculateVolumeProfile(selection) {
+                if (!selection || !state.candles.length) return null;
+                const selectedCandles = state.candles.filter(candle =>
+                    candle[0] >= selection.startTime && candle[0] <= selection.endTime
+                );
+                if (!selectedCandles.length) return null;
+
+                const binCount = 32;
+                let minPrice = Math.min(...selectedCandles.map(candle => candle[3]));
+                let maxPrice = Math.max(...selectedCandles.map(candle => candle[2]));
+                if (minPrice === maxPrice) {
+                    const padding = Math.max(Math.abs(minPrice) * 0.000001, 0.00000001);
+                    minPrice -= padding;
+                    maxPrice += padding;
+                }
+
+                const binSize = (maxPrice - minPrice) / binCount;
+                const bins = new Array(binCount).fill(0);
+                selectedCandles.forEach(candle => {
+                    const volume = Math.max(0, candle[5]);
+                    if (!Number.isFinite(volume) || volume === 0) return;
+
+                    const low = candle[3];
+                    const high = candle[2];
+                    if (high <= low) {
+                        const index = Math.min(binCount - 1, Math.max(0, Math.floor((low - minPrice) / binSize)));
+                        bins[index] += volume;
+                        return;
+                    }
+
+                    const firstBin = Math.max(0, Math.floor((low - minPrice) / binSize));
+                    const lastBin = Math.min(binCount - 1, Math.floor((high - minPrice) / binSize));
+                    for (let index = firstBin; index <= lastBin; index++) {
+                        const binLow = minPrice + index * binSize;
+                        const binHigh = binLow + binSize;
+                        const overlap = Math.max(0, Math.min(high, binHigh) - Math.max(low, binLow));
+                        bins[index] += volume * overlap / (high - low);
+                    }
+                });
+
+                const maxVolume = Math.max(...bins);
+                return {
+                    bins,
+                    candleCount: selectedCandles.length,
+                    minPrice,
+                    maxPrice,
+                    pocIndex: bins.indexOf(maxVolume)
+                };
+            }
+
+            function updateVolumeProfileStatus() {
+                if (!state.showVolumeProfile) {
+                    volumeProfileStatusElement.textContent = "";
+                    return;
+                }
+                if (!state.volumeSelection) {
+                    volumeProfileStatusElement.textContent = "VP · Эхлэлээс төгсгөл хүртэл чирнэ үү";
+                    return;
+                }
+
+                const profile = calculateVolumeProfile(state.volumeSelection);
+                volumeProfileStatusElement.textContent = profile
+                    ? `VP · ${profile.candleCount} лаа · ${formatTime(state.volumeSelection.startTime)} → ${formatTime(state.volumeSelection.endTime)} · ойролцоо`
+                    : "VP · Сонгосон хүрээнд лаа алга";
+            }
+
+            function formatCrosshairTime(timestamp) {
+                return new Intl.DateTimeFormat("en-GB", {
+                    timeZone: "Asia/Ulaanbaatar",
+                    year: "numeric",
+                    month: "short",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false
+                }).format(new Date(timestamp));
+            }
+
+            function nextCandleTime(now = Date.now()) {
+                const match = /^(\d+)([smhdwM])$/.exec(state.interval);
+                if (!match) return now;
+                const count = Number(match[1]);
+                const unit = match[2];
+
+                if (unit === "M") {
+                    const nextMonth = new Date(now);
+                    nextMonth.setUTCDate(1);
+                    nextMonth.setUTCHours(0, 0, 0, 0);
+                    nextMonth.setUTCMonth(nextMonth.getUTCMonth() + count);
+                    return nextMonth.getTime();
+                }
+                if (unit === "w") {
+                    const day = 24 * 60 * 60 * 1000;
+                    const startOfDay = Math.floor(now / day) * day;
+                    const weekday = new Date(now).getUTCDay();
+                    const daysToMonday = (8 - weekday) % 7 || 7;
+                    return startOfDay + daysToMonday * day;
+                }
+
+                const duration = count * ({
+                    s: 1000,
+                    m: 60 * 1000,
+                    h: 60 * 60 * 1000,
+                    d: 24 * 60 * 60 * 1000
+                })[unit];
+                return (Math.floor(now / duration) + 1) * duration;
+            }
+
+            function updateCountdown() {
+                const secondsLeft = Math.max(0, Math.ceil((nextCandleTime() - Date.now()) / 1000));
+                const hours = Math.floor(secondsLeft / 3600);
+                const minutes = Math.floor((secondsLeft % 3600) / 60);
+                const seconds = secondsLeft % 60;
+                countdownElement.textContent = hours > 0
+                    ? `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+                    : `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+            }
+
+            function updateOhlc(candle) {
+                if (!candle) return;
+                const rising = candle[4] >= candle[1];
+                ohlcElements.symbol.textContent = state.symbol;
+                ohlcElements.open.textContent = formatPrice(candle[1]);
+                ohlcElements.high.textContent = formatPrice(candle[2]);
+                ohlcElements.low.textContent = formatPrice(candle[3]);
+                ohlcElements.close.textContent = formatPrice(candle[4]);
+                ohlcElements.close.dataset.value = rising ? "up" : "down";
+                canvas.setAttribute("aria-label", `${state.symbol} үнийн график`);
+            }
+
+            function parseCandles(rows) {
+                if (!Array.isArray(rows)) throw new Error("Биржээс буруу өгөгдөл ирлээ.");
+                return rows.map(row => {
+                    const candle = [0, 1, 2, 3, 4, 5].map(index => Number(row[index]));
+                    if (candle.length !== 6 || !candle.every(Number.isFinite)) {
+                        throw new Error("Лааны өгөгдөл дутуу эсвэл буруу байна.");
+                    }
+                    return candle;
+                });
+            }
+
+            function endpoint(limit) {
+                const base = state.market === "futures"
+                    ? "https://fapi.binance.com/fapi/v1/klines"
+                    : "https://api.binance.com/api/v3/klines";
+                const params = new URLSearchParams({
+                    symbol: state.symbol,
+                    interval: state.interval,
+                    limit: String(limit)
+                });
+                return `${base}?${params}`;
+            }
+
+            function renderSymbolSuggestions(symbols) {
+                const options = document.createDocumentFragment();
+                symbols.forEach(symbol => {
+                    const option = document.createElement("option");
+                    option.value = symbol;
+                    options.append(option);
+                });
+                symbolSuggestions.replaceChildren(options);
+                symbolsStatus.textContent = `${symbols.length.toLocaleString()} хослол`;
+            }
+
+            async function loadSymbolSuggestions() {
+                const market = marketInput.value;
+                const requestId = ++state.symbolsRequestId;
+                state.symbolsController?.abort();
+                state.symbolsController = null;
+                const cached = symbolsCache.get(market);
+                if (cached) {
+                    renderSymbolSuggestions(cached);
+                    return;
+                }
+
+                const controller = new AbortController();
+                state.symbolsController = controller;
+                symbolsStatus.textContent = "Хослолын жагсаалт...";
+
+                const url = market === "futures"
+                    ? "https://fapi.binance.com/fapi/v1/exchangeInfo"
+                    : "https://api.binance.com/api/v3/exchangeInfo";
+
+                try {
+                    const response = await fetch(url, { cache: "force-cache", signal: controller.signal });
+                    const data = await response.json();
+                    if (!response.ok) {
+                        throw new Error(data?.msg || `Биржийн хүсэлт амжилтгүй (HTTP ${response.status}).`);
+                    }
+                    if (!Array.isArray(data.symbols)) throw new Error("Биржийн хослолын жагсаалт буруу байна.");
+
+                    const symbols = data.symbols
+                        .filter(item => item.status === "TRADING" && item.quoteAsset === "USDT" &&
+                            (market !== "futures" || item.contractType === "PERPETUAL"))
+                        .map(item => item.symbol)
+                        .sort();
+                    if (!symbols.length) throw new Error("Арилжааны хослолын жагсаалт хоосон байна.");
+                    if (requestId !== state.symbolsRequestId) return;
+
+                    symbolsCache.set(market, symbols);
+                    renderSymbolSuggestions(symbols);
+                } catch (error) {
+                    if (error.name === "AbortError" || requestId !== state.symbolsRequestId) return;
+                    symbolsStatus.textContent = "Хослолын санал авах боломжгүй";
+                    console.error("[CHART SYMBOLS ERROR]", error);
+                } finally {
+                    if (requestId === state.symbolsRequestId) state.symbolsController = null;
+                }
+            }
+
+            function calculateEma(values, period) {
+                if (!values.length) return [];
+                const multiplier = 2 / (period + 1);
+                const result = [values[0]];
+                for (let index = 1; index < values.length; index++) {
+                    result.push(values[index] * multiplier + result[index - 1] * (1 - multiplier));
+                }
+                return result;
+            }
+
+            function calculateSma(values, period) {
+                const result = new Array(values.length).fill(null);
+                let sum = 0;
+                for (let index = 0; index < values.length; index++) {
+                    sum += values[index];
+                    if (index >= period) sum -= values[index - period];
+                    if (index >= period - 1) result[index] = sum / period;
+                }
+                return result;
+            }
+
+            function calculateIndicators() {
+                const closes = state.candles.map(candle => candle[4]);
+                if (!closes.length) {
+                    state.indicators = { macd: [], signal: [], histogram: [], rsi: [], ema1: [], ema2: [], ma1: [], ma2: [] };
+                    return;
+                }
+
+                const {
+                    fast, slow, signal: signalPeriod, rsi: rsiPeriod,
+                    ema1: ema1Period, ema2: ema2Period, ma1: ma1Period, ma2: ma2Period
+                } = state.periods;
+                const fastEma = calculateEma(closes, fast);
+                const slowEma = calculateEma(closes, slow);
+                const ema1 = calculateEma(closes, ema1Period);
+                const ema2 = calculateEma(closes, ema2Period);
+                const ma1 = calculateSma(closes, ma1Period);
+                const ma2 = calculateSma(closes, ma2Period);
+                const macd = fastEma.map((value, index) => value - slowEma[index]);
+                const signal = calculateEma(macd, signalPeriod);
+                const rsi = new Array(closes.length).fill(50);
+
+                if (closes.length > rsiPeriod) {
+                    let gains = 0;
+                    let losses = 0;
+                    for (let index = 1; index <= rsiPeriod; index++) {
+                        const change = closes[index] - closes[index - 1];
+                        gains += Math.max(change, 0);
+                        losses += Math.max(-change, 0);
+                    }
+
+                    let averageGain = gains / rsiPeriod;
+                    let averageLoss = losses / rsiPeriod;
+                    const toRsi = () => averageLoss === 0
+                        ? (averageGain === 0 ? 50 : 100)
+                        : 100 - 100 / (1 + averageGain / averageLoss);
+                    rsi[rsiPeriod] = toRsi();
+
+                    for (let index = rsiPeriod + 1; index < closes.length; index++) {
+                        const change = closes[index] - closes[index - 1];
+                        averageGain = (averageGain * (rsiPeriod - 1) + Math.max(change, 0)) / rsiPeriod;
+                        averageLoss = (averageLoss * (rsiPeriod - 1) + Math.max(-change, 0)) / rsiPeriod;
+                        rsi[index] = toRsi();
+                    }
+                }
+
+                state.indicators = {
+                    macd,
+                    signal,
+                    histogram: macd.map((value, index) => value - signal[index]),
+                    rsi,
+                    ema1,
+                    ema2,
+                    ma1,
+                    ma2
+                };
+            }
+
+            async function loadHistory(resetView = true) {
+                const symbol = symbolInput.value.trim().toUpperCase();
+                if (!/^[A-Z0-9]{2,20}$/.test(symbol)) {
+                    setStatus("Арилжааны хослолын нэр буруу байна.", "error");
+                    symbolInput.focus();
+                    return;
+                }
+
+                const chartChanged = symbol !== state.symbol ||
+                    marketInput.value !== state.market ||
+                    intervalInput.value !== state.interval;
+                state.symbol = symbol;
+                state.market = marketInput.value;
+                state.interval = intervalInput.value;
+                symbolInput.value = symbol;
+
+                if (chartChanged) {
+                    state.candles = [];
+                    calculateIndicators();
+                    draw();
+                }
+
+                if (resetView) {
+                    state.visible = 100;
+                    state.offset = 0;
+                    state.priceScale = 1;
+                    state.priceShift = 0;
+                }
+
+                const requestId = ++state.requestId;
+                state.controller?.abort();
+                const controller = new AbortController();
+                state.controller = controller;
+                state.loading = true;
+                reloadButton.disabled = true;
+                setStatus(`${state.symbol} · ${state.market} · ${state.interval} ачаалж байна...`);
+
+                try {
+                    const response = await fetch(endpoint(HISTORY_LIMIT), {
+                        cache: "no-store",
+                        signal: controller.signal
+                    });
+                    const payload = await response.json();
+                    if (!response.ok) {
+                        throw new Error(payload?.msg || `Биржийн хүсэлт амжилтгүй (HTTP ${response.status}).`);
+                    }
+
+                    const candles = parseCandles(payload);
+                    if (!candles.length) throw new Error("Энэ хослолд лааны өгөгдөл олдсонгүй.");
+                    if (requestId !== state.requestId) return;
+
+                    state.candles = candles.slice(-HISTORY_LIMIT);
+                    state.offset = Math.min(state.offset, Math.max(0, state.candles.length - state.visible));
+                    calculateIndicators();
+                    updateOhlc(state.candles[state.candles.length - 1]);
+                    setStatus(`${state.symbol} · ${state.market} · ${state.interval} · ${state.candles.length} лаа`, "live");
+                    draw();
+                } catch (error) {
+                    if (error.name === "AbortError" || requestId !== state.requestId) return;
+                    setStatus(`График ачаалж чадсангүй: ${error.message}`, "error");
+                    draw();
+                } finally {
+                    if (requestId === state.requestId) {
+                        state.loading = false;
+                        state.controller = null;
+                        reloadButton.disabled = false;
+                    }
+                }
+            }
+
+            async function pollLatest() {
+                if (state.loading || document.hidden || !state.candles.length) return;
+                const requestId = state.requestId;
+                const controller = new AbortController();
+                state.controller = controller;
+                state.loading = true;
+
+                try {
+                    const response = await fetch(endpoint(2), {
+                        cache: "no-store",
+                        signal: controller.signal
+                    });
+                    const payload = await response.json();
+                    if (!response.ok) {
+                        throw new Error(payload?.msg || `HTTP ${response.status}`);
+                    }
+                    const updates = parseCandles(payload);
+                    if (requestId !== state.requestId || !updates.length) return;
+
+                    const lastTime = state.candles[state.candles.length - 1][0];
+                    const added = updates.filter(candle => candle[0] > lastTime).length;
+                    const merged = new Map(state.candles.map(candle => [candle[0], candle]));
+                    updates.forEach(candle => merged.set(candle[0], candle));
+                    state.candles = Array.from(merged.values()).sort((a, b) => a[0] - b[0]).slice(-HISTORY_LIMIT);
+                    calculateIndicators();
+                    if (state.offset > 0 && added) {
+                        state.offset = Math.min(state.offset + added, Math.max(0, state.candles.length - state.visible));
+                    }
+
+                    if (state.offset === 0) {
+                        updateOhlc(state.candles[state.candles.length - 1]);
+                        setStatus(`${state.symbol} · ${state.market} · ${state.interval} · шинэчлэгдсэн ${new Date().toLocaleTimeString("mn-MN")}`, "live");
+                    }
+                    draw();
+                } catch (error) {
+                    if (error.name !== "AbortError" && requestId === state.requestId) {
+                        setStatus(`Шинэчлэхэд алдаа гарлаа: ${error.message}`, "error");
+                    }
+                } finally {
+                    if (requestId === state.requestId) {
+                        state.loading = false;
+                        state.controller = null;
+                    }
+                }
+            }
+
+            function drawMacdPanel(start, candles, plotLeft, plotWidth, top, height, barWidth, hoverIndex) {
+                const macd = state.indicators.macd.slice(start, start + candles.length);
+                const signal = state.indicators.signal.slice(start, start + candles.length);
+                const histogram = state.indicators.histogram.slice(start, start + candles.length);
+                const values = [...macd, ...signal, ...histogram, 0];
+                let min = Math.min(...values);
+                let max = Math.max(...values);
+                if (max === min) {
+                    min += 1;
+                    max -= 1;
+                }
+                const innerTop = top + 16;
+                const innerHeight = Math.max(1, height - 20);
+                const valueToY = value => innerTop + (max - value) / (max - min) * innerHeight;
+                const zeroY = valueToY(0);
+
+                ctx.strokeStyle = "#26303d";
+                ctx.beginPath();
+                ctx.moveTo(plotLeft, top);
+                ctx.lineTo(plotLeft + plotWidth, top);
+                ctx.stroke();
+                ctx.fillStyle = "#7e8da0";
+                ctx.font = "10px Inter, Arial, sans-serif";
+                ctx.textAlign = "left";
+                ctx.textBaseline = "top";
+                ctx.fillText(`MACD (${state.periods.fast}, ${state.periods.slow}, ${state.periods.signal})`, plotLeft + 5, top + 3);
+
+                ctx.strokeStyle = "#26303d";
+                ctx.beginPath();
+                ctx.moveTo(plotLeft, zeroY);
+                ctx.lineTo(plotLeft + plotWidth, zeroY);
+                ctx.stroke();
+                histogram.forEach((value, index) => {
+                    const x = plotLeft + (index + 0.5) * barWidth;
+                    ctx.fillStyle = value >= 0 ? "rgba(38, 201, 139, .72)" : "rgba(240, 93, 104, .72)";
+                    ctx.fillRect(x - Math.max(1, barWidth * 0.32), Math.min(zeroY, valueToY(value)),
+                        Math.max(1, barWidth * 0.64), Math.max(1, Math.abs(valueToY(value) - zeroY)));
+                });
+
+                [[macd, "#40b8f5"], [signal, "#f5a64a"]].forEach(([series, color]) => {
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 1.4;
+                    ctx.beginPath();
+                    series.forEach((value, index) => {
+                        const x = plotLeft + (index + 0.5) * barWidth;
+                        const y = valueToY(value);
+                        if (index === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    });
+                    ctx.stroke();
+                });
+
+                if (hoverIndex !== null) {
+                    const localIndex = hoverIndex - start;
+                    if (localIndex >= 0 && localIndex < macd.length) {
+                        ctx.fillStyle = "#40b8f5";
+                        ctx.fillText(`MACD ${macd[localIndex].toFixed(6)}   Signal ${signal[localIndex].toFixed(6)}`,
+                            plotLeft + 130, top + 3);
+                    }
+                }
+            }
+
+            function drawRsiPanel(start, candles, plotLeft, plotWidth, top, height, barWidth, hoverIndex) {
+                const rsi = state.indicators.rsi.slice(start, start + candles.length);
+                const innerTop = top + 16;
+                const innerHeight = Math.max(1, height - 20);
+                const valueToY = value => innerTop + (100 - value) / 100 * innerHeight;
+
+                ctx.strokeStyle = "#26303d";
+                ctx.beginPath();
+                ctx.moveTo(plotLeft, top);
+                ctx.lineTo(plotLeft + plotWidth, top);
+                ctx.stroke();
+                ctx.fillStyle = "#7e8da0";
+                ctx.font = "10px Inter, Arial, sans-serif";
+                ctx.textAlign = "left";
+                ctx.textBaseline = "top";
+                ctx.fillText(`RSI (${state.periods.rsi})`, plotLeft + 5, top + 3);
+
+                [70, 30].forEach(level => {
+                    const y = valueToY(level);
+                    ctx.setLineDash([3, 4]);
+                    ctx.strokeStyle = "#303b49";
+                    ctx.beginPath();
+                    ctx.moveTo(plotLeft, y);
+                    ctx.lineTo(plotLeft + plotWidth, y);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.fillStyle = "#7e8da0";
+                    ctx.textAlign = "left";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(String(level), plotLeft + plotWidth + 8, y);
+                });
+
+                ctx.strokeStyle = "#b679e5";
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                rsi.forEach((value, index) => {
+                    const x = plotLeft + (index + 0.5) * barWidth;
+                    const y = valueToY(value);
+                    if (index === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+
+                if (hoverIndex !== null) {
+                    const localIndex = hoverIndex - start;
+                    if (localIndex >= 0 && localIndex < rsi.length) {
+                        ctx.fillStyle = "#b679e5";
+                        ctx.textAlign = "left";
+                        ctx.textBaseline = "top";
+                        ctx.fillText(`RSI ${rsi[localIndex].toFixed(2)}`, plotLeft + 100, top + 3);
+                    }
+                }
+            }
+
+            function drawVolumeSelection(selection, candles, plotLeft, plotTop, plotWidth, mainHeight, barWidth) {
+                const selectedIndices = [];
+                candles.forEach((candle, index) => {
+                    if (candle[0] >= selection.startTime && candle[0] <= selection.endTime) {
+                        selectedIndices.push(index);
+                    }
+                });
+                if (!selectedIndices.length) return;
+
+                const left = plotLeft + selectedIndices[0] * barWidth;
+                const right = plotLeft + (selectedIndices[selectedIndices.length - 1] + 1) * barWidth;
+                ctx.save();
+                ctx.fillStyle = "rgba(197, 160, 89, .08)";
+                ctx.fillRect(left, plotTop, right - left, mainHeight);
+                ctx.setLineDash([4, 4]);
+                ctx.strokeStyle = "rgba(197, 160, 89, .65)";
+                [left, right].forEach(x => {
+                    ctx.beginPath();
+                    ctx.moveTo(x, plotTop);
+                    ctx.lineTo(x, plotTop + mainHeight);
+                    ctx.stroke();
+                });
+                ctx.setLineDash([]);
+                ctx.restore();
+            }
+
+            function drawVolumeProfile(profile, priceToY, plotLeft, plotTop, plotWidth, mainHeight) {
+                const maxVolume = Math.max(...profile.bins);
+                if (!maxVolume) return;
+
+                const binSize = (profile.maxPrice - profile.minPrice) / profile.bins.length;
+                const maxBarWidth = Math.min(150, plotWidth * 0.32);
+                const right = plotLeft + plotWidth;
+                ctx.save();
+                ctx.beginPath();
+                ctx.rect(plotLeft, plotTop, plotWidth, mainHeight);
+                ctx.clip();
+
+                profile.bins.forEach((volume, index) => {
+                    if (!volume) return;
+                    const binLow = profile.minPrice + index * binSize;
+                    const binHigh = binLow + binSize;
+                    const top = Math.max(plotTop, priceToY(binHigh));
+                    const bottom = Math.min(plotTop + mainHeight, priceToY(binLow));
+                    if (bottom <= top) return;
+
+                    const width = maxBarWidth * volume / maxVolume;
+                    ctx.fillStyle = index === profile.pocIndex
+                        ? "rgba(197, 160, 89, .78)"
+                        : "rgba(90, 160, 195, .38)";
+                    ctx.fillRect(right - width, top, width, Math.max(1, bottom - top - 0.5));
+                });
+
+                const pocPrice = profile.minPrice + (profile.pocIndex + 0.5) * binSize;
+                const pocY = priceToY(pocPrice);
+                ctx.setLineDash([3, 3]);
+                ctx.strokeStyle = "rgba(255, 213, 128, .9)";
+                ctx.beginPath();
+                ctx.moveTo(Math.max(plotLeft, right - maxBarWidth), pocY);
+                ctx.lineTo(right, pocY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.restore();
+            }
+
+            function draw() {
+                const bounds = canvas.getBoundingClientRect();
+                if (!bounds.width || !bounds.height) return;
+
+                const ratio = window.devicePixelRatio || 1;
+                const width = Math.round(bounds.width * ratio);
+                const height = Math.round(bounds.height * ratio);
+                if (canvas.width !== width || canvas.height !== height) {
+                    canvas.width = width;
+                    canvas.height = height;
+                }
+                ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+                ctx.clearRect(0, 0, bounds.width, bounds.height);
+                ctx.fillStyle = "#080b10";
+                ctx.fillRect(0, 0, bounds.width, bounds.height);
+
+                if (!state.candles.length) {
+                    ctx.fillStyle = "#758397";
+                    ctx.font = "13px Inter, Arial, sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.fillText("Лааны өгөгдөл хүлээж байна", bounds.width / 2, bounds.height / 2);
+                    return;
+                }
+
+                const plotLeft = LEFT;
+                const plotTop = TOP;
+                const plotWidth = Math.max(1, bounds.width - LEFT - RIGHT);
+                const availableHeight = Math.max(1, bounds.height - TOP - BOTTOM);
+                const showMacd = showMacdInput.checked;
+                const showRsi = showRsiInput.checked;
+                const panelGap = 9;
+                let mainHeight = availableHeight;
+                let macdTop = null;
+                let macdHeight = 0;
+                let rsiTop = null;
+                let rsiHeight = 0;
+                const indicatorCount = Number(showMacd) + Number(showRsi);
+
+                if (indicatorCount === 2) {
+                    mainHeight = availableHeight * 0.62;
+                    const indicatorHeight = (availableHeight - mainHeight - panelGap * 2) / 2;
+                    macdTop = plotTop + mainHeight + panelGap;
+                    macdHeight = indicatorHeight;
+                    rsiTop = macdTop + macdHeight + panelGap;
+                    rsiHeight = indicatorHeight;
+                } else if (indicatorCount === 1) {
+                    mainHeight = availableHeight * 0.72;
+                    const indicatorHeight = availableHeight - mainHeight - panelGap;
+                    if (showMacd) {
+                        macdTop = plotTop + mainHeight + panelGap;
+                        macdHeight = indicatorHeight;
+                    } else {
+                        rsiTop = plotTop + mainHeight + panelGap;
+                        rsiHeight = indicatorHeight;
+                    }
+                }
+
+                const plotBottom = plotTop + availableHeight;
+                const end = state.candles.length - state.offset;
+                const start = Math.max(0, end - state.visible);
+                const candles = state.candles.slice(start, end);
+                if (!candles.length) return;
+
+                const barWidth = plotWidth / candles.length;
+                const rangePrices = candles.flatMap(candle => [candle[2], candle[3]]);
+                if (showEma1Input.checked) rangePrices.push(...state.indicators.ema1.slice(start, end).filter(Number.isFinite));
+                if (showEma2Input.checked) rangePrices.push(...state.indicators.ema2.slice(start, end).filter(Number.isFinite));
+                if (showMa1Input.checked) rangePrices.push(...state.indicators.ma1.slice(start, end).filter(Number.isFinite));
+                if (showMa2Input.checked) rangePrices.push(...state.indicators.ma2.slice(start, end).filter(Number.isFinite));
+                let minPrice = Math.min(...rangePrices);
+                let maxPrice = Math.max(...rangePrices);
+                if (maxPrice === minPrice) {
+                    const padding = Math.max(maxPrice * 0.001, 0.001);
+                    maxPrice += padding;
+                    minPrice -= padding;
+                }
+                const baseMidpoint = (maxPrice + minPrice) / 2;
+                const baseRange = (maxPrice - minPrice) * 1.1;
+                const midpoint = baseMidpoint + state.priceShift;
+                const halfRange = baseRange * 0.5 * state.priceScale;
+                maxPrice = midpoint + halfRange;
+                minPrice = midpoint - halfRange;
+                const priceToY = price => plotTop + ((maxPrice - price) / (maxPrice - minPrice)) * mainHeight;
+
+                state.layout = {
+                    plotLeft, plotTop, plotWidth, mainHeight, plotBottom, barWidth, start, candles,
+                    minPrice, maxPrice, baseMidpoint, baseRange
+                };
+
+                ctx.font = "10px Inter, Arial, sans-serif";
+                ctx.textAlign = "left";
+                ctx.textBaseline = "middle";
+                for (let tick = 0; tick <= 6; tick++) {
+                    const price = maxPrice - (maxPrice - minPrice) * tick / 6;
+                    const y = plotTop + mainHeight * tick / 6;
+                    ctx.strokeStyle = "#17202b";
+                    ctx.beginPath();
+                    ctx.moveTo(plotLeft, y);
+                    ctx.lineTo(plotLeft + plotWidth, y);
+                    ctx.stroke();
+                    ctx.fillStyle = "#8795a7";
+                    ctx.fillText(formatPrice(price), plotLeft + plotWidth + 5, y);
+                }
+
+                const tickCount = Math.max(2, Math.floor(plotWidth / 125));
+                const tickStep = Math.max(1, Math.ceil(candles.length / tickCount));
+                const chartBottom = rsiTop !== null ? rsiTop + rsiHeight :
+                    macdTop !== null ? macdTop + macdHeight : plotTop + mainHeight;
+                for (let index = 0; index < candles.length; index += tickStep) {
+                    const x = plotLeft + (index + 0.5) * barWidth;
+                    ctx.strokeStyle = "#111923";
+                    ctx.beginPath();
+                    ctx.moveTo(x, plotTop);
+                    ctx.lineTo(x, chartBottom);
+                    ctx.stroke();
+                    ctx.fillStyle = "#8795a7";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "top";
+                    ctx.fillText(formatTime(candles[index][0]), x, plotBottom + 5);
+                }
+
+                candles.forEach((candle, index) => {
+                    const [, open, high, low, close] = candle;
+                    const x = plotLeft + (index + 0.5) * barWidth;
+                    const openY = priceToY(open);
+                    const closeY = priceToY(close);
+                    const color = close >= open ? "#26c98b" : "#f05d68";
+                    ctx.strokeStyle = color;
+                    ctx.fillStyle = color;
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(x, priceToY(high));
+                    ctx.lineTo(x, priceToY(low));
+                    ctx.stroke();
+                    const bodyWidth = Math.max(0.5, barWidth - Math.min(1.2, barWidth * 0.12));
+                    ctx.fillRect(x - bodyWidth / 2, Math.min(openY, closeY), bodyWidth, Math.max(1, Math.abs(closeY - openY)));
+                });
+
+                const drawAverage = (values, color) => {
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 1.6;
+                    ctx.beginPath();
+                    let drawing = false;
+                    values.slice(start, start + candles.length).forEach((value, index) => {
+                        if (!Number.isFinite(value)) {
+                            drawing = false;
+                            return;
+                        }
+                        const x = plotLeft + (index + 0.5) * barWidth;
+                        const y = priceToY(value);
+                        if (drawing) ctx.lineTo(x, y);
+                        else ctx.moveTo(x, y);
+                        drawing = true;
+                    });
+                    ctx.stroke();
+                };
+                if (showEma1Input.checked) drawAverage(state.indicators.ema1, "#f0b90b");
+                if (showEma2Input.checked) drawAverage(state.indicators.ema2, "#38bdf8");
+                if (showMa1Input.checked) drawAverage(state.indicators.ma1, "#f472b6");
+                if (showMa2Input.checked) drawAverage(state.indicators.ma2, "#a3e635");
+
+                if (state.volumeSelection) {
+                    drawVolumeSelection(
+                        state.volumeSelection,
+                        candles,
+                        plotLeft,
+                        plotTop,
+                        plotWidth,
+                        mainHeight,
+                        barWidth
+                    );
+                }
+
+                if (state.showVolumeProfile) {
+                    const selection = state.drag?.mode === "volumeProfile"
+                        ? state.drag.selection
+                        : state.volumeSelection;
+                    if (selection) {
+                        const profile = calculateVolumeProfile(selection);
+                        if (profile) {
+                            drawVolumeProfile(profile, priceToY, plotLeft, plotTop, plotWidth, mainHeight);
+                        }
+                    }
+                }
+
+                const latest = candles[candles.length - 1][4];
+                const latestY = priceToY(latest);
+                ctx.setLineDash([4, 4]);
+                ctx.strokeStyle = "#c5a059";
+                ctx.beginPath();
+                ctx.moveTo(plotLeft, latestY);
+                ctx.lineTo(plotLeft + plotWidth, latestY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.fillStyle = "#c5a059";
+                ctx.textAlign = "left";
+                ctx.font = "9px Inter, Arial, sans-serif";
+                ctx.fillRect(plotLeft + plotWidth + 2, latestY - 9, RIGHT - 4, 18);
+                ctx.fillStyle = "#080b10";
+                ctx.textBaseline = "middle";
+                ctx.fillText(formatPrice(latest), plotLeft + plotWidth + 5, latestY);
+
+                const hover = state.hover;
+                const insideChart = hover && hover.y >= plotTop && hover.y <= chartBottom;
+                const insidePricePanel = insideChart && hover.y <= plotTop + mainHeight;
+                const insidePlotX = hover && hover.x >= plotLeft && hover.x <= plotLeft + plotWidth;
+                const hoverIndex = insideChart && insidePlotX
+                ? start + Math.min(candles.length - 1, Math.max(0, Math.floor((hover.x - plotLeft) / barWidth)))
+                : null;
+
+                if (showMacd) drawMacdPanel(start, candles, plotLeft, plotWidth, macdTop, macdHeight, barWidth, hoverIndex);
+                if (showRsi) drawRsiPanel(start, candles, plotLeft, plotWidth, rsiTop, rsiHeight, barWidth, hoverIndex);
+
+                if (insideChart && (insidePlotX || hover.x > plotLeft + plotWidth)) {
+                ctx.setLineDash([3, 4]);
+                ctx.strokeStyle = "rgba(214, 225, 238, .5)";
+                ctx.beginPath();
+                if (insidePlotX) {
+                    const crossX = plotLeft + (hoverIndex - start + 0.5) * barWidth;
+                    ctx.moveTo(crossX, plotTop);
+                    ctx.lineTo(crossX, chartBottom);
+                }
+                ctx.moveTo(plotLeft, hover.y);
+                ctx.lineTo(plotLeft + plotWidth, hover.y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                if (insidePricePanel) {
+                    const crossPrice = maxPrice - ((hover.y - plotTop) / mainHeight) * (maxPrice - minPrice);
+                    ctx.fillStyle = "#252014";
+                    ctx.fillRect(plotLeft + plotWidth + 2, hover.y - 10, RIGHT - 4, 20);
+                    ctx.strokeStyle = "#c5a059";
+                    ctx.strokeRect(plotLeft + plotWidth + 2, hover.y - 10, RIGHT - 4, 20);
+                    ctx.fillStyle = "#f1d58f";
+                    ctx.textAlign = "left";
+                    ctx.textBaseline = "middle";
+                    ctx.font = "9px Inter, Arial, sans-serif";
+                    ctx.fillText(formatPrice(crossPrice), plotLeft + plotWidth + 5, hover.y);
+                } else if (hoverIndex !== null) {
+                    const activeMacd = state.indicators.macd[hoverIndex];
+                    const activeSignal = state.indicators.signal[hoverIndex];
+                    const activeRsi = state.indicators.rsi[hoverIndex];
+                    if (showMacd && Number.isFinite(activeMacd)) {
+                        ctx.fillStyle = "#40b8f5";
+                        ctx.textAlign = "left";
+                        ctx.textBaseline = "top";
+                        ctx.fillText(`MACD ${activeMacd.toFixed(6)} · Signal ${activeSignal.toFixed(6)}`,
+                            plotLeft + 5, macdTop + 3);
+                    }
+                    if (showRsi && Number.isFinite(activeRsi)) {
+                        ctx.fillStyle = "#b679e5";
+                        ctx.textAlign = "left";
+                        ctx.textBaseline = "top";
+                        ctx.fillText(`RSI ${activeRsi.toFixed(2)}`, plotLeft + 5, rsiTop + 3);
+                    }
+                }
+
+                if (hoverIndex !== null) {
+                    const candle = state.candles[hoverIndex];
+                    updateOhlc(candle);
+                    const label = formatCrosshairTime(candle[0]);
+                    const labelWidth = Math.min(152, plotWidth);
+                    const crossX = plotLeft + (hoverIndex - start + 0.5) * barWidth;
+                    const labelX = Math.max(plotLeft, Math.min(crossX - labelWidth / 2, plotLeft + plotWidth - labelWidth));
+                    const labelY = Math.min(bounds.height - 22, plotBottom + 3);
+                    ctx.fillStyle = "#151d28";
+                    ctx.fillRect(labelX, labelY, labelWidth, 18);
+                    ctx.strokeStyle = "#384658";
+                    ctx.strokeRect(labelX, labelY, labelWidth, 18);
+                    ctx.fillStyle = "#d5deea";
+                    ctx.font = "10px Inter, Arial, sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(label, labelX + labelWidth / 2, labelY + 9);
+                } else if (insidePricePanel) {
+                    updateOhlc(state.candles[state.candles.length - 1]);
+                }
+                } else {
+                updateOhlc(state.candles[state.candles.length - 1]);
+                }
+            }
+
+            function onPointerDown(event) {
+                if (!state.layout) return;
+                const rect = canvas.getBoundingClientRect();
+                const x = event.clientX - rect.left;
+                const y = event.clientY - rect.top;
+                const { plotLeft, plotTop, plotWidth, mainHeight, plotBottom, barWidth } = state.layout;
+                const insideChart = y >= plotTop && y <= plotBottom;
+                const onPriceScale = x > plotLeft + plotWidth && y >= plotTop && y <= plotTop + mainHeight;
+                if (!insideChart || (!onPriceScale && (x < plotLeft || x > plotLeft + plotWidth))) return;
+
+                if (state.showVolumeProfile) {
+                    if (state.volumeSelection) return;
+                    if (x < plotLeft || x > plotLeft + plotWidth || y > plotTop + mainHeight) return;
+                    const index = state.layout.start +
+                        Math.min(state.layout.candles.length - 1, Math.max(0,
+                            Math.floor((x - plotLeft) / barWidth)));
+                    const candleTime = state.candles[index]?.[0];
+                    if (!candleTime) return;
+                    state.drag = {
+                        mode: "volumeProfile",
+                        startTime: candleTime,
+                        selection: {
+                            startTime: candleTime,
+                            endTime: candleTime
+                        }
+                    };
+                    state.volumeSelection = state.drag.selection;
+                    canvas.setPointerCapture(event.pointerId);
+                    canvas.style.cursor = "crosshair";
+                    updateVolumeProfileStatus();
+                    draw();
+                    return;
+                }
+
+                state.drag = {
+                    mode: onPriceScale ? "price" : "pan",
+                    x,
+                    y,
+                    offset: state.offset,
+                    priceShift: state.priceShift,
+                    priceScale: state.priceScale,
+                    barWidth,
+                    plotHeight: mainHeight,
+                    baseMidpoint: state.layout.baseMidpoint,
+                    baseRange: state.layout.baseRange,
+                    anchorRatio: Math.max(0, Math.min(1, (y - plotTop) / mainHeight)),
+                    anchorPrice: state.layout.maxPrice -
+                        ((y - plotTop) / mainHeight) * (state.layout.maxPrice - state.layout.minPrice),
+                    visibleCandles: state.layout.candles
+                };
+                canvas.setPointerCapture(event.pointerId);
+                canvas.style.cursor = "grabbing";
+            }
+
+            function onPointerMove(event) {
+                const rect = canvas.getBoundingClientRect();
+                const x = event.clientX - rect.left;
+                const y = event.clientY - rect.top;
+                state.hover = { x, y };
+
+                if (state.drag) {
+                    if (state.drag.mode === "volumeProfile") {
+                        const { plotLeft, plotWidth, barWidth, start, candles } = state.layout;
+                        const localIndex = Math.min(candles.length - 1, Math.max(0,
+                            Math.floor((x - plotLeft) / barWidth)));
+                        const candleTime = state.candles[start + localIndex]?.[0];
+                        if (candleTime) {
+                            state.drag.selection = {
+                                startTime: Math.min(state.drag.startTime, candleTime),
+                                endTime: Math.max(state.drag.startTime, candleTime)
+                            };
+                            state.volumeSelection = state.drag.selection;
+                            updateVolumeProfileStatus();
+                        }
+                    } else if (state.drag.mode === "pan") {
+                        const move = Math.round((x - state.drag.x) / state.drag.barWidth);
+                        state.offset = Math.max(0, Math.min(
+                            state.candles.length - state.visible,
+                            state.drag.offset + move
+                        ));
+                    } else {
+                        const scale = Math.max(0.5, Math.min(6,
+                            state.drag.priceScale * Math.exp((y - state.drag.y) * 0.005)
+                        ));
+                        state.priceScale = scale;
+                        const range = state.drag.baseRange * scale;
+                        const midpoint = state.drag.anchorPrice +
+                            (state.drag.anchorRatio - 0.5) * range;
+                        state.priceShift = midpoint - state.drag.baseMidpoint;
+                    }
+                }
+                draw();
+            }
+
+            function endDrag(event) {
+                state.drag = null;
+                if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+                canvas.style.cursor = state.hover?.x > canvas.clientWidth - RIGHT ? "ns-resize" : "crosshair";
+                updateVolumeProfileStatus();
+                draw();
+            }
+
+            canvas.addEventListener("pointerdown", onPointerDown);
+            canvas.addEventListener("pointermove", onPointerMove);
+            canvas.addEventListener("pointerup", endDrag);
+            canvas.addEventListener("pointercancel", endDrag);
+            canvas.addEventListener("pointerleave", () => {
+                if (!state.drag) {
+                    state.hover = null;
+                    draw();
+                }
             });
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.error || `HTTP ${response.status}`);
-            if (!Array.isArray(result.states) || result.states.length !== klines.length) {
-                throw new Error("Invalid Iceberg strategy response");
+            canvas.addEventListener("wheel", event => {
+                if (!state.candles.length) return;
+                event.preventDefault();
+                state.visible = Math.max(MIN_VISIBLE, Math.min(
+                    MAX_VISIBLE,
+                    state.visible + (event.deltaY > 0 ? 15 : -15)
+                ));
+                state.offset = Math.min(state.offset, Math.max(0, state.candles.length - state.visible));
+                draw();
+            }, { passive: false });
+            canvas.addEventListener("dblclick", () => {
+                state.visible = 100;
+                state.offset = 0;
+                state.priceScale = 1;
+                state.priceShift = 0;
+                draw();
+            });
+
+            showVolumeProfileInput.addEventListener("change", () => {
+                state.showVolumeProfile = showVolumeProfileInput.checked;
+                if (!state.showVolumeProfile) state.volumeSelection = null;
+                canvas.style.cursor = state.showVolumeProfile ? "crosshair" : "crosshair";
+                updateVolumeProfileStatus();
+                draw();
+            });
+            showMacdInput.addEventListener("change", draw);
+            showRsiInput.addEventListener("change", draw);
+            showEma1Input.addEventListener("change", draw);
+            showEma2Input.addEventListener("change", draw);
+            showMa1Input.addEventListener("change", draw);
+            showMa2Input.addEventListener("change", draw);
+            tradeActionButtons.forEach(button => {
+                button.addEventListener("click", () => {
+                    selectedTradeAction = button.dataset.action;
+                    tradeActionButtons.forEach(actionButton => {
+                        const selected = actionButton === button;
+                        actionButton.dataset.active = String(selected);
+                        actionButton.setAttribute("aria-pressed", String(selected));
+                    });
+                    updateTradeSettings();
+                });
+            });
+            tradeSideInput.addEventListener("change", updateTradeSettings);
+            [balanceInput, marginInput, leverageInput].forEach(input => {
+                input.addEventListener("input", updateTradeSettings);
+            });
+            updateTradeSettings();
+
+            applyIndicatorsButton.addEventListener("click", () => {
+                const periods = Object.fromEntries(
+                    Object.entries(indicatorInputs).map(([name, input]) => [name, Number(input.value)])
+                );
+                if (!Object.values(periods).every(period => Number.isInteger(period) && period >= 1 && period <= 500) ||
+                    periods.fast >= periods.slow) {
+                    setStatus("Indicator-ийн үе 1–500 байх ба MACD Fast нь Slow-оос бага байх ёстой.", "error");
+                    return;
+                }
+                state.periods = periods;
+                calculateIndicators();
+                draw();
+                setStatus(`${state.symbol} · ${state.market} · ${state.interval} · indicator шинэчлэгдлээ`, "live");
+            });
+
+            marketInput.addEventListener("change", () => {
+                loadSymbolSuggestions();
+                loadHistory();
+            });
+            intervalInput.addEventListener("change", () => loadHistory());
+            symbolInput.addEventListener("change", () => loadHistory());
+            symbolInput.addEventListener("keydown", event => {
+                if (event.key === "Enter") loadHistory();
+            });
+            reloadButton.addEventListener("click", () => loadHistory(false));
+
+            if ("ResizeObserver" in window) {
+                new ResizeObserver(draw).observe(canvas.parentElement);
+            } else {
+                window.addEventListener("resize", draw);
             }
 
-            if (icebergRequestKey === key) {
-                window.icebergCandleStates = result.states;
-                icebergStateKey = key;
-            }
-        } catch (error) {
-            console.error("[ICEBERG STRATEGY ERROR]", error);
-            if (icebergRequestKey === key) {
-                window.icebergCandleStates = [];
-                icebergStateKey = null;
-            }
-        } finally {
-            if (icebergRequestPromise === request) {
-                icebergRequestPromise = null;
-                icebergRequestKey = null;
-            }
-        }
-    })();
-    icebergRequestPromise = request;
-    return request;
- }
-
- window.refreshChartIndicators = async function () {
-    try {
-        await window.refreshIndicatorArrays();
-        if (typeof window.redrawChart === "function") window.redrawChart();
-    } catch (error) {
-        console.error("[INDICATOR UPDATE ERROR]", error);
-    }
- };
-
- let updateTimer=null;
- const triggerAutoUpdate=()=>{
-  clearTimeout(updateTimer);
-  updateTimer=setTimeout(async()=>{
-   offset=0;visibleCount=500;priceScale=1;priceOffset=0;
-   await fetchCandles();
-  },150);
- };
-
- if(marketEl) marketEl.addEventListener("change",async ()=>{
-     await loadExchangeSymbols();
-     triggerAutoUpdate();
- });
- if(intervalEl) intervalEl.addEventListener("change",triggerAutoUpdate);
- if(coinEl){
-  coinEl.addEventListener("change",triggerAutoUpdate);
-  coinEl.addEventListener("keydown",e=>{if(e.key==="Enter")triggerAutoUpdate()});
- }
-
- loadExchangeSymbols().then(async symbols => {
-     await selectTopGainer(symbols);
-     startCountdown(60);
-     fetchCandles();
- });
-
- canvas.addEventListener("mousemove",e=>{
-  const rect=canvas.getBoundingClientRect();
-  mouse.x=e.clientX-rect.left;
-  mouse.y=e.clientY-rect.top;
-
-  if(draggingPrice){
-   const dy=e.clientY-lastY;
-   lastY=e.clientY;
-   priceScale=Math.max(0.1,Math.min(priceScale*(1+dy*0.005),10));
-   draw();
-   return;
-  }
-
-  if(dragging){
-   const dx=e.clientX-lastX;
-   const cw=(canvas.width-PAD*4-PSW)/visibleCount;
-   const move=Math.trunc(dx/cw);
-   if(move!==0){
-    offset=Math.max(0,Math.min(window.allData.length-visibleCount,offset+move));
-    lastX+=move*cw;
-   }
-   const dy=e.clientY-lastY;
-   if(lastChartHeight>0)priceOffset+=dy*(lastPriceRange/lastChartHeight);
-   lastY=e.clientY;
-  }
-
-  canvas.style.cursor=mouse.x>canvas.width-PAD-PSW?"ns-resize":dragging?"grabbing":"crosshair";
-  draw();
- });
-
- canvas.addEventListener("mousedown",e=>{
-  if(mouse.x>canvas.width-PAD-PSW){
-   draggingPrice=true;
-   lastY=e.clientY;
-  }else{
-   dragging=true;
-   lastX=e.clientX;
-   lastY=e.clientY;
-  }
- });
-
- canvas.addEventListener("mouseup",()=>{dragging=draggingPrice=false});
- canvas.addEventListener("mouseleave",()=>{
-  dragging=draggingPrice=false;
-  mouse.x=null;
-  draw();
- });
- canvas.addEventListener("dblclick",()=>{priceScale=1;priceOffset=0;draw()});
- canvas.addEventListener("wheel",e=>{
-  e.preventDefault();
-  const zoomStep=30;
-  visibleCount=Math.max(minVisible,Math.min(maxVisible,visibleCount+(e.deltaY>0?zoomStep:-zoomStep)));
-  offset=Math.max(0,Math.min(offset,Math.max(0,window.allData.length-visibleCount)));
-  draw();
- },{passive:false});
-});
-
-function drawWindowButtons(ctx,topY,chartWidth,padding,maxRef,normRef,minRef){
- const btnY=topY+4;
- const minX=padding+chartWidth-10-14,normX=minX-18,maxX=normX-18;
- window[maxRef]=maxX;window[normRef]=normX;window[minRef]=minX;
-
- ctx.fillStyle="#131822";
- [maxX,normX,minX].forEach(x=>ctx.fillRect(x,btnY,14,14));
-
- ctx.fillStyle="#7d8a9c";
- ctx.font="9px Inter, sans-serif";
- ctx.textAlign="center";
- ctx.textBaseline="middle";
- ctx.fillText("▲",maxX+7,btnY+7);
- ctx.fillText("■",normX+7,btnY+7);
- ctx.fillText("▼",minX+7,btnY+7);
- ctx.textAlign="left";
- ctx.textBaseline="top";
-}
-
-function drawMACD(ctx,data,macdArray,signalArray,histArray,padding,chartWidth,chartHeight,candleWidth,mouseObj,mainChartHeight,macdRatio){
- if(!macdArray||!macdArray.length)return;
-
- const macdTop=padding+mainChartHeight+20;
- window._macdTop=macdTop;
- const macdHeight=chartHeight*macdRatio-15;
-
- const startIdx=(window._chartStartIndex??0)+(macdArray.length-window.allData.length);
- const at=(arr,idx)=>idx>=0&&idx<arr.length?Number(arr[idx])||0:0;
-
- const vis=[];
- data.forEach((d,i)=>{
-  const idx=startIdx+i;
-  if(idx>=0&&idx<macdArray.length)vis.push(at(macdArray,idx),at(signalArray,idx),at(histArray,idx));
- });
-
- let maxM=Math.max(...vis,0),minM=Math.min(...vis,0);
- if(maxM===minM){maxM=1;minM=-1}
-
- const macdToY=v=>macdTop+macdHeight-((v-minM)/(maxM-minM))*macdHeight;
-
- ctx.strokeStyle="#131822";
- ctx.lineWidth=1;
- ctx.beginPath();ctx.moveTo(padding,macdTop);ctx.lineTo(padding+chartWidth,macdTop);ctx.stroke();
-
- if(window.macdMode!=='min'){
-  const yZero=macdToY(0);
-  data.forEach((d,i)=>{
-   const h=at(histArray,startIdx+i),yVal=macdToY(h);
-   ctx.fillStyle=h>=0?"#00c853":"#ff3d57";
-   ctx.fillRect(padding+i*candleWidth+candleWidth*0.1,Math.min(yZero,yVal),candleWidth*0.8,Math.max(1,Math.abs(yZero-yVal)));
-  });
-
-  [[macdArray,"#29b6f6"],[signalArray,"#ffa726"]].forEach(([arr,color])=>{
-   ctx.strokeStyle=color;
-   ctx.lineWidth=1.5;
-   ctx.beginPath();
-   data.forEach((d,i)=>{
-    const x=padding+i*candleWidth+candleWidth/2,y=macdToY(at(arr,startIdx+i));
-    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
-   });
-   ctx.stroke();
-  });
- }
-
- const g=startIdx+activeIndex(mouseObj,padding,chartWidth,candleWidth,data.length);
- if(g>=0&&g<macdArray.length){
-  const m=Number(macdArray[g]||0).toFixed(6);
-  const s=Number(signalArray[g]||0).toFixed(6);
-  const h=Number(histArray[g]||0).toFixed(6);
-  drawLabels(ctx,padding+10,macdTop+6,[
-   ["MACD:",m,"#29b6f6"],
-   ["Sig:",s,"#ffa726"],
-   ["Hist:",h,Number(h)>=0?"#00c853":"#ff3d57"]
-  ]);
- }
-
- drawWindowButtons(ctx,macdTop,chartWidth,padding,'_btnMaxX','_btnNormX','_btnMinX');
-}
-
-function drawRSI(ctx,data,rsiArray,padding,chartWidth,chartHeight,candleWidth,mouseObj,mainChartHeight,macdRatio,rsiRatio){
- if(!rsiArray||!rsiArray.length)return;
-
- const startIdx=(window._chartStartIndex??0)+(rsiArray.length-window.allData.length);
- const rsiTop=padding+mainChartHeight+chartHeight*macdRatio+25;
- window._rsiTop=rsiTop;
- const rsiHeight=chartHeight*rsiRatio-20;
- const rsiToY=v=>rsiTop+rsiHeight-(v/100)*rsiHeight;
-
- ctx.strokeStyle="#131822";
- ctx.lineWidth=1;
- ctx.beginPath();ctx.moveTo(padding,rsiTop);ctx.lineTo(padding+chartWidth,rsiTop);ctx.stroke();
-
- if(window.rsiMode!=='min'){
-  ctx.setLineDash([3,3]);
-  ctx.strokeStyle="#1f2a38";
-  [70,30].forEach(lv=>{
-   const y=rsiToY(lv);
-   ctx.beginPath();ctx.moveTo(padding,y);ctx.lineTo(padding+chartWidth,y);ctx.stroke();
-  });
-  ctx.setLineDash([]);
-
-  ctx.strokeStyle="#ab47bc";
-  ctx.lineWidth=1.5;
-  ctx.beginPath();
-  data.forEach((d,i)=>{
-   const idx=startIdx+i;
-   const x=padding+i*candleWidth+candleWidth/2;
-   const v=idx>=0&&idx<rsiArray.length&&rsiArray[idx]!==undefined?rsiArray[idx]:50;
-   const y=rsiToY(v);
-   i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
-  });
-  ctx.stroke();
- }
-
- const g=startIdx+activeIndex(mouseObj,padding,chartWidth,candleWidth,data.length);
- if(g>=0&&g<rsiArray.length&&rsiArray[g]!==undefined)
-  drawLabels(ctx,padding+10,rsiTop+6,[["RSI:",Number(rsiArray[g]).toFixed(2),"#ab47bc"]]);
-
- drawWindowButtons(ctx,rsiTop,chartWidth,padding,'_btnRsiMaxX','_btnRsiNormX','_btnRsiMinX');
-}
-
-let countdownTimer=null;
-let remainingSeconds=60;
-let countdownTotalSeconds=60;
-
-function updateCountdownDisplay(sec) {
-    const el = document.getElementById("candleCountdown");
-    if (!el) return;
-    const m = Math.floor(sec / 60);
-    const s = sec % 60;
-    el.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-}
-
-function startCountdown(totalSeconds) {
-    countdownTotalSeconds = totalSeconds > 0 ? totalSeconds : 60;
-    remainingSeconds = countdownTotalSeconds - (Math.floor(Date.now() / 1000) % countdownTotalSeconds);
-    if (remainingSeconds <= 0) remainingSeconds = countdownTotalSeconds;
-    updateCountdownDisplay(remainingSeconds);
-
-    if (countdownTimer) clearInterval(countdownTimer);
-    countdownTimer = setInterval(() => {
-        remainingSeconds--;
-        if (remainingSeconds <= 0) remainingSeconds = countdownTotalSeconds;
-        updateCountdownDisplay(remainingSeconds);
-    }, 1000);
-}
-
-function startLivePolling(symbol, intervalVal, marketType) {
-    let totalSec = 60;
-    if (intervalVal.endsWith('s')) totalSec = parseInt(intervalVal, 10);
-    else if (intervalVal.endsWith('m')) totalSec = parseInt(intervalVal, 10) * 60;
-    else if (intervalVal.endsWith('h')) totalSec = parseInt(intervalVal, 10) * 3600;
-    else if (intervalVal.endsWith('d')) totalSec = parseInt(intervalVal, 10) * 86400;
-
-    startCountdown(totalSec);
-
-    if (window._livePollingTimer) clearInterval(window._livePollingTimer);
-
-    window._livePollingTimer = setInterval(async () => {
-        if (window._livePollingInFlight) return;
-        window._livePollingInFlight = true;
-        try {
-            let url = marketType === "futures"
-                ? `https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=${intervalVal}&limit=1000`
-                : `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${intervalVal}&limit=1000`;
-
-            const res = await fetch(url);
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-            const data = await res.json();
-            if (!Array.isArray(data) || !data.length) return;
-
-            window.allData = data.map(d => [Number(d[0]), Number(d[1]), Number(d[2]), Number(d[3]), Number(d[4]), Number(d[5])]);
-            await window.refreshIndicatorArrays();
-
-            if (typeof window.redrawChart === 'function') window.redrawChart();
-            dispatchChartUpdate();
-        } catch(e) {
-            console.error("[LIVE POLLING ERROR]", e);
-        } finally {
-            window._livePollingInFlight = false;
-        }
-    }, 2000);
-}
-</script>
+            loadSymbolSuggestions();
+            loadHistory();
+            window.setInterval(pollLatest, LIVE_POLL_MS);
+            updateCountdown();
+            window.setInterval(updateCountdown, 1000);
+        })();
+    </script>
+    <script src="/static/js/footer.js"></script>
 </body>
 </html>
