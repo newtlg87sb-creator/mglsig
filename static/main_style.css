@@ -1,5 +1,24 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-body { font-family: 'Inter', sans-serif; background-color: #05070a; color: #ffffff; }
+body {
+    position: relative;
+    isolation: isolate;
+    font-family: 'Inter', sans-serif;
+    background-color: #0f172a;
+    background-image: linear-gradient(160deg, #0f172a 0%, #1e293b 33.333%, #475569 66.667%, #94a3b8 100%);
+    background-attachment: fixed;
+    color: #ffffff;
+}
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 1;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+}
 .hero-bg {
     background: linear-gradient(rgba(5, 7, 10, 0.3), rgba(5, 7, 10, 0.95)), url('/static/images/bull2.jpg');
     background-size: cover; background-position: center; background-repeat: no-repeat;
@@ -555,4 +574,34 @@ main > div > .text-center.mb-16:not(.grid) > .w-12,
 main > div > header.text-center.mb-16 > .w-20.h-1,
 main > div > header.text-center.mb-16 > .w-12 {
     display: none !important;
+}
+
+:is(
+    .signal-card,
+    .data-card,
+    .rate-monitor,
+    .rate-card,
+    [class*="bg-brand-dark-blue"][class*="rounded-xl"],
+    [class*="bg-brand-dark-blue"][class*="rounded-2xl"],
+    [class*="bg-brand-dark-blue"][class*="rounded-3xl"]
+) {
+    background-color: rgba(9, 9, 11, 0.75) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    border-radius: 1.5rem !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7) !important;
+    -webkit-backdrop-filter: blur(40px);
+    backdrop-filter: blur(40px);
+}
+
+:is(
+    .signal-card,
+    .data-card,
+    .rate-monitor,
+    .rate-card,
+    [class*="bg-brand-dark-blue"][class*="rounded-xl"],
+    [class*="bg-brand-dark-blue"][class*="rounded-2xl"],
+    [class*="bg-brand-dark-blue"][class*="rounded-3xl"]
+):hover {
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7) !important;
 }
