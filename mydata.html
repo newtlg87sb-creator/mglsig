@@ -66,6 +66,18 @@
                     <option value="1d">1d</option>
                 </select>
             </label>
+            <label>Fast
+                <input id="mydata-fast" name="fast" type="number" value="12" min="1" max="500" style="width:72px">
+            </label>
+            <label>Slow
+                <input id="mydata-slow" name="slow" type="number" value="26" min="1" max="500" style="width:72px">
+            </label>
+            <label>Signal
+                <input id="mydata-signal" name="signal" type="number" value="9" min="1" max="500" style="width:72px">
+            </label>
+            <label>RSI Period
+                <input id="mydata-rsi-period" name="rsiPeriod" type="number" value="7" min="1" max="500" style="width:78px">
+            </label>
             <button type="submit">JSON авах</button>
         </form>
         <div id="mydata-message" role="status" aria-live="polite"></div>

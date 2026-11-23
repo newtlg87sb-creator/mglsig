@@ -104,10 +104,91 @@
                 <option value="1w">1w</option>
                 <option value="1M">1M</option>
             </select>
+            <button id="reload" type="button" aria-label="Шинэчлэх" title="Шинэчлэх">↻</button>
+        </section>
+
+        <section id="indicator-settings" class="indicator-settings" aria-label="Индикаторын тохиргоо" hidden>
+            <label class="indicator-toggle" title="Идэвхжүүлээд график дээр эхлэлээс төгсгөл хүртэл чирнэ">
+                <input id="showVolumeProfile" type="checkbox" aria-label="Volume Profile"> VP
+            </label>
+            <span class="toolbar-divider" aria-hidden="true"></span>
+            <label class="indicator-toggle" title="MACD үзүүлэлт">
+                <input id="showMACD" type="checkbox" checked> MACD
+            </label>
+            <label class="indicator-period" title="MACD Fast">
+                F <input id="macdFast" type="number" min="1" max="500" value="12" aria-label="MACD Fast">
+            </label>
+            <label class="indicator-period" title="MACD Slow">
+                S <input id="macdSlow" type="number" min="2" max="500" value="26" aria-label="MACD Slow">
+            </label>
+            <label class="indicator-period" title="MACD Signal">
+                Sig <input id="macdSignal" type="number" min="1" max="500" value="9" aria-label="MACD Signal">
+            </label>
+            <label class="indicator-toggle" title="RSI үзүүлэлт">
+                <input id="showRSI" type="checkbox" checked> RSI
+            </label>
             <label class="indicator-period" title="RSI Period">
                 P <input id="rsiPeriod" type="number" min="1" max="500" value="14" aria-label="RSI Period">
             </label>
-            <button id="reload" type="button" aria-label="Шинэчлэх" title="Шинэчлэх">↻</button>
+            <label class="indicator-toggle" title="EMA 1 үзүүлэлт">
+                <input id="showEMA1" type="checkbox" checked>
+                <span style="color:#f0b90b">EMA 1</span>
+            </label>
+            <label class="indicator-period" title="EMA 1 Period">
+                P <input id="emaPeriod1" type="number" min="1" max="500" value="20" aria-label="EMA 1 Period">
+            </label>
+            <label class="indicator-toggle" title="EMA 2 үзүүлэлт">
+                <input id="showEMA2" type="checkbox" checked>
+                <span style="color:#38bdf8">EMA 2</span>
+            </label>
+            <label class="indicator-period" title="EMA 2 Period">
+                P <input id="emaPeriod2" type="number" min="1" max="500" value="50" aria-label="EMA 2 Period">
+            </label>
+            <label class="indicator-toggle" title="Moving Average 1 үзүүлэлт">
+                <input id="showMA1" type="checkbox" checked>
+                <span style="color:#f472b6">MA 1</span>
+            </label>
+            <label class="indicator-period" title="Moving Average 1 Period">
+                P <input id="maPeriod1" type="number" min="1" max="500" value="20" aria-label="Moving Average 1 Period">
+            </label>
+            <label class="indicator-toggle" title="Moving Average 2 үзүүлэлт">
+                <input id="showMA2" type="checkbox" checked>
+                <span style="color:#a3e635">MA 2</span>
+            </label>
+            <label class="indicator-period" title="Moving Average 2 Period">
+                P <input id="maPeriod2" type="number" min="1" max="500" value="50" aria-label="Moving Average 2 Period">
+            </label>
+            <div class="indicator-apply-wrap">
+                <button id="applyIndicators" type="button" aria-label="Үзүүлэлт хэрэглэх" title="Үзүүлэлт хэрэглэх">✓</button>
+            </div>
+        </section>
+
+        <section id="trade-settings" class="trade-settings" aria-label="Арилжааны тохиргоо">
+            <div class="trade-actions" role="group" aria-label="Арилжааны чиглэл">
+                <button class="trade-action" type="button" data-action="buy" aria-pressed="false">BUY</button>
+                <button class="trade-action" type="button" data-action="sell" aria-pressed="false">SELL</button>
+                <button class="trade-action" type="button" data-action="long" aria-pressed="false">LONG</button>
+                <button class="trade-action" type="button" data-action="short" aria-pressed="false">SHORT</button>
+            </div>
+            <label class="trade-field" for="trade-side">Side
+                <select id="trade-side">
+                    <option value="long">Long</option>
+                    <option value="short">Short</option>
+                    <option value="both">Long + Short</option>
+                </select>
+            </label>
+            <label class="trade-field" for="account-balance">Balance
+                <input id="account-balance" type="number" min="0" step="any" inputmode="decimal" placeholder="0.00" aria-label="Account balance in USDT">
+                <span>USDT</span>
+            </label>
+            <label class="trade-field" for="trade-margin">Margin
+                <input id="trade-margin" type="number" min="0" step="any" inputmode="decimal" placeholder="0.00" aria-label="Trade margin in USDT">
+                <span>USDT</span>
+            </label>
+            <label class="trade-field" for="trade-leverage">Leverage
+                <input id="trade-leverage" class="trade-leverage-input" type="number" min="1" max="125" step="1" placeholder="1" aria-label="Leverage">
+                <span>x</span>
+            </label>
         </section>
 
         <div class="status-row" aria-label="Графикийн төлөв">
@@ -128,6 +209,10 @@
                 <div class="chart-panel-toggles" role="group" aria-label="Тохиргооны хэсгүүд">
                     <button class="chart-panel-toggle" id="toggle-chart-settings" type="button"
                         aria-controls="chart-settings" aria-expanded="true">Chart Set</button>
+                    <button class="chart-panel-toggle indicator-set-toggle" id="toggle-indicator-settings" type="button"
+                        aria-controls="indicator-settings" aria-expanded="false">Indicator Set</button>
+                    <button class="chart-panel-toggle" id="toggle-trade-settings" type="button"
+                        aria-controls="trade-settings" aria-expanded="true">Trade Set</button>
                 </div>
             </div>
             <canvas id="chart" role="img" aria-label="BTCUSDT үнийн график"></canvas>
@@ -138,7 +223,12 @@
     <script src="/static/js/market.js"></script>
     <script src="/static/js/ticker.js"></script>
     <script src="/static/js/interval.js"></script>
-    <script src="/static/js/chart1.js"></script>
+    <script src="/static/js/vp.js"></script>
+    <script src="/static/js/macd.js"></script>
+    <script src="/static/js/rsi.js"></script>
+    <script src="/static/js/ema.js"></script>
+    <script src="/static/js/ma.js"></script>
+    <script src="/static/js/chart.js"></script>
     <script src="/static/js/footer.js"></script>
 </body>
 </html>
