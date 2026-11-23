@@ -170,6 +170,73 @@
             const isPositive = d.is_positive;
             const isNegative = d.is_negative;
 
+            const macd = d.macd || {};
+            const rsi = d.rsi || {};
+            const ohlc = d.ohlc || {};
+            const ch = rsi.cross_history || {};
+
+            // --- RSI VALUES & CROSS ---
+            const rsi0 = rsi.rsi0;
+            const rsi1 = rsi.rsi1;
+            const rsi2 = rsi.rsi2;
+            const rsi3 = rsi.rsi3;
+            const rsi30Up = rsi["30_up"];
+            const rsi70Up = rsi["70_up"];
+            const rsi30Down = rsi["30_down"];
+            const rsi70Down = rsi["70_down"];
+
+            // --- RSI CROSS HISTORY ---
+            const s30u = ch.s30u;
+            const s30uTime = ch.s30u_time;
+            const s30uPrev = ch.s30u_prev;
+            const s30uPrevTime = ch.s30u_prev_time;
+            const s30d = ch.s30d;
+            const s30dTime = ch.s30d_time;
+            const s30dPrev = ch.s30d_prev;
+            const s30dPrevTime = ch.s30d_prev_time;
+            const s70u = ch.s70u;
+            const s70uTime = ch.s70u_time;
+            const s70uPrev = ch.s70u_prev;
+            const s70uPrevTime = ch.s70u_prev_time;
+            const s70d = ch.s70d;
+            const s70dTime = ch.s70d_time;
+            const s70dPrev = ch.s70d_prev;
+            const s70dPrevTime = ch.s70d_prev_time;
+
+            // --- RSI STATUS, TREND & AVERAGE ---
+            const lastStatus = rsi.last_status;
+            const lastStatusTime = rsi.last_status_time;
+            const rsiTrend = rsi.trend;
+            const averageStatus = rsi.average_status;
+
+            // --- OHLC TRACKER ---
+            const candleOpen0 = ohlc.candle_open_0;
+            const candleHigh0 = ohlc.candle_high_0;
+            const candleLow0 = ohlc.candle_low_0;
+            const candleClose0 = ohlc.candle_close_0;
+            const candleOpen1 = ohlc.candle_open_1;
+            const candleHigh1 = ohlc.candle_high_1;
+            const candleLow1 = ohlc.candle_low_1;
+            const candleClose1 = ohlc.candle_close_1;
+            const candleOpen2 = ohlc.candle_open_2;
+            const candleHigh2 = ohlc.candle_high_2;
+            const candleLow2 = ohlc.candle_low_2;
+            const candleClose2 = ohlc.candle_close_2;
+            const candleOpen3 = ohlc.candle_open_3;
+            const candleHigh3 = ohlc.candle_high_3;
+            const candleLow3 = ohlc.candle_low_3;
+            const candleClose3 = ohlc.candle_close_3;
+            const minOpen = ohlc.min_open;
+            const maxOpen = ohlc.max_open;
+            const minClose = ohlc.min_close;
+            const maxClose = ohlc.max_close;
+            const maxHigh = ohlc.max_high;
+            const minLow = ohlc.min_low;
+            const openup = ohlc.openup;
+            const opendown = ohlc.opendown;
+            const openupLimit = ohlc.openup_limit;
+            const opendownLimit = ohlc.opendown_limit;
+
             // === ЯГ ЭНДЭЭС ЭХЛЭЭД ӨӨРИЙН НӨХЦӨЛ / ЛОГИКОО БИЧНЭ ===
             //if (d.last_status === "30U") {
             // энд өөрийн кодоо бичнэ
