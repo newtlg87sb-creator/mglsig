@@ -1,1084 +1,2244 @@
 <!DOCTYPE html>
 <html lang="mn">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Flow Footprint | MGL Signal</title>
-    <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: { brand: { 'dark': '#05070a', 'dark-blue': '#0f1217', 'gold': '#c5a059', 'border': '#1f242d' } },
-                    fontFamily: { 'inter': ['Inter', 'sans-serif'] }
-                }
-            }
-        }
-    </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/static/main_style.css">
-    <style>
-        :root {
-            color-scheme: dark;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Order Flow · Footprint · MGL Signal</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2305070a'/%3E%3Crect x='7' y='9' width='4' height='14' rx='1' fill='%2326c98b'/%3E%3Crect x='14' y='6' width='4' height='20' rx='1' fill='%23c5a059'/%3E%3Crect x='21' y='12' width='4' height='11' rx='1' fill='%23f05d68'/%3E%3C/svg%3E">
+<style>
+/* ============================================================
+   ORDER FLOW — design tokens
+   ============================================================ */
+:root{
+  --bg:#05070a;
+  --bg-2:#080b10;
+  --panel:#0b1017;
+  --panel-2:#0f141c;
+  --panel-3:#121924;
+  --border:#1f242d;
+  --border-2:#2a3544;
+  --border-3:#36445a;
+  --text:#e9eff7;
+  --text-2:#c3cedd;
+  --muted:#8d9aad;
+  --dim:#6b7a8d;
+  --faint:#4a5768;
+  --gold:#c5a059;
+  --gold-2:#e0c48a;
+  --green:#26c98b;
+  --green-2:#3ddc97;
+  --red:#f05d68;
+  --red-2:#ff6b78;
+  --blue:#4a9eff;
+  --violet:#9b7bff;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif;
+  --r:10px;
+  --shadow:0 1px 0 rgba(255,255,255,.03) inset, 0 8px 24px -12px rgba(0,0,0,.9);
+}
 
-        .orderflow-page {
-            width: 100%;
-            padding: 72px 16px 20px;
-        }
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:
+    radial-gradient(1200px 600px at 15% -10%, rgba(197,160,89,.055), transparent 60%),
+    radial-gradient(900px 500px at 95% 0%, rgba(74,158,255,.045), transparent 55%),
+    var(--bg);
+  color:var(--text);
+  font-family:var(--sans);
+  font-size:14px;
+  line-height:1.45;
+  min-height:100vh;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+}
+img,canvas,svg{display:block;max-width:100%}
+button,select,input{font:inherit;color:inherit}
+::selection{background:rgba(197,160,89,.28)}
 
-        .orderflow-shell {
-            display: flex;
-            flex-direction: column;
-            width: min(100%, 1600px);
-            margin: 0 auto;
-            gap: 14px;
-        }
+/* scrollbars */
+*::-webkit-scrollbar{width:8px;height:8px}
+*::-webkit-scrollbar-track{background:transparent}
+*::-webkit-scrollbar-thumb{background:#243040;border-radius:4px}
+*::-webkit-scrollbar-thumb:hover{background:var(--gold)}
 
-        .orderflow-topbar {
-            display: flex;
-            flex-direction: column;
-        }
+/* ============================================================
+   shell
+   ============================================================ */
+.shell{
+  width:100%;
+  max-width:1680px;
+  margin:0 auto;
+  padding:18px 18px 28px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
 
-        .orderflow-heading h1 {
-            margin: 0;
-            color: #e6edf5;
-            font-size: clamp(20px, 2.5vw, 28px);
-            font-weight: 700;
-            letter-spacing: -.025em;
-            line-height: 1.2;
-            text-transform: none;
-        }
+/* ---------- header ---------- */
+.head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  flex-wrap:wrap;
+  padding-bottom:2px;
+}
+.head h1{
+  margin:0;
+  font-size:clamp(19px,2.2vw,26px);
+  font-weight:700;
+  letter-spacing:-.02em;
+  line-height:1.15;
+  color:var(--text);
+}
+.head h1 em{
+  font-style:normal;
+  color:var(--gold);
+  font-weight:600;
+}
+.head p{
+  margin:5px 0 0;
+  max-width:70ch;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.5;
+}
+.head-badges{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  height:26px;
+  padding:0 10px;
+  border:1px solid var(--border-2);
+  border-radius:999px;
+  background:var(--panel-2);
+  color:var(--text-2);
+  font-size:10.5px;
+  font-weight:600;
+  letter-spacing:.03em;
+  white-space:nowrap;
+}
+.badge i{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--dim);
+  flex:0 0 6px;
+}
+.badge[data-state="connected"]{border-color:rgba(38,201,139,.4);color:var(--green-2)}
+.badge[data-state="connected"] i{background:var(--green-2);box-shadow:0 0 0 3px rgba(38,201,139,.16)}
+.badge[data-state="connecting"]{border-color:rgba(197,160,89,.4);color:var(--gold-2)}
+.badge[data-state="connecting"] i{background:var(--gold);animation:pulse 1.4s ease-in-out infinite}
+.badge[data-state="error"],.badge[data-state="disconnected"]{border-color:rgba(240,93,104,.4);color:var(--red-2)}
+.badge[data-state="error"] i,.badge[data-state="disconnected"] i{background:var(--red-2)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+.badge.src{font-family:var(--mono);font-size:10px;letter-spacing:0}
 
-        .orderflow-heading h1 span {
-            color: #c5a059;
-            font-style: normal;
-        }
+/* ---------- controls ---------- */
+.controls{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(132px,1fr));
+  gap:10px;
+  padding:11px 12px;
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  box-shadow:var(--shadow);
+}
+.ctrl{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  min-width:0;
+}
+.ctrl > span{
+  color:var(--dim);
+  font-size:9.5px;
+  font-weight:700;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+}
+.ctrl select,.ctrl input{
+  width:100%;
+  min-width:0;
+  height:32px;
+  padding:0 9px;
+  border:1px solid var(--border-2);
+  border-radius:6px;
+  background:var(--bg-2);
+  color:var(--text);
+  font-size:12px;
+  font-family:var(--mono);
+  outline:none;
+  transition:border-color .14s,box-shadow .14s;
+  appearance:none;
+  -webkit-appearance:none;
+}
+.ctrl select{
+  background-image:linear-gradient(45deg,transparent 50%,var(--dim) 50%),linear-gradient(135deg,var(--dim) 50%,transparent 50%);
+  background-position:calc(100% - 14px) 14px,calc(100% - 9px) 14px;
+  background-size:5px 5px,5px 5px;
+  background-repeat:no-repeat;
+  padding-right:26px;
+}
+.ctrl select:focus,.ctrl input:focus{
+  border-color:var(--gold);
+  box-shadow:0 0 0 3px rgba(197,160,89,.13);
+}
+.ctrl-actions{
+  display:flex;
+  align-items:flex-end;
+  gap:6px;
+}
+.btn{
+  height:32px;
+  min-width:34px;
+  padding:0 10px;
+  border:1px solid var(--border-2);
+  border-radius:6px;
+  background:var(--bg-2);
+  color:var(--text-2);
+  font-size:11px;
+  font-weight:600;
+  cursor:pointer;
+  transition:border-color .14s,color .14s,background .14s;
+  white-space:nowrap;
+}
+.btn:hover{border-color:var(--gold);color:var(--gold-2);background:rgba(197,160,89,.07)}
+.btn:active{transform:translateY(1px)}
+.btn[aria-pressed="true"]{border-color:var(--gold);color:var(--gold-2);background:rgba(197,160,89,.12)}
 
-        .orderflow-heading p {
-            margin: 6px 0 0;
-            color: #8d9aad;
-            font-size: 12px;
-            line-height: 1.5;
-        }
+/* ---------- KPI cards ---------- */
+.kpis{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(148px,1fr));
+  gap:10px;
+}
+.kpi{
+  position:relative;
+  min-width:0;
+  padding:11px 13px 12px;
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  box-shadow:var(--shadow);
+  overflow:hidden;
+  transition:border-color .16s;
+}
+.kpi::after{
+  content:"";
+  position:absolute;
+  inset:0 auto 0 0;
+  width:2px;
+  background:var(--border-2);
+  transition:background .16s;
+}
+.kpi:hover{border-color:var(--border-3)}
+.kpi[data-tone="up"]::after{background:var(--green)}
+.kpi[data-tone="down"]::after{background:var(--red)}
+.kpi[data-tone="gold"]::after{background:var(--gold)}
+.kpi[data-tone="blue"]::after{background:var(--blue)}
+.kpi .k-label{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  margin-bottom:7px;
+  color:var(--dim);
+  font-size:9.5px;
+  font-weight:700;
+  letter-spacing:.085em;
+  text-transform:uppercase;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.kpi .k-value{
+  font-family:var(--mono);
+  font-size:clamp(15px,1.55vw,19px);
+  font-weight:600;
+  letter-spacing:-.01em;
+  line-height:1.15;
+  color:var(--text);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font-variant-numeric:tabular-nums;
+}
+.kpi .k-value.up{color:var(--green-2)}
+.kpi .k-value.down{color:var(--red-2)}
+.kpi .k-value.gold{color:var(--gold-2)}
+.kpi .k-sub{
+  margin-top:5px;
+  color:var(--faint);
+  font-size:9.5px;
+  line-height:1.35;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.kpi .k-bar{
+  position:relative;
+  height:3px;
+  margin-top:8px;
+  border-radius:2px;
+  background:rgba(255,255,255,.055);
+  overflow:hidden;
+}
+.kpi .k-bar > i{
+  position:absolute;
+  inset:0 auto 0 0;
+  width:0%;
+  border-radius:2px;
+  background:var(--green);
+  transition:width .3s ease;
+}
 
-        .orderflow-guide {
-            display: grid;
-            grid-template-columns: minmax(150px, .7fr) minmax(0, 2fr);
-            gap: 10px 18px;
-            align-items: start;
-            padding: 12px 14px;
-            border: 1px solid #222b38;
-            border-radius: 9px;
-            background: #0c1118;
-        }
+/* ---------- panels ---------- */
+.panel{
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+.panel-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+  padding:10px 13px;
+  border-bottom:1px solid var(--border);
+  background:rgba(255,255,255,.012);
+}
+.panel-head h2{
+  margin:0;
+  color:var(--text-2);
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.075em;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+.panel-head .ph-right{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  font-family:var(--mono);
+  font-size:10.5px;
+  color:var(--muted);
+}
+.panel-body{padding:0;min-width:0}
+.panel-foot{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+  padding:7px 13px;
+  border-top:1px solid var(--border);
+  color:var(--faint);
+  font-size:10px;
+}
+.panel-foot b{color:var(--gold-2);font-family:var(--mono);font-weight:600}
 
-        .orderflow-guide-title {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #e6edf5;
-            font-size: 12px;
-            font-weight: 650;
-        }
+/* legend */
+.legend{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  flex-wrap:wrap;
+  font-size:9.5px;
+  color:var(--dim);
+}
+.legend span{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.legend i{width:8px;height:8px;border-radius:2px;flex:0 0 8px}
+.legend i.g{background:var(--green)}
+.legend i.r{background:var(--red)}
+.legend i.gd{background:var(--gold)}
+.legend i.b{background:var(--blue)}
+.legend i.v{background:var(--violet)}
 
-        .orderflow-guide-title i {
-            color: #c5a059;
-        }
+/* ---------- layout grids ---------- */
+.main-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 336px;
+  gap:12px;
+  align-items:stretch;
+}
+.lower-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);
+  gap:12px;
+  align-items:stretch;
+}
 
-        .orderflow-guide-items {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 8px 14px;
-        }
+/* ---------- footprint ---------- */
+.fp-wrap{
+  position:relative;
+  width:100%;
+  min-width:0;
+  padding:0;
+}
+#fpCanvas{
+  width:100%;
+  height:clamp(430px,60vh,620px);
+  cursor:crosshair;
+  touch-action:pan-y;
+}
+.fp-tip{
+  position:absolute;
+  z-index:30;
+  min-width:150px;
+  max-width:250px;
+  padding:8px 10px;
+  border:1px solid var(--border-3);
+  border-radius:7px;
+  background:rgba(8,11,16,.97);
+  box-shadow:0 12px 32px -8px rgba(0,0,0,.95);
+  color:var(--text-2);
+  font-family:var(--mono);
+  font-size:10.5px;
+  line-height:1.55;
+  pointer-events:none;
+  opacity:0;
+  transform:translateY(3px);
+  transition:opacity .1s,transform .1s;
+  backdrop-filter:blur(6px);
+}
+.fp-tip.on{opacity:1;transform:translateY(0)}
+.fp-tip .t-h{
+  margin-bottom:5px;
+  padding-bottom:5px;
+  border-bottom:1px solid var(--border-2);
+  color:var(--gold-2);
+  font-weight:700;
+  font-size:10px;
+  letter-spacing:.05em;
+}
+.fp-tip .t-r{display:flex;justify-content:space-between;gap:12px}
+.fp-tip .t-r span:first-child{color:var(--dim)}
+.fp-tip .t-r b{font-weight:600;color:var(--text)}
+.fp-tip .t-r b.up{color:var(--green-2)}
+.fp-tip .t-r b.down{color:var(--red-2)}
 
-        .orderflow-guide-items p {
-            margin: 0;
-            color: #a7b3c2;
-            font-size: 10px;
-            line-height: 1.45;
-        }
+/* ---------- order book ---------- */
+#depthCanvas{
+  width:100%;
+  height:150px;
+  border-bottom:1px solid var(--border);
+}
+.ladder{
+  display:flex;
+  flex-direction:column;
+  font-family:var(--mono);
+  font-size:10.5px;
+  min-width:0;
+}
+.lrow{
+  position:relative;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,.85fr) 46px;
+  align-items:center;
+  gap:6px;
+  height:19px;
+  padding:0 11px;
+  overflow:hidden;
+  font-variant-numeric:tabular-nums;
+}
+.lrow .lbar{
+  position:absolute;
+  top:1px;bottom:1px;
+  right:0;
+  border-radius:2px 0 0 2px;
+  opacity:.16;
+  pointer-events:none;
+}
+.lrow.ask .lbar{background:var(--red)}
+.lrow.bid .lbar{background:var(--green)}
+.lrow .lp{position:relative;z-index:1;color:var(--text-2)}
+.lrow.ask .lp{color:#ffb3ba}
+.lrow.bid .lp{color:#9df0c8}
+.lrow .ls{position:relative;z-index:1;text-align:right;color:var(--muted)}
+.lrow .lc{position:relative;z-index:1;text-align:right;color:var(--faint);font-size:9.5px}
+.lrow.wall .lp{font-weight:700}
+.lrow.wall .ls{color:var(--gold-2);font-weight:700}
+.lrow.wall::after{
+  content:"";
+  position:absolute;
+  left:0;top:0;bottom:0;
+  width:2px;
+  background:var(--gold);
+}
+.lspread{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  height:26px;
+  padding:0 11px;
+  border-top:1px solid var(--border-2);
+  border-bottom:1px solid var(--border-2);
+  background:rgba(197,160,89,.055);
+  color:var(--gold-2);
+  font-family:var(--mono);
+  font-size:10.5px;
+  font-weight:600;
+}
+.lspread .mid{color:var(--text);font-size:12px}
+.lhead{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,.85fr) 46px;
+  gap:6px;
+  padding:5px 11px;
+  border-bottom:1px solid var(--border);
+  color:var(--faint);
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:.07em;
+  text-transform:uppercase;
+}
+.lhead span:nth-child(2),.lhead span:nth-child(3){text-align:right}
 
-        .orderflow-guide-items strong {
-            display: block;
-            margin-bottom: 2px;
-            color: #dce5ef;
-            font-size: 10px;
-            font-weight: 600;
-        }
+/* ---------- CVD ---------- */
+#cvdCanvas{
+  width:100%;
+  height:clamp(190px,26vh,250px);
+  cursor:crosshair;
+}
 
-        .orderflow-caveat {
-            grid-column: 1 / -1;
-            margin: 0;
-            padding-top: 8px;
-            border-top: 1px solid #1c2633;
-            color: #7f8da0;
-            font-size: 10px;
-            line-height: 1.5;
-        }
+/* ---------- alerts ---------- */
+.alerts{
+  display:flex;
+  flex-direction:column;
+  gap:0;
+  max-height:clamp(190px,26vh,250px);
+  overflow-y:auto;
+  min-width:0;
+}
+.alert{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;
+  gap:9px;
+  padding:8px 12px;
+  border-bottom:1px solid rgba(31,36,45,.7);
+  transition:background .13s;
+}
+.alert:hover{background:rgba(255,255,255,.022)}
+.alert:last-child{border-bottom:0}
+.alert .a-tag{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:52px;
+  height:19px;
+  padding:0 6px;
+  border-radius:4px;
+  font-size:8.5px;
+  font-weight:800;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+.alert.buy .a-tag{background:rgba(38,201,139,.15);color:var(--green-2);border:1px solid rgba(38,201,139,.32)}
+.alert.sell .a-tag{background:rgba(240,93,104,.15);color:var(--red-2);border:1px solid rgba(240,93,104,.32)}
+.alert.neutral .a-tag{background:rgba(197,160,89,.14);color:var(--gold-2);border:1px solid rgba(197,160,89,.3)}
+.alert .a-body{min-width:0}
+.alert .a-title{
+  color:var(--text-2);
+  font-size:11px;
+  font-weight:600;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.alert .a-desc{
+  margin-top:1px;
+  color:var(--faint);
+  font-size:9.5px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.alert .a-meta{
+  text-align:right;
+  font-family:var(--mono);
+  font-size:9.5px;
+  color:var(--dim);
+  white-space:nowrap;
+}
+.alert .a-meta b{display:block;color:var(--text-2);font-weight:600;font-size:10.5px}
+.empty{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:100%;
+  min-height:120px;
+  padding:20px;
+  color:var(--faint);
+  font-size:11px;
+  text-align:center;
+}
 
-        .controls-container {
-            display: grid !important;
-            grid-template-columns: minmax(110px, 140px) minmax(95px, 120px) minmax(170px, 1fr) 145px;
-            align-items: center;
-            gap: 9px !important;
-            padding: 10px !important;
-            border-color: #222b38 !important;
-            border-radius: 9px !important;
-            background: #0f141c !important;
-            box-shadow: none !important;
-        }
-
-        .controls-container .control-item {
-            display: grid;
-            grid-template-columns: auto minmax(0, 1fr);
-            align-items: center;
-            gap: 6px !important;
-            min-width: 0;
-            margin: 0 !important;
-        }
-
-        .controls-container .control-item label {
-            color: #718096 !important;
-            font-size: 9px !important;
-            letter-spacing: .04em;
-        }
-
-        .controls-container select,
-        .controls-container input {
-            width: 100%;
-            min-width: 0;
-            min-height: 31px;
-            padding: 0 8px !important;
-            border: 1px solid #2a3544 !important;
-            border-radius: 5px !important;
-            background-color: #080b10 !important;
-            color: #e6edf5 !important;
-            font-size: 11px !important;
-            box-shadow: none !important;
-        }
-
-        .controls-container #ws-status {
-            justify-content: center;
-            min-height: 31px;
-            margin: 0 !important;
-            padding: 0 8px !important;
-            border: 1px solid #2a3544;
-            border-radius: 5px;
-            background: #080b10;
-        }
-
-        #ws-text {
-            color: #9aa8b8 !important;
-            font-size: 9px !important;
-            font-weight: 600 !important;
-            letter-spacing: .02em;
-        }
-
-        #ws-dot {
-            flex: 0 0 7px;
-            animation: none !important;
-        }
-
-        #ws-status[data-state="connected"] #ws-dot {
-            background: #38d996 !important;
-        }
-
-        #ws-status[data-state="connecting"] #ws-dot {
-            background: #d5ad59 !important;
-        }
-
-        #ws-status[data-state="error"] #ws-dot,
-        #ws-status[data-state="disconnected"] #ws-dot {
-            background: #ff6874 !important;
-        }
-
-        .orderflow-metrics {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 10px;
-            margin: 0;
-        }
-
-        .orderflow-metrics .data-card {
-            min-width: 0;
-            min-height: 82px;
-            padding: 12px 14px;
-            border-color: #222b38;
-            border-radius: 8px;
-            background: #0f141c;
-            transition: border-color .15s ease;
-        }
-
-        .orderflow-metrics .data-card:hover {
-            border-color: #344151;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .orderflow-metrics .data-card .label {
-            margin-bottom: 9px;
-            color: #8391a4;
-            font-size: 9px;
-            letter-spacing: .08em;
-        }
-
-        .orderflow-metrics .data-card .value {
-            overflow: hidden;
-            color: #e6edf5;
-            font-size: clamp(15px, 1.8vw, 20px);
-            font-weight: 600;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .orderflow-metrics .data-card .value.price {
-            color: #d5be88;
-            text-shadow: none;
-        }
-
-        .orderflow-metrics .metric-help {
-            margin-top: 6px;
-            color: #718096;
-            font-size: 9px;
-            line-height: 1.35;
-        }
-
-        .orderflow-chart-caption {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            color: #a7b3c2;
-            font-size: 10px;
-        }
-
-        .orderflow-chart-caption span:last-child {
-            color: #718096;
-            text-align: right;
-        }
-
-        .orderflow-step {
-            color: #718096;
-            white-space: nowrap;
-        }
-
-        .orderflow-step b {
-            color: #d5be88;
-            font-weight: 600;
-        }
-
-        #chart-scroll-container {
-            height: clamp(480px, 68vh, 660px);
-            border: 1px solid #222b38;
-            border-radius: 9px;
-            background: #080b10;
-            box-shadow: none;
-            scrollbar-color: #344151 #080b10;
-        }
-
-        #chartCanvas {
-            max-width: none;
-            background: #080b10;
-        }
-
-        @media (max-width: 760px) {
-            .orderflow-page {
-                padding: 66px 8px 14px;
-            }
-
-            .orderflow-shell {
-                gap: 10px;
-            }
-
-            .orderflow-guide {
-                grid-template-columns: 1fr;
-                gap: 8px;
-                padding: 10px;
-            }
-
-            .orderflow-guide-items {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: 8px;
-            }
-
-            .controls-container {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: 8px !important;
-                padding: 8px !important;
-            }
-
-            .controls-container #pair-container {
-                grid-column: 1 / -1;
-            }
-
-            .controls-container #ws-status {
-                grid-column: 1 / -1;
-                justify-content: flex-start;
-                min-height: 27px;
-                padding: 0 6px !important;
-                border: 0;
-                background: transparent;
-            }
-
-            .orderflow-metrics {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: 8px;
-            }
-
-            .orderflow-metrics .data-card {
-                min-height: 76px;
-                padding: 10px;
-            }
-
-            .orderflow-metrics .data-card .label {
-                font-size: 8px;
-            }
-
-            .orderflow-metrics .metric-help {
-                font-size: 8px;
-            }
-
-            #chart-scroll-container {
-                height: min(620px, 70vh);
-                min-height: 440px;
-            }
-
-            .orderflow-chart-caption {
-                align-items: flex-start;
-                font-size: 9px;
-            }
-        }
-
-        #chart-scroll-container::-webkit-scrollbar { height: 6px; }
-        #chart-scroll-container::-webkit-scrollbar-track { background: #05070a; }
-        #chart-scroll-container::-webkit-scrollbar-thumb { background: #1f242d; border-radius: 3px; }
-        #chart-scroll-container::-webkit-scrollbar-thumb:hover { background: #c5a059; }
-    </style>
+/* ---------- responsive ---------- */
+@media (max-width:1180px){
+  .main-grid{grid-template-columns:minmax(0,1fr)}
+  .lower-grid{grid-template-columns:minmax(0,1fr)}
+  #depthCanvas{height:170px}
+}
+@media (max-width:760px){
+  .shell{padding:12px 10px 22px;gap:11px}
+  .head{gap:10px}
+  .head p{font-size:11px}
+  .controls{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:9px}
+  .ctrl-actions{grid-column:1/-1}
+  .ctrl-actions .btn{flex:1}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .kpi{padding:9px 10px 10px}
+  .kpi .k-value{font-size:15px}
+  .kpi .k-sub{font-size:9px}
+  #fpCanvas{height:clamp(360px,54vh,470px)}
+  #cvdCanvas{height:180px}
+  .alerts{max-height:230px}
+  .panel-head{padding:9px 10px}
+  .panel-foot{padding:6px 10px;font-size:9.5px}
+  .lrow,.lhead{grid-template-columns:minmax(0,1fr) minmax(0,.8fr) 40px;padding:0 9px}
+  .legend{gap:8px;font-size:9px}
+}
+@media (max-width:420px){
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpi .k-value{font-size:13.5px}
+  .head h1{font-size:18px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
 </head>
-<body class="bg-brand-dark text-white font-inter flex flex-col min-h-screen">
-    <script>
-        const pageTranslations = {
-            mn: {
-                "orderflow-title": "Захиалгын урсгал",
-                "orderflow-subtitle": "Үнэ бүр дээр бодитоор биелсэн худалдан авалт, борлуулалтын хэмжээг харьцуулж харна.",
-                "orderflow-guide-title": "Footprint-ийг хэрхэн унших вэ?",
-                "orderflow-guide-cell-title": "Нүд: BID × ASK",
-                "orderflow-guide-cell": "Зүүн тал нь taker sell, баруун тал нь taker buy хэмжээ.",
-                "orderflow-guide-color-title": "Өнгө",
-                "orderflow-guide-color": "Ногоон: buy давамгай. Улаан: sell давамгай.",
-                "orderflow-guide-poc-title": "Алтан хүрээ",
-                "orderflow-guide-poc": "Тухайн лаанд хамгийн их арилжсан үнийн түвшин (POC).",
-                "orderflow-caveat": "Энэ нь Binance-ийн биелсэн арилжааны урсгал болохоос захиалгын дэвтэр (order book) биш. Delta нь дэлгэцэд буй лаануудын цэвэр хэмжээ бөгөөд BTC зэрэг үндсэн койны нэгжээр тооцогдоно; үнийн алхмыг автоматаар бүлэглэнэ. Дангаараа арилжааны дохио биш.",
-                "metric-delta": "Цонхны цэвэр дельта",
-                "metric-delta-help": "Buy хэмжээ − sell хэмжээ",
-                "metric-price": "Сүүлийн үнэ",
-                "metric-price-help": "Сүүлийн биелсэн арилжаа",
-                "metric-buys": "Taker buy эзлэх хувь",
-                "metric-buys-help": "Харагдаж буй урсгалын хувь",
-                "metric-sells": "Taker sell эзлэх хувь",
-                "metric-sells-help": "Харагдаж буй урсгалын хувь",
-                "orderflow-chart": "Үнийн түвшний footprint",
-                "orderflow-step": "Үнийн алхам",
-                "orderflow-live": "ШУУД",
-                "orderflow-volume-profile": "НИЙТ ХЭМЖЭЭ",
-                "orderflow-price-axis": "ҮНЭ",
-                "orderflow-scroll": "Хуучин лааг харахын тулд хөндлөн гүйлгэнэ үү",
-                "orderflow-status-connecting": "Холбогдож байна",
-                "orderflow-status-connected": "Шууд холбогдсон",
-                "orderflow-status-disconnected": "Холболт тасарсан",
-                "orderflow-status-error": "Өгөгдөл ачаалж чадсангүй",
-                "orderflow-waiting": "Арилжааны өгөгдөл хүлээж байна...",
-                "orderflow-stats-ask": "BUY VOL",
-                "orderflow-stats-bid": "SELL VOL",
-                "orderflow-stats-delta": "DELTA",
-                "orderflow-stats-cumulative": "ЦОНХНЫ Δ",
-                "orderflow-stats-total": "НИЙТ VOL"
-            },
-            en: {
-                "orderflow-title": "Order flow",
-                "orderflow-subtitle": "Compare executed buyer- and seller-initiated volume at each price level.",
-                "orderflow-guide-title": "How to read the footprint",
-                "orderflow-guide-cell-title": "Cell: BID × ASK",
-                "orderflow-guide-cell": "Left is taker-sell volume; right is taker-buy volume.",
-                "orderflow-guide-color-title": "Color",
-                "orderflow-guide-color": "Green: buy volume dominates. Red: sell volume dominates.",
-                "orderflow-guide-poc-title": "Gold outline",
-                "orderflow-guide-poc": "The price level with the most traded volume in that candle (POC).",
-                "orderflow-caveat": "This shows executed Binance trades, not resting orders in the order book. Delta is net volume across the candles on screen, measured in the base coin (such as BTC); price levels are grouped automatically. It is not a trading signal by itself.",
-                "metric-delta": "Visible-window delta",
-                "metric-delta-help": "Buy volume − sell volume",
-                "metric-price": "Last price",
-                "metric-price-help": "Most recent executed trade",
-                "metric-buys": "Taker buy share",
-                "metric-buys-help": "Share of visible trade flow",
-                "metric-sells": "Taker sell share",
-                "metric-sells-help": "Share of visible trade flow",
-                "orderflow-chart": "Price-level footprint",
-                "orderflow-step": "Price step",
-                "orderflow-live": "LIVE",
-                "orderflow-volume-profile": "VOLUME PROFILE",
-                "orderflow-price-axis": "PRICE",
-                "orderflow-scroll": "Scroll horizontally for older candles",
-                "orderflow-status-connecting": "Connecting",
-                "orderflow-status-connected": "Live",
-                "orderflow-status-disconnected": "Disconnected",
-                "orderflow-status-error": "Data unavailable",
-                "orderflow-waiting": "Waiting for trade data...",
-                "orderflow-stats-ask": "BUY VOL",
-                "orderflow-stats-bid": "SELL VOL",
-                "orderflow-stats-delta": "DELTA",
-                "orderflow-stats-cumulative": "WINDOW Δ",
-                "orderflow-stats-total": "TOTAL VOL"
-            }
-        };
-        if (typeof window.translations === "undefined") window.translations = { mn: {}, en: {} };
-        Object.keys(pageTranslations).forEach(lang => {
-            window.translations[lang] = { ...window.translations[lang], ...pageTranslations[lang] };
-        });
-    </script>
-    <script src="/static/js/header.js"></script>
+<body>
+<div class="shell">
 
-    <main class="orderflow-page flex-grow">
-        <div class="orderflow-shell">
-            <div class="orderflow-topbar">
-                <div class="orderflow-heading">
-                    <h1><span data-i18n="orderflow-title">Захиалгын урсгал</span> <span>Footprint</span></h1>
-                    <p data-i18n="orderflow-subtitle">Үнэ бүр дээр бодитоор биелсэн худалдан авалт, борлуулалтын хэмжээг харьцуулж харна.</p>
-                </div>
-            </div>
+  <!-- ================= HEADER ================= -->
+  <header class="head">
+    <div>
+      <h1>Захиалгын урсгал <em>· Order Flow</em></h1>
+      <p>Биелсэн арилжааны footprint, bid/ask delta, хуримтлагдсан delta, volume profile, order book гүн, absorption болон imbalance — нэг дэлгэцэнд.</p>
+    </div>
+    <div class="head-badges">
+      <span class="badge" id="wsBadge" data-state="connecting"><i></i><span id="wsText">Холбогдож байна</span></span>
+      <span class="badge src" id="srcBadge">—</span>
+    </div>
+  </header>
 
-            <section class="orderflow-guide" aria-labelledby="orderflow-guide-heading">
-                <div id="orderflow-guide-heading" class="orderflow-guide-title">
-                    <i class="fas fa-circle-info" aria-hidden="true"></i>
-                    <span data-i18n="orderflow-guide-title">Footprint-ийг хэрхэн унших вэ?</span>
-                </div>
-                <div class="orderflow-guide-items">
-                    <p><strong data-i18n="orderflow-guide-cell-title">Нүд: BID × ASK</strong><span data-i18n="orderflow-guide-cell">Зүүн тал нь taker sell, баруун тал нь taker buy хэмжээ.</span></p>
-                    <p><strong data-i18n="orderflow-guide-color-title">Өнгө</strong><span data-i18n="orderflow-guide-color">Ногоон: buy давамгай. Улаан: sell давамгай.</span></p>
-                    <p><strong data-i18n="orderflow-guide-poc-title">Алтан хүрээ</strong><span data-i18n="orderflow-guide-poc">Тухайн лаанд хамгийн их арилжсан үнийн түвшин (POC).</span></p>
-                </div>
-                <p class="orderflow-caveat" data-i18n="orderflow-caveat">Энэ нь Binance-ийн биелсэн арилжааны урсгал болохоос захиалгын дэвтэр (order book) биш. Delta нь дэлгэцэд буй лаануудын цэвэр хэмжээ бөгөөд BTC зэрэг үндсэн койны нэгжээр тооцогдоно; дангаараа арилжааны дохио биш.</p>
-            </section>
+  <!-- ================= CONTROLS ================= -->
+  <section class="controls" aria-label="Тохиргоо">
+    <label class="ctrl">
+      <span>Зах зээл</span>
+      <select id="market">
+        <option value="spot" selected>Spot</option>
+        <option value="futures">Futures</option>
+      </select>
+    </label>
+    <label class="ctrl">
+      <span>Хос</span>
+      <input id="coin" value="BTCUSDT" spellcheck="false" autocomplete="off" inputmode="text">
+    </label>
+    <label class="ctrl">
+      <span>Интервал</span>
+      <select id="interval">
+        <option value="1m" selected>1m</option>
+        <option value="3m">3m</option>
+        <option value="5m">5m</option>
+        <option value="15m">15m</option>
+        <option value="1h">1h</option>
+        <option value="4h">4h</option>
+      </select>
+    </label>
+    <label class="ctrl">
+      <span>Үнийн алхам</span>
+      <select id="stepMode">
+        <option value="auto" selected>Авто</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="5">5</option>
+        <option value="10">10</option>
+        <option value="20">20</option>
+        <option value="50">50</option>
+      </select>
+    </label>
+    <label class="ctrl">
+      <span>Лааны тоо</span>
+      <select id="candleCount">
+        <option value="8">8</option>
+        <option value="12" selected>12</option>
+        <option value="16">16</option>
+        <option value="20">20</option>
+      </select>
+    </label>
+    <div class="ctrl ctrl-actions">
+      <button class="btn" id="btnPause" aria-pressed="false" title="Шууд урсгалыг түр зогсоох">⏸ Pause</button>
+      <button class="btn" id="btnReload" title="Дахин ачаалах">↻</button>
+    </div>
+  </section>
 
-            <script src="/static/js/control.js" data-hide="rsi,ema,ma,leverage,balance,side"></script>
+  <!-- ================= KPI ================= -->
+  <section class="kpis" aria-label="Гол үзүүлэлтүүд">
+    <div class="kpi" data-tone="gold">
+      <div class="k-label">Сүүлийн үнэ</div>
+      <div class="k-value gold" id="kPrice">—</div>
+      <div class="k-sub" id="kPriceSub">—</div>
+    </div>
+    <div class="kpi" data-tone="up" id="kDeltaCard">
+      <div class="k-label">Цонхны delta</div>
+      <div class="k-value" id="kDelta">—</div>
+      <div class="k-sub" id="kDeltaSub">Buy − Sell</div>
+    </div>
+    <div class="kpi" data-tone="blue">
+      <div class="k-label">Хуримтлагдсан Δ</div>
+      <div class="k-value" id="kCvd">—</div>
+      <div class="k-sub" id="kCvdSub">CVD · цонх</div>
+    </div>
+    <div class="kpi" data-tone="up">
+      <div class="k-label">Taker buy</div>
+      <div class="k-value up" id="kBuy">—</div>
+      <div class="k-sub" id="kBuySub">Харагдах урсгалын хувь</div>
+      <div class="k-bar"><i id="kBuyBar"></i></div>
+    </div>
+    <div class="kpi" data-tone="down">
+      <div class="k-label">Taker sell</div>
+      <div class="k-value down" id="kSell">—</div>
+      <div class="k-sub" id="kSellSub">Харагдах урсгалын хувь</div>
+      <div class="k-bar"><i id="kSellBar" style="background:var(--red)"></i></div>
+    </div>
+    <div class="kpi" data-tone="gold">
+      <div class="k-label">Нийт хэмжээ</div>
+      <div class="k-value" id="kVol">—</div>
+      <div class="k-sub" id="kVolSub">Цонхны нийт volume</div>
+    </div>
+  </section>
 
-            <div class="data-grid orderflow-metrics">
-                <div class="data-card">
-                    <div class="label" data-i18n="metric-delta">Цонхны цэвэр дельта</div>
-                    <div id="val-total-delta" class="value">--</div>
-                    <div id="delta-unit" class="metric-help">--</div>
-                </div>
-                <div class="data-card">
-                    <div class="label" data-i18n="metric-price">Сүүлийн үнэ</div>
-                    <div id="futures-price-display" class="value price">--</div>
-                    <div class="metric-help" data-i18n="metric-price-help">Сүүлийн биелсэн арилжаа</div>
-                </div>
-                <div class="data-card">
-                    <div class="label" data-i18n="metric-buys">Taker buy эзлэх хувь</div>
-                    <div id="val-buy-ratio" class="value up">--%</div>
-                    <div class="metric-help" data-i18n="metric-buys-help">Харагдаж буй урсгалын хувь</div>
-                </div>
-                <div class="data-card">
-                    <div class="label" data-i18n="metric-sells">Taker sell эзлэх хувь</div>
-                    <div id="val-sell-ratio" class="value down">--%</div>
-                    <div class="metric-help" data-i18n="metric-sells-help">Харагдаж буй урсгалын хувь</div>
-                </div>
-            </div>
+  <!-- ================= MAIN: footprint + order book ================= -->
+  <div class="main-grid">
 
-            <div class="orderflow-chart-caption">
-                <span data-i18n="orderflow-chart">Үнийн түвшний footprint</span>
-                <span class="orderflow-step"><span data-i18n="orderflow-step">Үнийн алхам</span>: <b id="price-step">--</b></span>
-                <span data-i18n="orderflow-scroll">Хуучин лааг харахын тулд хөндлөн гүйлгэнэ үү</span>
-            </div>
-            <div id="chart-scroll-container" class="relative w-full overflow-x-auto">
-                <canvas id="chartCanvas" class="block cursor-crosshair" role="img" aria-label="Order flow footprint"></canvas>
-            </div>
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Үнийн түвшний footprint</h2>
+        <div class="ph-right">
+          <div class="legend">
+            <span><i class="g"></i>Buy давамгай</span>
+            <span><i class="r"></i>Sell давамгай</span>
+            <span><i class="gd"></i>POC</span>
+            <span><i class="b"></i>Imbalance</span>
+          </div>
         </div>
-    </main>
+      </div>
+      <div class="panel-body">
+        <div class="fp-wrap" id="fpWrap">
+          <canvas id="fpCanvas" role="img" aria-label="Order flow footprint chart"></canvas>
+          <div class="fp-tip" id="fpTip"></div>
+        </div>
+      </div>
+      <div class="panel-foot">
+        <span>Нүд: <b>BID × ASK</b> · зүүн = taker sell, баруун = taker buy</span>
+        <span>Үнийн алхам: <b id="stepLabel">—</b></span>
+      </div>
+    </section>
 
-    <script>
-        /**
-         * LUXURY FOOTPRINT ENGINE
-         */
-        const canvas = document.getElementById('chartCanvas');
-        const ctx = canvas.getContext('2d');
-        const container = document.getElementById('chart-scroll-container');
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Order book гүн</h2>
+        <div class="ph-right"><span id="depthMeta">—</span></div>
+      </div>
+      <div class="panel-body">
+        <canvas id="depthCanvas" role="img" aria-label="Order book depth chart"></canvas>
+        <div class="lhead"><span>Үнэ</span><span>Хэмжээ</span><span>Σ</span></div>
+        <div class="ladder" id="ladder"></div>
+      </div>
+      <div class="panel-foot">
+        <span>Bid/Ask харьцаа: <b id="bookRatio">—</b></span>
+        <span id="bookWall">—</span>
+      </div>
+    </section>
+  </div>
 
-        // Configuration
-        const candleWidth = 85; 
-        const padding = 40;
-        let tickSize = 2.0;
-        const priceColumnWidth = 60;
-        const volumeColumnWidth = 100;
-        
-        // State
-        let candles = [];
-        let shouldScroll = false;
-        let currentWs = null;
-        let engineRequestId = 0;
+  <!-- ================= LOWER: CVD + alerts ================= -->
+  <div class="lower-grid">
 
-        function getPageTranslation(key) {
-            const lang = localStorage.getItem('lang') || 'mn';
-            return window.translations?.[lang]?.[key] || pageTranslations[lang]?.[key] || pageTranslations.mn[key] || key;
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Хуримтлагдсан delta (CVD)</h2>
+        <div class="ph-right">
+          <div class="legend">
+            <span><i class="v"></i>CVD</span>
+            <span><i class="gd"></i>0 шугам</span>
+          </div>
+        </div>
+      </div>
+      <div class="panel-body">
+        <canvas id="cvdCanvas" role="img" aria-label="Cumulative delta chart"></canvas>
+      </div>
+      <div class="panel-foot">
+        <span>Лаа бүрийн delta-ийн хуримтлал</span>
+        <span>Одоо: <b id="cvdNow">—</b></span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Order flow дохио</h2>
+        <div class="ph-right"><span id="alertCount">0</span></div>
+      </div>
+      <div class="panel-body">
+        <div class="alerts" id="alerts">
+          <div class="empty">Урсгал цугларч байна…</div>
+        </div>
+      </div>
+      <div class="panel-foot">
+        <span>Absorption · Imbalance · Delta divergence · Stacked imbalance</span>
+      </div>
+    </section>
+  </div>
+
+</div>
+<script>
+"use strict";
+/* ============================================================================
+   ORDER FLOW ENGINE
+   - footprint (bid x ask per price level)
+   - cumulative delta
+   - volume profile
+   - order book depth + ladder
+   - absorption / imbalance / stacked imbalance / delta divergence alerts
+   All rendering is devicePixelRatio-aware so lines and text stay crisp.
+   ========================================================================== */
+
+/* ------------------------------ constants ------------------------------- */
+const MONO = 'ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace';
+const SANS = '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif';
+
+const C = {
+  bg:      '#080b10',
+  bgAlt:   '#0b1017',
+  grid:    '#141c26',
+  grid2:   '#1b2532',
+  border:  '#1f242d',
+  text:    '#e9eff7',
+  text2:   '#c3cedd',
+  muted:   '#8d9aad',
+  dim:     '#6b7a8d',
+  faint:   '#4a5768',
+  gold:    '#c5a059',
+  gold2:   '#e0c48a',
+  green:   '#26c98b',
+  green2:  '#3ddc97',
+  red:     '#f05d68',
+  red2:    '#ff6b78',
+  blue:    '#4a9eff',
+  violet:  '#9b7bff'
+};
+
+const MAX_ALERTS = 40;
+const IMB_RATIO = 3.0;          // diagonal imbalance threshold
+const ABSORB_MULT = 2.6;        // row volume vs average row volume
+const ABSORB_RANGE = 0.55;      // candle range vs average range
+
+/* -------------------------------- state --------------------------------- */
+const S = {
+  candles: [],
+  tickSize: 1,
+  stepMode: 'auto',
+  maxCandles: 12,
+  paused: false,
+  synthetic: false,
+  source: '',
+  ws: null,
+  wsDepth: null,
+  reqId: 0,
+  book: { bids: [], asks: [], mid: 0, spread: 0 },
+  alerts: [],
+  alertKeys: new Set(),
+  hover: null,
+  lastPrice: 0,
+  prevPrice: 0,
+  synthTimer: null,
+  depthTimer: null,
+  failCount: 0
+};
+
+/* ------------------------------- helpers -------------------------------- */
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+
+function priceDecimals(step) {
+  if (!Number.isFinite(step) || step <= 0) return 2;
+  return clamp(Math.ceil(-Math.log10(step)), 0, 10);
+}
+function fmtPrice(p) {
+  if (!Number.isFinite(p)) return '—';
+  const d = priceDecimals(S.tickSize);
+  return p.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+}
+function fmtVol(v) {
+  if (!Number.isFinite(v)) return '—';
+  const a = Math.abs(v);
+  if (a >= 1e9) return (v / 1e9).toFixed(2) + 'B';
+  if (a >= 1e6) return (v / 1e6).toFixed(2) + 'M';
+  if (a >= 1e3) return (v / 1e3).toFixed(2) + 'K';
+  if (a >= 1)   return v.toFixed(2);
+  if (a >= 0.01) return v.toFixed(4);
+  return v.toFixed(6);
+}
+function fmtSigned(v, fn) {
+  const s = v > 0 ? '+' : v < 0 ? '−' : '';
+  return s + (fn || fmtVol)(Math.abs(v));
+}
+/* compact cell formatters — footprint cells are narrow, so drop noise */
+function fmtCell(v) {
+  if (!Number.isFinite(v) || v === 0) return '0';
+  const a = Math.abs(v);
+  if (a >= 1e6) return (v / 1e6).toFixed(1) + 'M';
+  if (a >= 1e3) return (v / 1e3).toFixed(1) + 'K';
+  if (a >= 100) return v.toFixed(0);
+  if (a >= 10)  return v.toFixed(1);
+  if (a >= 1)   return v.toFixed(2);
+  if (a >= 0.1) return v.toFixed(2);
+  if (a >= 0.01) return v.toFixed(3);
+  return v.toFixed(4);
+}
+function fmtSignedCell(v) {
+  if (!Number.isFinite(v) || v === 0) return '0';
+  return (v > 0 ? '+' : '−') + fmtCell(Math.abs(v));
+}
+function priceKey(p) {
+  return p.toFixed(priceDecimals(S.tickSize));
+}
+function baseAsset() {
+  const sym = ($('coin').value || 'BTCUSDT').trim().toUpperCase();
+  for (const q of ['USDT', 'USDC', 'BUSD', 'FDUSD', 'TUSD', 'BTC', 'ETH', 'BNB']) {
+    if (sym.endsWith(q) && sym.length > q.length) return sym.slice(0, -q.length);
+  }
+  return sym;
+}
+function intervalMs() {
+  const v = $('interval').value || '1m';
+  const m = /^(\d+)([smhdwM])$/.exec(v);
+  if (!m) return 60000;
+  const n = +m[1];
+  const u = { s: 1e3, m: 6e4, h: 36e5, d: 864e5, w: 6048e5, M: 2592e6 };
+  return n * u[m[2]];
+}
+function timeBucket(ts) {
+  const ms = intervalMs();
+  return Math.floor(ts / ms) * ms;
+}
+function fmtTime(ts) {
+  const d = new Date(ts);
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  const ms = intervalMs();
+  if (ms >= 864e5) return `${d.getMonth() + 1}/${d.getDate()}`;
+  return `${hh}:${mm}`;
+}
+function fmtClock(ts) {
+  const d = new Date(ts);
+  return String(d.getHours()).padStart(2, '0') + ':' +
+         String(d.getMinutes()).padStart(2, '0') + ':' +
+         String(d.getSeconds()).padStart(2, '0');
+}
+
+/* auto price step: nice number near price/5000 */
+function autoStep(price) {
+  if (!Number.isFinite(price) || price <= 0) return 1;
+  const raw = price / 5000;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const n = raw / mag;
+  const nice = n < 1.5 ? 1 : n < 3.5 ? 2 : n < 7.5 ? 5 : 10;
+  return nice * mag;
+}
+
+/* --------------------------- canvas plumbing ---------------------------- */
+function fitCanvas(canvas) {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+  const w = Math.max(1, Math.round(canvas.clientWidth));
+  const h = Math.max(1, Math.round(canvas.clientHeight));
+  const bw = Math.round(w * dpr), bh = Math.round(h * dpr);
+  if (canvas.width !== bw || canvas.height !== bh) {
+    canvas.width = bw;
+    canvas.height = bh;
+  }
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.textBaseline = 'middle';
+  return { ctx, w, h, dpr };
+}
+/* crisp 1px line helper */
+function hline(ctx, x0, x1, y) {
+  const yy = Math.round(y) + 0.5;
+  ctx.beginPath(); ctx.moveTo(x0, yy); ctx.lineTo(x1, yy); ctx.stroke();
+}
+function vline(ctx, x, y0, y1) {
+  const xx = Math.round(x) + 0.5;
+  ctx.beginPath(); ctx.moveTo(xx, y0); ctx.lineTo(xx, y1); ctx.stroke();
+}
+function roundRect(ctx, x, y, w, h, r) {
+  const rr = Math.min(r, Math.abs(w) / 2, Math.abs(h) / 2);
+  ctx.beginPath();
+  if (ctx.roundRect) { ctx.roundRect(x, y, w, h, rr); return; }
+  ctx.moveTo(x + rr, y);
+  ctx.arcTo(x + w, y, x + w, y + h, rr);
+  ctx.arcTo(x + w, y + h, x, y + h, rr);
+  ctx.arcTo(x, y + h, x, y, rr);
+  ctx.arcTo(x, y, x + w, y, rr);
+  ctx.closePath();
+}
+
+/* ------------------------------ status UI ------------------------------- */
+function setStatus(state, text) {
+  const b = $('wsBadge');
+  b.dataset.state = state;
+  $('wsText').textContent = text || ({
+    connecting: 'Холбогдож байна',
+    connected: 'Шууд холбогдсон',
+    disconnected: 'Холболт тасарсан',
+    error: 'Өгөгдөл ачаалж чадсангүй'
+  }[state] || state);
+}
+function setSource(label) {
+  S.source = label;
+  $('srcBadge').textContent = label;
+}
+
+/* --------------------------- trade ingestion ---------------------------- */
+function ensureCandle(ts, price) {
+  const bucket = timeBucket(ts);
+  let c = S.candles[S.candles.length - 1];
+  if (c && c.time === bucket) return c;
+  if (c && bucket < c.time) {
+    // late trade for an older bucket — find it
+    for (let i = S.candles.length - 1; i >= 0; i--) {
+      if (S.candles[i].time === bucket) return S.candles[i];
+    }
+    return null;
+  }
+  c = {
+    time: bucket,
+    open: price, high: price, low: price, close: price,
+    profile: new Map(),
+    buy: 0, sell: 0, delta: 0, vol: 0, cvd: 0,
+    trades: 0
+  };
+  S.candles.push(c);
+  while (S.candles.length > S.maxCandles) S.candles.shift();
+  return c;
+}
+
+function addTrade(price, qty, isBuyerMaker, ts) {
+  if (!Number.isFinite(price) || !Number.isFinite(qty) || qty <= 0) return;
+  const c = ensureCandle(ts, price);
+  if (!c) return;
+
+  c.high = Math.max(c.high, price);
+  c.low = Math.min(c.low, price);
+  c.close = price;
+  c.trades++;
+
+  const bucket = Math.floor(price / S.tickSize) * S.tickSize;
+  const key = priceKey(bucket);
+  let cell = c.profile.get(key);
+  if (!cell) { cell = { bid: 0, ask: 0 }; c.profile.set(key, cell); }
+
+  if (isBuyerMaker) { cell.bid += qty; c.sell += qty; }
+  else              { cell.ask += qty; c.buy  += qty; }
+
+  c.vol += qty;
+  c.delta = c.buy - c.sell;
+
+  S.prevPrice = S.lastPrice;
+  S.lastPrice = price;
+}
+
+function recomputeCvd() {
+  let run = 0;
+  for (const c of S.candles) { run += c.delta; c.cvd = run; }
+  return run;
+}
+
+/* ------------------------------ data fetch ------------------------------ */
+const HOSTS = {
+  spot: [
+    'https://data-api.binance.vision',
+    'https://api.binance.com',
+    'https://api1.binance.com',
+    'https://api2.binance.com',
+    'https://api3.binance.com'
+  ],
+  futures: [
+    'https://fapi.binance.com',
+    'https://fapi1.binance.com',
+    'https://fapi2.binance.com'
+  ]
+};
+
+async function tryFetch(pathSpot, pathFut, market) {
+  const hosts = HOSTS[market] || HOSTS.spot;
+  const path = market === 'futures' ? pathFut : pathSpot;
+  let lastErr = null;
+  for (const h of hosts) {
+    try {
+      const ctl = new AbortController();
+      const to = setTimeout(() => ctl.abort(), 9000);
+      const res = await fetch(h + path, { signal: ctl.signal, cache: 'no-store' });
+      clearTimeout(to);
+      if (!res.ok) { lastErr = new Error('HTTP ' + res.status); continue; }
+      const json = await res.json();
+      return { json, host: h };
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error('unreachable');
+}
+
+/* --------------------------- synthetic fallback ------------------------- */
+function synthSeed() {
+  // deterministic-ish pseudo random so the demo is stable per load
+  let s = 20261124;
+  return () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; };
+}
+
+function buildSynthetic() {
+  const rnd = synthSeed();
+  const base = 61250;
+  S.tickSize = autoStep(base);
+  const ms = intervalMs();
+  const now = Date.now();
+  const start = timeBucket(now) - (S.maxCandles - 1) * ms;
+  let price = base;
+
+  for (let i = 0; i < S.maxCandles; i++) {
+    const t0 = start + i * ms;
+    const drift = (rnd() - 0.48) * base * 0.0016;
+    const n = 90 + Math.floor(rnd() * 70);
+    for (let k = 0; k < n; k++) {
+      const ts = t0 + Math.floor((k / n) * ms);
+      price += (rnd() - 0.5) * base * 0.00022 + drift / n;
+      const qty = 0.004 + rnd() * rnd() * 0.9;
+      // bias taker side by local momentum
+      const bias = 0.5 + (drift > 0 ? 0.09 : -0.09);
+      const isBuyerMaker = rnd() > bias;
+      addTrade(price, qty, isBuyerMaker, ts);
+    }
+  }
+  recomputeCvd();
+  S.synthetic = true;
+  setSource('SYNTHETIC');
+  setStatus('error', 'Демо өгөгдөл');
+  buildSyntheticBook();
+  renderAll();
+}
+
+function buildSyntheticBook() {
+  const rnd = synthSeed();
+  const mid = S.lastPrice || 61250;
+  const step = S.tickSize;
+  const bids = [], asks = [];
+  for (let i = 1; i <= 14; i++) {
+    bids.push([mid - i * step, 0.4 + rnd() * rnd() * 9]);
+    asks.push([mid + i * step, 0.4 + rnd() * rnd() * 9]);
+  }
+  // a couple of walls
+  bids[4][1] *= 4.2; asks[6][1] *= 3.6;
+  S.book = { bids, asks, mid, spread: step };
+  renderDepth();
+}
+
+/* ------------------------------ live streams ---------------------------- */
+function wsBase(market) {
+  return market === 'futures'
+    ? 'wss://fstream.binance.com/ws/'
+    : 'wss://stream.binance.com:9443/ws/';
+}
+
+function connectTrades(market, symbol, reqId) {
+  let sock;
+  try { sock = new WebSocket(wsBase(market) + symbol.toLowerCase() + '@aggTrade'); }
+  catch (e) { onWsFail(reqId); return; }
+  S.ws = sock;
+
+  sock.onopen = () => {
+    if (reqId !== S.reqId) return;
+    S.failCount = 0;
+    S.synthetic = false;
+    setStatus('connected');
+    setSource(market === 'futures' ? 'FAPI · WS' : 'SPOT · WS');
+  };
+  sock.onmessage = ev => {
+    if (reqId !== S.reqId || S.paused) return;
+    let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+    const p = parseFloat(m.p), q = parseFloat(m.q);
+    if (!Number.isFinite(p) || !Number.isFinite(q)) return;
+    addTrade(p, q, !!m.m, m.T || Date.now());
+    scheduleRender();
+  };
+  sock.onerror = () => { if (reqId === S.reqId) onWsFail(reqId); };
+  sock.onclose = () => {
+    if (reqId !== S.reqId) return;
+    onWsFail(reqId);
+  };
+}
+
+function onWsFail(reqId) {
+  if (reqId !== S.reqId) return;
+  S.failCount++;
+  if (S.failCount >= 2 && !S.synthetic) {
+    setStatus('error', 'Демо өгөгдөл');
+    startSyntheticTicker();
+  } else {
+    setStatus('disconnected');
+    setTimeout(() => {
+      if (reqId === S.reqId && !S.synthetic) {
+        connectTrades($('market').value, ($('coin').value || 'BTCUSDT').trim().toUpperCase(), reqId);
+      }
+    }, 2500);
+  }
+}
+
+function startSyntheticTicker() {
+  if (S.synthTimer) return;
+  S.synthetic = true;
+  setSource('SYNTHETIC');
+  const rnd = synthSeed();
+  let p = S.lastPrice || 61250;
+  S.synthTimer = setInterval(() => {
+    if (S.paused) return;
+    p += (rnd() - 0.5) * p * 0.00035;
+    const q = 0.003 + rnd() * rnd() * 0.7;
+    addTrade(p, q, rnd() > 0.5, Date.now());
+    if (rnd() > 0.72) buildSyntheticBook();
+    scheduleRender();
+  }, 420);
+}
+
+function connectDepth(market, symbol, reqId) {
+  let sock;
+  try {
+    sock = new WebSocket(wsBase(market) + symbol.toLowerCase() + '@depth20@100ms');
+  } catch (e) { return; }
+  S.wsDepth = sock;
+  sock.onmessage = ev => {
+    if (reqId !== S.reqId) return;
+    let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+    if (!m.bids || !m.asks) return;
+    const bids = m.bids.map(r => [+r[0], +r[1]]).filter(r => r[1] > 0);
+    const asks = m.asks.map(r => [+r[0], +r[1]]).filter(r => r[1] > 0);
+    if (!bids.length || !asks.length) return;
+    const mid = (bids[0][0] + asks[0][0]) / 2;
+    S.book = { bids, asks, mid, spread: asks[0][0] - bids[0][0] };
+    renderDepth();
+  };
+  sock.onerror = () => {};
+  sock.onclose = () => {};
+}
+
+/* ------------------------------ engine boot ----------------------------- */
+async function startEngine() {
+  const reqId = ++S.reqId;
+  if (S.ws) { S.ws.onclose = null; S.ws.onerror = null; try { S.ws.close(); } catch (e) {} S.ws = null; }
+  if (S.wsDepth) { try { S.wsDepth.close(); } catch (e) {} S.wsDepth = null; }
+  if (S.synthTimer) { clearInterval(S.synthTimer); S.synthTimer = null; }
+
+  S.candles = [];
+  S.alerts = [];
+  S.alertKeys.clear();
+  S.synthetic = false;
+  S.failCount = 0;
+  S.lastPrice = 0;
+  S.prevPrice = 0;
+  S.maxCandles = +$('candleCount').value || 12;
+  S.stepMode = $('stepMode').value;
+
+  setStatus('connecting');
+  setSource('—');
+  renderAll();
+
+  const market = $('market').value;
+  const symbol = ($('coin').value || 'BTCUSDT').trim().toUpperCase();
+  if (!/^[A-Z0-9]{2,20}$/.test(symbol)) { setStatus('error', 'Хос буруу'); return; }
+
+  try {
+    const { json, host } = await tryFetch(
+      `/api/v3/aggTrades?symbol=${symbol}&limit=1000`,
+      `/fapi/v1/aggTrades?symbol=${symbol}&limit=1000`,
+      market
+    );
+    if (reqId !== S.reqId) return;
+    if (!Array.isArray(json) || !json.length) throw new Error('empty');
+
+    const lastP = parseFloat(json[json.length - 1].p);
+    S.tickSize = S.stepMode === 'auto' ? autoStep(lastP) : +S.stepMode;
+    $('stepLabel').textContent = fmtPrice(S.tickSize);
+
+    // walk backwards to cover enough candles
+    let all = json;
+    const ms = intervalMs();
+    const need = S.maxCandles * ms;
+    let guard = 0;
+    while (all.length && (all[all.length - 1].T - all[0].T) < need && guard < 6) {
+      const fromId = all[0].a - 1000;
+      if (fromId < 0) break;
+      try {
+        const r = await tryFetch(
+          `/api/v3/aggTrades?symbol=${symbol}&limit=1000&fromId=${fromId}`,
+          `/fapi/v1/aggTrades?symbol=${symbol}&limit=1000&fromId=${fromId}`,
+          market
+        );
+        if (reqId !== S.reqId) return;
+        const prev = (r.json || []).filter(t => t.a < all[0].a);
+        if (!prev.length) break;
+        all = prev.concat(all);
+      } catch (e) { break; }
+      guard++;
+    }
+
+    for (const t of all) addTrade(parseFloat(t.p), parseFloat(t.q), !!t.m, t.T);
+    recomputeCvd();
+    setSource((market === 'futures' ? 'FAPI' : 'SPOT') + ' · ' + host.replace(/^https:\/\//, ''));
+    setStatus('connected');
+    renderAll();
+
+    connectTrades(market, symbol, reqId);
+    connectDepth(market, symbol, reqId);
+  } catch (e) {
+    if (reqId !== S.reqId) return;
+    console.warn('[orderflow] history unavailable, using demo data:', e && e.message);
+    buildSynthetic();
+    startSyntheticTicker();
+  }
+}
+
+/* --------------------------- render scheduling -------------------------- */
+let rafPending = false;
+function scheduleRender() {
+  if (rafPending) return;
+  rafPending = true;
+  requestAnimationFrame(() => { rafPending = false; renderAll(); });
+}
+/* ============================================================================
+   FOOTPRINT RENDERER
+   ========================================================================== */
+const fpCanvas = $('fpCanvas');
+const fpWrap = $('fpWrap');
+const fpTip = $('fpTip');
+
+const FP = {
+  leftW: 76,
+  rightW: 68,
+  padTop: 24,
+  statsH: 92,
+  colGap: 3,
+  geom: null
+};
+
+function aggregateProfile(candle, effStep) {
+  const out = new Map();
+  for (const [k, v] of candle.profile) {
+    const p = parseFloat(k);
+    const b = Math.floor(p / effStep) * effStep;
+    const key = b.toFixed(priceDecimals(effStep));
+    let cell = out.get(key);
+    if (!cell) { cell = { bid: 0, ask: 0, price: b }; out.set(key, cell); }
+    cell.bid += v.bid;
+    cell.ask += v.ask;
+  }
+  return out;
+}
+
+function renderFootprint() {
+  const { ctx, w, h } = fitCanvas(fpCanvas);
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = C.bg;
+  ctx.fillRect(0, 0, w, h);
+
+  if (!S.candles.length) {
+    ctx.fillStyle = C.dim;
+    ctx.font = `500 12px ${SANS}`;
+    ctx.textAlign = 'center';
+    ctx.fillText('Арилжааны өгөгдөл хүлээж байна…', w / 2, h / 2);
+    FP.geom = null;
+    return;
+  }
+
+  /* ---- geometry ---- */
+  const leftW = w < 520 ? 52 : FP.leftW;
+  const rightW = w < 520 ? 54 : FP.rightW;
+  const statsH = w < 520 ? 86 : FP.statsH;
+  const padTop = FP.padTop;
+  const plotX0 = leftW;
+  const plotX1 = w - rightW;
+  const plotY0 = padTop;
+  const plotY1 = h - statsH;
+  const plotW = Math.max(10, plotX1 - plotX0);
+  const plotH = Math.max(10, plotY1 - plotY0);
+
+  const n = S.candles.length;
+  const colW = plotW / n;
+
+  /* ---- price range ---- */
+  let lo = Infinity, hi = -Infinity;
+  for (const c of S.candles) { if (c.low < lo) lo = c.low; if (c.high > hi) hi = c.high; }
+  if (!Number.isFinite(lo) || !Number.isFinite(hi)) return;
+  if (hi - lo < S.tickSize) { hi += S.tickSize; lo -= S.tickSize; }
+
+  /* ---- effective step so rows stay readable ---- */
+  const maxRows = Math.max(8, Math.floor(plotH / 12));
+  const range = hi - lo;
+  const needStep = range / maxRows;
+  const k = Math.max(1, Math.ceil(needStep / S.tickSize));
+  const effStep = S.tickSize * k;
+
+  const gridLo = Math.floor(lo / effStep) * effStep;
+  const gridHi = Math.ceil(hi / effStep) * effStep;
+  const nRows = Math.max(1, Math.round((gridHi - gridLo) / effStep) + 1);
+  const rowH = plotH / nRows;
+  const showText = rowH >= 11 && colW >= 34;
+  const showBidAsk = rowH >= 9 && colW >= 26;
+
+  const yOf = price => plotY0 + ((gridHi - price) / effStep) * rowH;
+
+  /* ---- per-candle aggregated profiles ---- */
+  const aggs = S.candles.map(c => aggregateProfile(c, effStep));
+
+  /* ---- window volume profile ---- */
+  const vp = new Map();
+  let vpMax = 0;
+  for (const agg of aggs) {
+    for (const [key, cell] of agg) {
+      let node = vp.get(key);
+      if (!node) { node = { vol: 0, delta: 0, price: cell.price }; vp.set(key, node); }
+      node.vol += cell.bid + cell.ask;
+      node.delta += cell.ask - cell.bid;
+      if (node.vol > vpMax) vpMax = node.vol;
+    }
+  }
+  let vpPocKey = null, vpPocVol = 0;
+  for (const [key, node] of vp) if (node.vol > vpPocVol) { vpPocVol = node.vol; vpPocKey = key; }
+
+  /* ---- background ---- */
+  ctx.fillStyle = C.bgAlt;
+  ctx.fillRect(0, 0, leftW, h);
+  ctx.fillRect(plotX1, 0, rightW, h);
+
+  /* ---- horizontal grid ---- */
+  ctx.strokeStyle = C.grid;
+  ctx.lineWidth = 1;
+  const labelEvery = Math.max(1, Math.ceil(16 / rowH));
+  for (let i = 0; i < nRows; i++) {
+    const y = plotY0 + i * rowH;
+    if (i % labelEvery === 0) hline(ctx, plotX0, plotX1, y);
+  }
+  hline(ctx, plotX0, plotX1, plotY1);
+
+  /* ---- volume profile bars (left) ---- */
+  const vpW = leftW - 8;
+  for (let i = 0; i < nRows; i++) {
+    const price = gridHi - i * effStep;
+    const key = price.toFixed(priceDecimals(effStep));
+    const node = vp.get(key);
+    if (!node || !node.vol) continue;
+    const y = plotY0 + i * rowH;
+    const bw = (node.vol / (vpMax || 1)) * vpW;
+    const isPoc = key === vpPocKey;
+    ctx.fillStyle = isPoc
+      ? 'rgba(197,160,89,.55)'
+      : node.delta > 0 ? 'rgba(38,201,139,.30)'
+      : node.delta < 0 ? 'rgba(240,93,104,.30)'
+      : 'rgba(141,154,173,.20)';
+    const bh = Math.max(1, rowH - 1.5);
+    roundRect(ctx, 4, y + 0.75, Math.max(1.5, bw), bh, 2);
+    ctx.fill();
+  }
+
+  /* ---- candles ---- */
+  const lastIdx = n - 1;
+  for (let ci = 0; ci < n; ci++) {
+    const candle = S.candles[ci];
+    const agg = aggs[ci];
+    const x0 = plotX0 + ci * colW;
+    const innerX = x0 + FP.colGap;
+    const innerW = colW - FP.colGap * 2;
+
+    /* column separator */
+    ctx.strokeStyle = C.grid2;
+    ctx.lineWidth = 1;
+    vline(ctx, x0, plotY0, plotY1);
+
+    /* candle high-low bracket on the left edge */
+    const yHigh = yOf(candle.high);
+    const yLow = yOf(candle.low);
+    const isUp = candle.close >= candle.open;
+    ctx.strokeStyle = isUp ? 'rgba(38,201,139,.55)' : 'rgba(240,93,104,.55)';
+    ctx.lineWidth = 1.5;
+    vline(ctx, x0 + 1.5, yHigh, yLow);
+
+    /* POC of this candle */
+    let pocKey = null, pocVol = 0;
+    for (const [key, cell] of agg) {
+      const v = cell.bid + cell.ask;
+      if (v > pocVol) { pocVol = v; pocKey = key; }
+    }
+
+    /* rows */
+    for (let i = 0; i < nRows; i++) {
+      const price = gridHi - i * effStep;
+      const key = price.toFixed(priceDecimals(effStep));
+      const cell = agg.get(key);
+      if (!cell) continue;
+      const total = cell.bid + cell.ask;
+      if (total <= 0) continue;
+
+      const y = plotY0 + i * rowH;
+      const delta = cell.ask - cell.bid;
+      const ratio = Math.abs(delta) / total;
+
+      /* cell background — delta intensity */
+      const alpha = 0.10 + ratio * 0.46;
+      ctx.fillStyle = delta > 0
+        ? `rgba(38,201,139,${alpha.toFixed(3)})`
+        : delta < 0
+          ? `rgba(240,93,104,${alpha.toFixed(3)})`
+          : 'rgba(141,154,173,.10)';
+      const ch = Math.max(1, rowH - 1.5);
+      roundRect(ctx, innerX, y + 0.75, innerW, ch, Math.min(3, ch / 2));
+      ctx.fill();
+
+      /* POC outline */
+      if (key === pocKey) {
+        ctx.strokeStyle = C.gold;
+        ctx.lineWidth = 1.25;
+        roundRect(ctx, innerX + 0.5, y + 1.25, innerW - 1, ch - 1, Math.min(3, ch / 2));
+        ctx.stroke();
+      }
+
+      /* imbalance: ask here vs bid one row below (buy imbalance) */
+      const belowKey = (price - effStep).toFixed(priceDecimals(effStep));
+      const below = agg.get(belowKey);
+      let imb = 0;
+      if (below && below.bid > 0 && cell.ask / below.bid >= IMB_RATIO) imb = 1;
+      else if (below && cell.ask > 0 && below.bid / cell.ask >= IMB_RATIO) imb = -1;
+      if (imb !== 0) {
+        ctx.strokeStyle = imb > 0 ? 'rgba(74,158,255,.85)' : 'rgba(155,123,255,.85)';
+        ctx.lineWidth = 1.25;
+        ctx.beginPath();
+        const mx = innerX + innerW - 3;
+        const my = y + rowH / 2;
+        ctx.moveTo(mx - 3, my - 3);
+        ctx.lineTo(mx, my);
+        ctx.lineTo(mx - 3, my + 3);
+        ctx.stroke();
+      }
+
+      /* bid x ask text — auto-shrink so the two halves never collide */
+      if (showBidAsk) {
+        const midX = innerX + innerW / 2;
+        const cy = y + rowH / 2;
+        const halfW = innerW / 2 - 4;
+        const bidTxt = fmtCell(cell.bid);
+        const askTxt = fmtCell(cell.ask);
+
+        let fs = clamp(Math.floor(rowH * 0.60), 7, 10.5);
+        ctx.font = `600 ${fs}px ${MONO}`;
+        const widest = Math.max(ctx.measureText(bidTxt).width, ctx.measureText(askTxt).width);
+        if (widest > halfW) {
+          fs = Math.max(6, Math.floor(fs * (halfW / widest) * 10) / 10);
+          ctx.font = `600 ${fs}px ${MONO}`;
         }
 
-        function setConnectionStatus(state, message) {
-            const status = document.getElementById('ws-status');
-            const text = document.getElementById('ws-text');
-            if (status) status.dataset.state = state;
-            if (text) text.textContent = message || getPageTranslation(`orderflow-status-${state}`);
+        if (showText) {
+          ctx.strokeStyle = 'rgba(255,255,255,.10)';
+          ctx.lineWidth = 1;
+          vline(ctx, midX, y + 1, y + rowH - 1);
         }
 
-        function resetMetrics() {
-            document.getElementById('val-total-delta').textContent = '--';
-            document.getElementById('delta-unit').textContent = '--';
-            document.getElementById('futures-price-display').textContent = '--';
-            document.getElementById('val-buy-ratio').textContent = '--%';
-            document.getElementById('val-sell-ratio').textContent = '--%';
-        }
+        const strong = ratio > 0.62;
+        ctx.textAlign = 'right';
+        ctx.fillStyle = strong && delta < 0 ? '#ffffff' : 'rgba(203,214,228,.95)';
+        ctx.fillText(bidTxt, midX - 2.5, cy);
 
-        function getPriceStep(price) {
-            if (!Number.isFinite(price) || price <= 0) return 2;
-            const rawStep = price / 5000;
-            const magnitude = 10 ** Math.floor(Math.log10(rawStep));
-            const normalized = rawStep / magnitude;
-            const niceValue = normalized < 1.5 ? 1 : normalized < 3.5 ? 2 : normalized < 7.5 ? 5 : 10;
-            return niceValue * magnitude;
-        }
+        ctx.textAlign = 'left';
+        ctx.fillStyle = strong && delta > 0 ? '#ffffff' : 'rgba(203,214,228,.95)';
+        ctx.fillText(askTxt, midX + 2.5, cy);
+      }
+    }
 
-        function getPriceKey(price) {
-            const decimals = Math.max(0, Math.min(10, Math.ceil(-Math.log10(tickSize))));
-            return price.toFixed(decimals);
-        }
+    /* last price marker */
+    if (ci === lastIdx) {
+      const y = yOf(candle.close);
+      ctx.strokeStyle = 'rgba(197,160,89,.55)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
+      hline(ctx, plotX0, plotX1, y);
+      ctx.setLineDash([]);
+    }
+  }
 
-        function updatePriceStep() {
-            const decimals = Math.max(0, Math.min(10, Math.ceil(-Math.log10(tickSize))));
-            document.getElementById('price-step').textContent = tickSize.toFixed(decimals);
-        }
+  /* ---- price axis (right) ---- */
+  ctx.font = `500 10px ${MONO}`;
+  ctx.textAlign = 'left';
+  for (let i = 0; i < nRows; i++) {
+    if (i % labelEvery !== 0) continue;
+    const price = gridHi - i * effStep;
+    const y = plotY0 + i * rowH + rowH / 2;
+    if (y > plotY1) break;
+    ctx.fillStyle = C.muted;
+    ctx.fillText(fmtPrice(price), plotX1 + 8, y);
+  }
+  /* live price tag */
+  if (S.lastPrice) {
+    const y = clamp(yOf(S.lastPrice), plotY0 + 8, plotY1 - 8);
+    const label = fmtPrice(S.lastPrice);
+    ctx.font = `700 10px ${MONO}`;
+    const tw = ctx.measureText(label).width;
+    ctx.fillStyle = C.gold;
+    roundRect(ctx, plotX1 + 4, y - 8, Math.min(rightW - 8, tw + 12), 16, 3);
+    ctx.fill();
+    ctx.fillStyle = '#0a0d12';
+    ctx.textAlign = 'left';
+    ctx.fillText(label, plotX1 + 10, y);
+  }
 
-        // 1. Data Processing
-        function processTrade(trade) {
-            const timeBucket = getTimeBucket(trade.t);
-            
-            let candle = candles.find(c => c.time === timeBucket);
-            if (!candle) {
-                candle = {
-                    time: timeBucket,
-                    open: trade.p,
-                    high: trade.p,
-                    low: trade.p,
-                    close: trade.p,
-                    profile: {}
-                };
-                candles.push(candle);
-                // Sort candles by time
-                candles.sort((a, b) => a.time - b.time);
-                if (candles.length > 20) candles.shift();
-                shouldScroll = true;
-            }
+  /* ---- header: time labels ---- */
+  ctx.font = `600 9.5px ${MONO}`;
+  ctx.textAlign = 'center';
+  for (let ci = 0; ci < n; ci++) {
+    const x = plotX0 + ci * colW + colW / 2;
+    ctx.fillStyle = ci === lastIdx ? C.gold2 : C.dim;
+    ctx.fillText(fmtTime(S.candles[ci].time), x, padTop / 2 + 2);
+  }
+  ctx.textAlign = 'left';
+  ctx.fillStyle = C.faint;
+  ctx.font = `700 8.5px ${SANS}`;
+  ctx.fillText('VOL', 6, padTop / 2 + 2);
 
-            // Update OHLC
-            candle.high = Math.max(candle.high, trade.p);
-            candle.low = Math.min(candle.low, trade.p);
-            candle.close = trade.p;
+  /* ---- stats strip ---- */
+  const sy = plotY1;
+  ctx.fillStyle = C.bgAlt;
+  ctx.fillRect(0, sy, w, h - sy);
+  ctx.strokeStyle = C.border;
+  ctx.lineWidth = 1;
+  hline(ctx, 0, w, sy);
 
-            // Update Volume Profile
-            // Bucket Volume by tickSize
-            const priceBucket = Math.floor(trade.p / tickSize) * tickSize;
-            const priceKey = getPriceKey(priceBucket);
-            
-            if (!candle.profile[priceKey]) {
-                candle.profile[priceKey] = { bid: 0, ask: 0 };
-            }
+  const rows = [
+    { k: 'BUY',  get: c => c.buy,   tone: 'up' },
+    { k: 'SELL', get: c => c.sell,  tone: 'down' },
+    { k: 'Δ',    get: c => c.delta, tone: 'auto' },
+    { k: 'CVD',  get: c => c.cvd,   tone: 'auto' },
+    { k: 'VOL',  get: c => c.vol,   tone: 'plain' }
+  ];
+  const timeH = 15;
+  const lineH = (h - sy - timeH - 6) / rows.length;
 
-            if (trade.m) {
-                candle.profile[priceKey].bid += trade.q;
-            } else {
-                candle.profile[priceKey].ask += trade.q;
-            }
-        }
+  /* labels in the left gutter */
+  ctx.font = `700 8px ${SANS}`;
+  ctx.textAlign = 'left';
+  rows.forEach((r, i) => {
+    ctx.fillStyle = C.faint;
+    ctx.fillText(r.k, 6, sy + 4 + i * lineH + lineH / 2);
+  });
 
-        function getIntervalMs() {
-            const val = document.getElementById('interval')?.value || '1m';
-            const match = /^(\d+)([smhdwM])$/.exec(val);
-            if (!match) return 60000;
-            const num = Number(match[1]);
-            const units = { s: 1000, m: 60000, h: 3600000, d: 86400000, w: 604800000, M: 2592000000 };
-            return num * units[match[2]];
-        }
+  /* column separators so numbers never bleed together */
+  ctx.strokeStyle = 'rgba(31,36,45,.85)';
+  ctx.lineWidth = 1;
+  for (let ci = 1; ci < n; ci++) vline(ctx, plotX0 + ci * colW, sy + 2, h - timeH + 1);
 
-        function getTimeBucket(timestamp) {
-            const interval = document.getElementById('interval')?.value || '1m';
-            if (interval.endsWith('M')) {
-                const monthCount = Number.parseInt(interval, 10) || 1;
-                const date = new Date(timestamp);
-                const monthIndex = date.getUTCFullYear() * 12 + date.getUTCMonth();
-                const startMonth = Math.floor(monthIndex / monthCount) * monthCount;
-                return Date.UTC(Math.floor(startMonth / 12), startMonth % 12, 1);
-            }
-            if (interval.endsWith('w')) {
-                const date = new Date(timestamp);
-                const dayOfWeek = (date.getUTCDay() + 6) % 7;
-                date.setUTCDate(date.getUTCDate() - dayOfWeek);
-                date.setUTCHours(0, 0, 0, 0);
-                return date.getTime();
-            }
-            const intervalMs = getIntervalMs();
-            return Math.floor(timestamp / intervalMs) * intervalMs;
-        }
+  /* values per candle */
+  const fs = clamp(Math.floor(lineH * 0.62), 7.5, 10);
+  ctx.font = `600 ${fs}px ${MONO}`;
+  ctx.textAlign = 'center';
+  for (let ci = 0; ci < n; ci++) {
+    const c = S.candles[ci];
+    const x = plotX0 + ci * colW + colW / 2;
+    rows.forEach((r, i) => {
+      const v = r.get(c);
+      const y = sy + 4 + i * lineH + lineH / 2;
+      if (r.tone === 'up') ctx.fillStyle = C.green2;
+      else if (r.tone === 'down') ctx.fillStyle = C.red2;
+      else if (r.tone === 'auto') ctx.fillStyle = v >= 0 ? C.green2 : C.red2;
+      else ctx.fillStyle = C.text2;
+      const txt = r.tone === 'auto' ? fmtSignedCell(v) : fmtCell(v);
+      ctx.fillText(txt, x, y);
+    });
+    /* time */
+    ctx.fillStyle = ci === lastIdx ? C.gold2 : C.faint;
+    ctx.font = `600 8.5px ${MONO}`;
+    ctx.fillText(fmtTime(c.time), x, h - timeH / 2 - 1);
+    ctx.font = `600 ${fs}px ${MONO}`;
+  }
 
-        // 2. Fetch Initial Data & Connect WebSocket
-        async function startEngine() {
-            const requestId = ++engineRequestId;
-            if (currentWs) {
-                currentWs.onclose = null;
-                currentWs.close();
-                currentWs = null;
-            }
-            candles = [];
-            tickSize = 2;
-            updatePriceStep();
-            resetMetrics();
-            setConnectionStatus('connecting');
-            draw();
-            
-            const market = document.getElementById('market')?.value || 'futures';
-            const symbol = (document.getElementById('coin')?.value || 'BTCUSDT').trim().toUpperCase();
-            if (!/^[A-Z0-9]{2,20}$/.test(symbol)) {
-                setConnectionStatus('error');
-                return;
-            }
-            
-            try {
-                const baseUrl = market === 'futures' ? 'https://fapi.binance.com' : 'https://api.binance.com';
-                const endpoint = market === 'futures'
-                    ? `${baseUrl}/fapi/v1/aggTrades`
-                    : `${baseUrl}/api/v3/aggTrades`;
-                let allTrades = [];
-                const res = await fetch(`${endpoint}?symbol=${symbol}&limit=1000`);
-                if (!res.ok) throw new Error(`History request failed (HTTP ${res.status})`);
-                allTrades = await res.json();
-                if (!Array.isArray(allTrades)) throw new Error('The exchange returned invalid trade history.');
-                if (allTrades.length) {
-                    tickSize = getPriceStep(parseFloat(allTrades[allTrades.length - 1].p));
-                    updatePriceStep();
-                }
+  /* store geometry for hit-testing */
+  FP.geom = { plotX0, plotX1, plotY0, plotY1, colW, rowH, nRows, gridHi, effStep, n, leftW, rightW };
+}
 
-                // ── CREATIVE BACKWARD FETCH: Хангалттай түүхэн лаа үүсгэхийн тулд ухрааж татна ──
-                const targetCandles = 12;
-                const intervalMs = getIntervalMs();
-                if (allTrades.length > 0) {
-                    let oldest = allTrades[0];
-                    let newest = allTrades[allTrades.length-1];
-                    let timeCovered = newest.T - oldest.T;
-                    let reqs = 1;
-                    
-                    while (timeCovered < targetCandles * intervalMs && reqs < 8) {
-                        let fromId = oldest.a - 1000;
-                        if (fromId < 0) break;
-                        const prevRes = await fetch(`${endpoint}?symbol=${symbol}&limit=1000&fromId=${fromId}`);
-                        if (!prevRes.ok) throw new Error(`Trade history request failed (HTTP ${prevRes.status})`);
-                        const prevData = await prevRes.json();
-                        if (!prevData || prevData.length === 0) break;
-                        const filtered = prevData.filter(t => t.a < oldest.a);
-                        if (filtered.length === 0) break;
-                        allTrades = filtered.concat(allTrades);
-                        oldest = allTrades[0];
-                        timeCovered = newest.T - oldest.T;
-                        reqs++;
-                    }
-                }
+/* ------------------------------ tooltip --------------------------------- */
+function onFpMove(ev) {
+  const g = FP.geom;
+  if (!g) return;
+  const rect = fpCanvas.getBoundingClientRect();
+  const mx = ev.clientX - rect.left;
+  const my = ev.clientY - rect.top;
 
-                if (requestId !== engineRequestId) return;
-                allTrades.forEach(t => processTrade({ p: parseFloat(t.p), q: parseFloat(t.q), t: t.T, m: t.m }));
-                shouldScroll = true;
-                draw();
-            } catch (e) {
-                if (requestId === engineRequestId) {
-                    setConnectionStatus('error');
-                    console.warn("Order-flow history unavailable:", e);
-                }
-            }
+  if (mx < g.plotX0 || mx > g.plotX1 || my < g.plotY0 || my > g.plotY1) {
+    fpTip.classList.remove('on');
+    S.hover = null;
+    return;
+  }
+  const ci = clamp(Math.floor((mx - g.plotX0) / g.colW), 0, g.n - 1);
+  const ri = clamp(Math.floor((my - g.plotY0) / g.rowH), 0, g.nRows - 1);
+  const price = g.gridHi - ri * g.effStep;
+  const key = price.toFixed(priceDecimals(g.effStep));
+  const candle = S.candles[ci];
+  const agg = aggregateProfile(candle, g.effStep);
+  const cell = agg.get(key);
 
-            if (requestId === engineRequestId) connectCombinedWSS(market, symbol, requestId);
-        }
+  S.hover = { ci, ri, price };
 
-        function connectCombinedWSS(market, symbol, requestId) {
-            const wsMarket = market === 'futures' ? 'fstream.binance.com' : 'stream.binance.com:9443';
-            const socket = new WebSocket(`wss://${wsMarket}/ws/${symbol.toLowerCase()}@aggTrade`);
-            currentWs = socket;
+  const total = cell ? cell.bid + cell.ask : 0;
+  const delta = cell ? cell.ask - cell.bid : 0;
+  const belowKey = (price - g.effStep).toFixed(priceDecimals(g.effStep));
+  const below = agg.get(belowKey);
+  let imbTxt = '—';
+  if (cell && below) {
+    if (below.bid > 0 && cell.ask / below.bid >= IMB_RATIO) imbTxt = 'BUY imbalance';
+    else if (cell.ask > 0 && below.bid / cell.ask >= IMB_RATIO) imbTxt = 'SELL imbalance';
+  }
 
-            socket.onopen = () => {
-                if (requestId === engineRequestId) setConnectionStatus('connected');
-            };
-            socket.onmessage = (event) => {
-                if (requestId !== engineRequestId) return;
-                const msg = JSON.parse(event.data);
-                const price = parseFloat(msg.p);
-                const quantity = parseFloat(msg.q);
-                if (!Number.isFinite(price) || !Number.isFinite(quantity) || quantity <= 0) return;
-                if (!candles.length) {
-                    tickSize = getPriceStep(price);
-                    updatePriceStep();
-                }
-                processTrade({ p: price, q: quantity, t: msg.T, m: msg.m });
-                requestAnimationFrame(draw);
-            };
-            socket.onerror = () => {
-                if (requestId === engineRequestId) setConnectionStatus('error');
-            };
-            socket.onclose = () => {
-                if (requestId !== engineRequestId) return;
-                setConnectionStatus('disconnected');
-                window.setTimeout(() => {
-                    if (requestId === engineRequestId) connectCombinedWSS(market, symbol, requestId);
-                }, 3000);
-            };
-        }
+  fpTip.innerHTML =
+    `<div class="t-h">${fmtPrice(price)} · ${fmtTime(candle.time)}</div>` +
+    `<div class="t-r"><span>BID (sell)</span><b class="down">${cell ? fmtVol(cell.bid) : '0'}</b></div>` +
+    `<div class="t-r"><span>ASK (buy)</span><b class="up">${cell ? fmtVol(cell.ask) : '0'}</b></div>` +
+    `<div class="t-r"><span>Delta</span><b class="${delta >= 0 ? 'up' : 'down'}">${fmtSigned(delta)}</b></div>` +
+    `<div class="t-r"><span>Нийт</span><b>${fmtVol(total)}</b></div>` +
+    `<div class="t-r"><span>Imbalance</span><b>${imbTxt}</b></div>`;
 
-        // Hook with control.js
-        document.addEventListener('DOMContentLoaded', () => {
-            const marketEl = document.getElementById('market');
-            const coinEl = document.getElementById('coin');
-            const intervalEl = document.getElementById('interval');
+  fpTip.classList.add('on');
+  const tw = fpTip.offsetWidth, th = fpTip.offsetHeight;
+  let tx = mx + 14, ty = my - th / 2;
+  if (tx + tw > rect.width - 6) tx = mx - tw - 14;
+  ty = clamp(ty, 4, rect.height - th - 4);
+  fpTip.style.left = tx + 'px';
+  fpTip.style.top = ty + 'px';
+}
+function onFpLeave() { fpTip.classList.remove('on'); S.hover = null; }
+/* ============================================================================
+   ORDER BOOK DEPTH + LADDER
+   ========================================================================== */
+const depthCanvas = $('depthCanvas');
+const ladderEl = $('ladder');
 
-            [marketEl, coinEl, intervalEl].forEach(el => {
-                if (el) el.addEventListener('change', startEngine);
-            });
-            
-            if (coinEl) {
-                coinEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') startEngine(); });
-            }
+function renderDepth() {
+  const { ctx, w, h } = fitCanvas(depthCanvas);
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = C.bg;
+  ctx.fillRect(0, 0, w, h);
 
-            startEngine();
-            container.addEventListener('scroll', () => requestAnimationFrame(draw));
-            window.addEventListener('resize', draw);
-        });
+  const { bids, asks } = S.book;
+  if (!bids.length || !asks.length) {
+    ctx.fillStyle = C.dim;
+    ctx.font = `500 11px ${SANS}`;
+    ctx.textAlign = 'center';
+    ctx.fillText('Order book хүлээж байна…', w / 2, h / 2);
+    return;
+  }
 
-        const originalChangeLang = window.changeLang;
-        window.changeLang = function(lang) {
-            if (originalChangeLang) originalChangeLang(lang);
-            const state = document.getElementById('ws-status')?.dataset.state || 'connecting';
-            setConnectionStatus(state);
-            requestAnimationFrame(draw);
-        };
+  const padL = 8, padR = 8, padT = 10, padB = 16;
+  const plotW = w - padL - padR;
+  const plotH = h - padT - padB;
 
-        // 3. Render Logic
-        function draw() {
-            // Dynamic Width: Ensure canvas fits all candles + padding
-            const requiredWidth = Math.max(container.clientWidth, volumeColumnWidth + candles.length * candleWidth + padding * 2 + priceColumnWidth);
-            canvas.width = requiredWidth;
-            canvas.height = container.clientHeight;
-            
-            // Fill Background
-            ctx.fillStyle = '#080b10';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+  /* cumulative depth */
+  const bidCum = [];
+  let run = 0;
+  for (const [p, q] of bids) { run += q; bidCum.push([p, run]); }
+  const askCum = [];
+  run = 0;
+  for (const [p, q] of asks) { run += q; askCum.push([p, run]); }
 
-            if (candles.length === 0) {
-                ctx.fillStyle = '#8795a7';
-                ctx.font = '12px Inter, Arial, sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText(getPageTranslation('orderflow-waiting'), canvas.width / 2, canvas.height / 2);
-                return;
-            }
+  const maxCum = Math.max(
+    bidCum.length ? bidCum[bidCum.length - 1][1] : 1,
+    askCum.length ? askCum[askCum.length - 1][1] : 1
+  ) || 1;
 
-            // Layout Config
-            const tableHeight = 150; 
-            const chartHeight = canvas.height - tableHeight;
+  const bestBid = bids[0][0], bestAsk = asks[0][0];
+  const mid = (bestBid + bestAsk) / 2;
+  const span = Math.max(bestAsk - bestBid, S.tickSize) * 1.2;
+  const lo = bestBid - span * 0.9;
+  const hi = bestAsk + span * 0.9;
+  const xOf = p => padL + ((p - lo) / (hi - lo)) * plotW;
+  const yOf = v => padT + plotH - (v / maxCum) * plotH;
 
-            const minPrice = Math.min(...candles.map(c => c.low));
-            const maxPrice = Math.max(...candles.map(c => c.high));
-            const gridMin = Math.floor(minPrice / tickSize) * tickSize;
-            const gridMax = Math.ceil(maxPrice / tickSize) * tickSize;
-            const viewMin = gridMin - tickSize * 2;
-            const viewMax = gridMax + tickSize * 2;
-            const viewRange = Math.max(viewMax - viewMin, 1.0); // Avoid zero division
+  /* grid */
+  ctx.strokeStyle = C.grid;
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 3; i++) hline(ctx, padL, w - padR, padT + (plotH / 3) * i);
 
-            const totalTicks = viewRange / tickSize;
-            const rowHeight = (chartHeight - padding * 2) / totalTicks;
-            const drawText = rowHeight > 13;
+  /* bid area */
+  ctx.beginPath();
+  ctx.moveTo(xOf(bidCum[0][0]), padT + plotH);
+  for (const [p, v] of bidCum) ctx.lineTo(xOf(p), yOf(v));
+  ctx.lineTo(xOf(bidCum[bidCum.length - 1][0]), padT + plotH);
+  ctx.closePath();
+  const gBid = ctx.createLinearGradient(0, padT, 0, padT + plotH);
+  gBid.addColorStop(0, 'rgba(38,201,139,.42)');
+  gBid.addColorStop(1, 'rgba(38,201,139,.03)');
+  ctx.fillStyle = gBid;
+  ctx.fill();
+  ctx.strokeStyle = C.green;
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  bidCum.forEach(([p, v], i) => i ? ctx.lineTo(xOf(p), yOf(v)) : ctx.moveTo(xOf(p), yOf(v)));
+  ctx.stroke();
 
-            ctx.font = '9px "JetBrains Mono"';
-            ctx.textBaseline = 'middle';
+  /* ask area */
+  ctx.beginPath();
+  ctx.moveTo(xOf(askCum[0][0]), padT + plotH);
+  for (const [p, v] of askCum) ctx.lineTo(xOf(p), yOf(v));
+  ctx.lineTo(xOf(askCum[askCum.length - 1][0]), padT + plotH);
+  ctx.closePath();
+  const gAsk = ctx.createLinearGradient(0, padT, 0, padT + plotH);
+  gAsk.addColorStop(0, 'rgba(240,93,104,.42)');
+  gAsk.addColorStop(1, 'rgba(240,93,104,.03)');
+  ctx.fillStyle = gAsk;
+  ctx.fill();
+  ctx.strokeStyle = C.red;
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  askCum.forEach(([p, v], i) => i ? ctx.lineTo(xOf(p), yOf(v)) : ctx.moveTo(xOf(p), yOf(v)));
+  ctx.stroke();
 
-            ctx.strokeStyle = '#17202b';
-            ctx.lineWidth = 1;
-            for (let i = 0; i <= totalTicks; i++) {
-                const y = padding + i * rowHeight;
-                ctx.beginPath();
-                ctx.moveTo(volumeColumnWidth + padding, y);
-                ctx.lineTo(canvas.width - priceColumnWidth, y);
-                ctx.stroke();
-            }
+  /* mid line */
+  ctx.strokeStyle = 'rgba(197,160,89,.5)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 3]);
+  vline(ctx, xOf(mid), padT, padT + plotH);
+  ctx.setLineDash([]);
 
-            let cumulativeDelta = 0, sessionBuy = 0, sessionSell = 0;
-            const volProfile = {};
-            let maxVolProfile = 0;
+  /* axis labels */
+  ctx.font = `500 9px ${MONO}`;
+  ctx.fillStyle = C.faint;
+  ctx.textAlign = 'left';
+  ctx.fillText(fmtPrice(lo), padL, h - 6);
+  ctx.textAlign = 'right';
+  ctx.fillText(fmtPrice(hi), w - padR, h - 6);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = C.gold2;
+  ctx.fillText(fmtPrice(mid), xOf(mid), h - 6);
 
-            candles.forEach(c => {
-                Object.entries(c.profile).forEach(([p, v]) => {
-                    if (!volProfile[p]) volProfile[p] = { vol: 0, delta: 0 };
-                    volProfile[p].vol += (v.bid + v.ask);
-                    volProfile[p].delta += (v.ask - v.bid);
-                    if (volProfile[p].vol > maxVolProfile) maxVolProfile = volProfile[p].vol;
-                });
-            });
+  /* ---- ladder ---- */
+  const rows = 9;
+  const askSlice = asks.slice(0, rows).reverse();
+  const bidSlice = bids.slice(0, rows);
+  const maxQ = Math.max(
+    ...askSlice.map(r => r[1]), ...bidSlice.map(r => r[1]), 0.0001
+  );
+  const avgQ = (askSlice.concat(bidSlice).reduce((a, r) => a + r[1], 0)) /
+               Math.max(1, askSlice.length + bidSlice.length);
 
-            candles.forEach((candle, index) => {
-                const x = volumeColumnWidth + index * candleWidth + padding;
-                const isUp = candle.close >= candle.open;
-                
-                const topY = ((viewMax - candle.high) / tickSize) * rowHeight + padding;
-                const bottomY = ((viewMax - candle.low) / tickSize) * rowHeight + padding + rowHeight;
-                const height = Math.max(bottomY - topY, 1);
+  let html = '';
+  let askCumR = 0;
+  const askTotals = [];
+  for (let i = asks.length - 1; i >= 0; i--) { askCumR += asks[i][1]; askTotals[i] = askCumR; }
 
-                // Time Separator
-                ctx.strokeStyle = '#1f242d';
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(x + candleWidth, 0);
-                ctx.lineTo(x + candleWidth, chartHeight + 130);
-                ctx.stroke();
+  askSlice.forEach(([p, q]) => {
+    const idx = asks.findIndex(r => r[0] === p);
+    const cum = askTotals[idx] || q;
+    const wall = q > avgQ * 2.2;
+    html += `<div class="lrow ask${wall ? ' wall' : ''}">
+      <span class="lbar" style="width:${(q / maxQ * 100).toFixed(1)}%"></span>
+      <span class="lp">${fmtPrice(p)}</span>
+      <span class="ls">${fmtVol(q)}</span>
+      <span class="lc">${fmtVol(cum)}</span>
+    </div>`;
+  });
 
-                // Draw Candle Border
-                ctx.strokeStyle = isUp ? '#26c98b' : '#f05d68';
-                ctx.lineWidth = 1;
-                ctx.strokeRect(x, topY, candleWidth - 10, height);
+  html += `<div class="lspread">
+    <span>SPREAD</span>
+    <span class="mid">${fmtPrice(mid)}</span>
+    <span>${fmtPrice(S.book.spread)}</span>
+  </div>`;
 
-                const highStep = Math.floor(candle.high / tickSize);
-                const lowStep = Math.floor(candle.low / tickSize);
+  let bidCumR = 0;
+  bidSlice.forEach(([p, q]) => {
+    bidCumR += q;
+    const wall = q > avgQ * 2.2;
+    html += `<div class="lrow bid${wall ? ' wall' : ''}">
+      <span class="lbar" style="width:${(q / maxQ * 100).toFixed(1)}%"></span>
+      <span class="lp">${fmtPrice(p)}</span>
+      <span class="ls">${fmtVol(q)}</span>
+      <span class="lc">${fmtVol(bidCumR)}</span>
+    </div>`;
+  });
 
-                let candleTotalVol = 0;
-                let candleDelta = 0;
-                let totalAsk = 0;
-                let totalBid = 0;
-                let maxVol = 0;
-                let pocPriceKey = null;
-                
-                Object.entries(candle.profile).forEach(([key, data]) => {
-                    const vol = data.ask + data.bid;
-                    const d = data.ask - data.bid;
-                    candleTotalVol += vol;
-                    candleDelta += d;
-                    sessionBuy += data.ask;
-                    sessionSell += data.bid;
-                    totalAsk += data.ask;
-                    totalBid += data.bid;
-                    if (vol > maxVol) {
-                        maxVol = vol;
-                        pocPriceKey = key;
-                    }
-                });
-                
-                // Update Cumulative Delta
-                cumulativeDelta += candleDelta;
+  ladderEl.innerHTML = html;
 
-                for (let s = highStep; s >= lowStep; s--) {
-                    const price = s * tickSize;
-                    const priceKey = getPriceKey(price);
-                    
-                    if (!candle.profile[priceKey]) continue;
-                    
-                    const y = ((viewMax - price) / tickSize) * rowHeight + padding;
-                    const rowData = candle.profile[priceKey];
-                    
-                    // Background color based on Delta (Ask - Bid)
-                    const delta = rowData.ask - rowData.bid;
-                    const totalVol = rowData.ask + rowData.bid;
-                    const ratio = Math.abs(delta) / (totalVol || 1);
+  /* footer meta */
+  const bidVol = bids.reduce((a, r) => a + r[1], 0);
+  const askVol = asks.reduce((a, r) => a + r[1], 0);
+  const ratio = askVol > 0 ? bidVol / askVol : 0;
+  $('bookRatio').textContent = ratio.toFixed(2) + ' : 1';
+  $('bookRatio').style.color = ratio >= 1 ? C.green2 : C.red2;
 
-                    const intensity = 0.12 + ratio * 0.48;
-                    const cellColor = delta > 0
-                        ? `rgba(38, 201, 139, ${intensity})`
-                        : delta < 0
-                            ? `rgba(240, 93, 104, ${intensity})`
-                            : 'rgba(135, 149, 167, 0.12)';
+  let wallTxt = 'Тэнцвэртэй';
+  if (ratio > 1.35) wallTxt = 'Bid давамгай';
+  else if (ratio < 0.74) wallTxt = 'Ask давамгай';
+  $('bookWall').textContent = wallTxt;
+  $('bookWall').style.color = ratio > 1.35 ? C.green2 : ratio < 0.74 ? C.red2 : C.muted;
+  $('depthMeta').textContent = `${bids.length}×${asks.length}`;
+}
 
-                    ctx.fillStyle = cellColor;
-                    
-                    const cellH = Math.max(rowHeight - 1.5, 0.5);
-                    const radius = Math.min(4, cellH / 2);
-                    const cellX = x + 2;
-                    ctx.beginPath();
-                    ctx.roundRect(cellX, y + 0.5, candleWidth - 14, cellH, radius);
-                    ctx.fill();
+/* ============================================================================
+   CUMULATIVE DELTA CHART
+   ========================================================================== */
+const cvdCanvas = $('cvdCanvas');
 
-                    // Highlight POC (Point of Control)
-                    if (priceKey === pocPriceKey) {
-                        ctx.strokeStyle = '#c5a059'; 
-                        ctx.lineWidth = 1.5;
-                        ctx.beginPath();
-                        ctx.roundRect(cellX, y + 0.5, candleWidth - 14, cellH, radius);
-                        ctx.stroke();
-                    }
+function renderCvd() {
+  const { ctx, w, h } = fitCanvas(cvdCanvas);
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = C.bg;
+  ctx.fillRect(0, 0, w, h);
 
-                    // Draw Text: Bid x Ask
-                    if (drawText) {
-                        const centerX = x + (candleWidth - 10) / 2;
-                        
-                        ctx.fillStyle = 'rgba(255,255,255,0.1)';
-                        ctx.fillRect(centerX - 0.5, y, 1, rowHeight);
+  const n = S.candles.length;
+  if (!n) {
+    ctx.fillStyle = C.dim;
+    ctx.font = `500 11px ${SANS}`;
+    ctx.textAlign = 'center';
+    ctx.fillText('CVD хүлээж байна…', w / 2, h / 2);
+    return;
+  }
 
-                        ctx.fillStyle = (ratio > 0.7) ? '#ffffff' : '#94a3b8';
-                        ctx.textAlign = 'right';
-                        ctx.fillText(rowData.bid.toFixed(1), centerX - 4, y + rowHeight/2);
-                        
-                        ctx.textAlign = 'left';
-                        ctx.fillText(rowData.ask.toFixed(1), centerX + 4, y + rowHeight/2);
-                    }
-                }
+  const padL = 52, padR = 12, padT = 14, padB = 22;
+  const plotW = w - padL - padR;
+  const plotH = h - padT - padB;
 
-                // Downside Column (Stats Table)
-                const statsY = chartHeight + 10;
-                const lineHeight = 18;
+  const vals = S.candles.map(c => c.cvd);
+  let lo = Math.min(0, ...vals), hi = Math.max(0, ...vals);
+  if (hi - lo < 1e-9) { hi = 1; lo = -1; }
+  const pad = (hi - lo) * 0.12;
+  lo -= pad; hi += pad;
 
-                ctx.fillStyle = '#0f1217';
-                ctx.fillRect(x, statsY - 5, candleWidth - 10, 110);
-                
-                ctx.textAlign = 'center';
-                const stats = [
-                    totalAsk.toFixed(2),
-                    totalBid.toFixed(2),
-                    candleDelta.toFixed(2),
-                    cumulativeDelta.toFixed(2),
-                    candleTotalVol.toFixed(2)
-                ];
+  const xOf = i => padL + (n === 1 ? plotW / 2 : (i / (n - 1)) * plotW);
+  const yOf = v => padT + plotH - ((v - lo) / (hi - lo)) * plotH;
 
-                stats.forEach((val, i) => {
-                    if (i === 2 || i === 3) ctx.fillStyle = parseFloat(val) >= 0 ? '#10b981' : '#ef4444';
-                    else ctx.fillStyle = '#ffffff';
-                    ctx.fillText(val, x + candleWidth/2 - 5, statsY + i * lineHeight);
-                });
+  /* grid */
+  ctx.strokeStyle = C.grid;
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) hline(ctx, padL, w - padR, padT + (plotH / 4) * i);
 
-                ctx.fillStyle = '#4b5563';
-                ctx.font = 'black 8px "JetBrains Mono"';
-                const timeStr = new Date(candle.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false});
-                ctx.fillText(timeStr, x + candleWidth/2 - 5, statsY + 100);
-                ctx.font = '9px "JetBrains Mono"';
-            });
+  /* zero line */
+  const y0 = yOf(0);
+  ctx.strokeStyle = 'rgba(197,160,89,.55)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 3]);
+  hline(ctx, padL, w - padR, y0);
+  ctx.setLineDash([]);
 
-            // Global UI stats update
-            const totalVol = sessionBuy + sessionSell;
-            const lastCandle = candles[candles.length - 1];
-            const symbol = document.getElementById('coin')?.value.trim().toUpperCase() || 'BTCUSDT';
-            const baseAsset = symbol.endsWith('USDT') ? symbol.slice(0, -4) : symbol;
-            if (document.getElementById('val-total-delta')) {
-                const deltaSign = cumulativeDelta > 0 ? '+' : '';
-                document.getElementById('val-total-delta').textContent = `${deltaSign}${cumulativeDelta.toFixed(2)} ${baseAsset}`;
-                document.getElementById('val-total-delta').className = `value ${cumulativeDelta >= 0 ? 'up' : 'down'}`;
-            }
-            document.getElementById('delta-unit').textContent = `${baseAsset} · ${getPageTranslation('metric-delta-help')}`;
-            document.getElementById('futures-price-display').textContent = `$${new Intl.NumberFormat('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: lastCandle.close < 1 ? 6 : 2
-            }).format(lastCandle.close)}`;
-            document.getElementById('val-buy-ratio').textContent = totalVol
-                ? `${((sessionBuy / totalVol) * 100).toFixed(1)}%`
-                : '--%';
-            document.getElementById('val-sell-ratio').textContent = totalVol
-                ? `${((sessionSell / totalVol) * 100).toFixed(1)}%`
-                : '--%';
+  /* area fill split by sign */
+  const grad = ctx.createLinearGradient(0, padT, 0, padT + plotH);
+  grad.addColorStop(0, 'rgba(155,123,255,.30)');
+  grad.addColorStop(1, 'rgba(155,123,255,.02)');
+  ctx.beginPath();
+  ctx.moveTo(xOf(0), y0);
+  for (let i = 0; i < n; i++) ctx.lineTo(xOf(i), yOf(vals[i]));
+  ctx.lineTo(xOf(n - 1), y0);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
 
-            // Sticky Volume Profile (Left)
-            const vpX = container.scrollLeft;
-            ctx.fillStyle = '#0b1017';
-            ctx.fillRect(vpX, 0, volumeColumnWidth, canvas.height);
-            ctx.fillStyle = '#8795a7';
-            ctx.font = '600 8px Inter, Arial, sans-serif';
-            ctx.textAlign = 'left';
-            ctx.textBaseline = 'top';
-            ctx.fillText(getPageTranslation('orderflow-volume-profile'), vpX + 8, 14);
-            ctx.strokeStyle = '#1f242d';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(vpX + volumeColumnWidth, 0);
-            ctx.lineTo(vpX + volumeColumnWidth, chartHeight + 130);
-            ctx.stroke();
+  /* line */
+  ctx.beginPath();
+  for (let i = 0; i < n; i++) {
+    const x = xOf(i), y = yOf(vals[i]);
+    i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+  }
+  ctx.strokeStyle = C.violet;
+  ctx.lineWidth = 2;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  ctx.stroke();
 
-            const totalStepsVP = (viewMax - viewMin) / tickSize;
-            for (let i = 0; i <= totalStepsVP; i++) {
-                const price = viewMax - (i * tickSize);
-                const priceKey = getPriceKey(price);
-                const vpNode = volProfile[priceKey];
-                if (!vpNode || !vpNode.vol) continue;
+  /* points */
+  for (let i = 0; i < n; i++) {
+    const x = xOf(i), y = yOf(vals[i]);
+    const last = i === n - 1;
+    ctx.beginPath();
+    ctx.arc(x, y, last ? 4 : 2.4, 0, Math.PI * 2);
+    ctx.fillStyle = last ? C.gold : C.violet;
+    ctx.fill();
+    if (last) {
+      ctx.strokeStyle = 'rgba(197,160,89,.35)';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+  }
 
-                const y = (i * rowHeight) + padding;
-                const barWidth = (vpNode.vol / (maxVolProfile || 1)) * (volumeColumnWidth - 10);
-                
-                // ── DELTA COLORING: Профилийг Дельтагаар будна ──
-                if (vpNode.delta > 0) ctx.fillStyle = 'rgba(16, 185, 129, 0.25)';
-                else if (vpNode.delta < 0) ctx.fillStyle = 'rgba(239, 68, 68, 0.25)';
-                else ctx.fillStyle = 'rgba(197, 160, 89, 0.15)';
-                
-                const barH = Math.max(rowHeight - 1, 0.5);
-                ctx.beginPath(); ctx.roundRect(vpX, y + 0.5, barWidth, barH, [0, 4, 4, 0]);
-                ctx.fill();
-            }
+  /* per-candle delta bars at the bottom */
+  const barH = 16;
+  const barY = padT + plotH + 4;
+  const maxAbs = Math.max(...S.candles.map(c => Math.abs(c.delta)), 1e-9);
+  const bw = Math.max(2, plotW / n - 2);
+  for (let i = 0; i < n; i++) {
+    const d = S.candles[i].delta;
+    const bh = (Math.abs(d) / maxAbs) * barH;
+    const x = xOf(i) - bw / 2;
+    ctx.fillStyle = d >= 0 ? 'rgba(38,201,139,.75)' : 'rgba(240,93,104,.75)';
+    roundRect(ctx, x, barY + (barH - bh), bw, Math.max(1, bh), 1.5);
+    ctx.fill();
+  }
 
-            const statsY = chartHeight + 10;
-            const lineHeight = 18;
-            ctx.textAlign = 'left';
-            ctx.fillStyle = '#4b5563';
-            ctx.font = 'bold 8px Inter';
-            [
-                getPageTranslation('orderflow-stats-ask'),
-                getPageTranslation('orderflow-stats-bid'),
-                getPageTranslation('orderflow-stats-delta'),
-                getPageTranslation('orderflow-stats-cumulative'),
-                getPageTranslation('orderflow-stats-total')
-            ].forEach((label, i) => {
-                ctx.fillText(label, vpX + 8, statsY + i * lineHeight);
-            });
+  /* y labels */
+  ctx.font = `500 9px ${MONO}`;
+  ctx.textAlign = 'right';
+  ctx.fillStyle = C.faint;
+  for (let i = 0; i <= 4; i++) {
+    const v = hi - ((hi - lo) / 4) * i;
+    ctx.fillText(fmtVol(v), padL - 6, padT + (plotH / 4) * i);
+  }
 
-            // Sticky Price Column (Right)
-            const priceColX = container.scrollLeft + container.clientWidth - priceColumnWidth;
-            ctx.fillStyle = '#0b1017';
-            ctx.fillRect(priceColX, 0, priceColumnWidth, canvas.height);
-            ctx.fillStyle = '#8795a7';
-            ctx.font = '600 8px Inter, Arial, sans-serif';
-            ctx.textAlign = 'left';
-            ctx.textBaseline = 'top';
-            ctx.fillText(getPageTranslation('orderflow-price-axis'), priceColX + 8, 14);
-            ctx.strokeStyle = '#1f242d';
-            ctx.beginPath(); ctx.moveTo(priceColX, 0); ctx.lineTo(priceColX, chartHeight); ctx.stroke();
+  /* x labels */
+  ctx.textAlign = 'center';
+  const step = Math.max(1, Math.ceil(n / 7));
+  for (let i = 0; i < n; i += step) {
+    ctx.fillStyle = i === n - 1 ? C.gold2 : C.faint;
+    ctx.fillText(fmtTime(S.candles[i].time), xOf(i), h - 8);
+  }
 
-            ctx.textAlign = 'left';
-            ctx.fillStyle = '#a7b3c2';
-            ctx.font = '10px ui-monospace, Consolas, monospace';
-            ctx.textBaseline = 'middle';
+  $('cvdNow').textContent = fmtSigned(vals[n - 1]);
+  $('cvdNow').style.color = vals[n - 1] >= 0 ? C.green2 : C.red2;
+}
 
-            const totalSteps = (viewMax - viewMin) / tickSize;
-            const labelStep = Math.max(1, Math.ceil(20 / rowHeight));
-            const currentPrice = candles.length > 0 ? candles[candles.length - 1].close : 0;
+/* ============================================================================
+   ORDER FLOW ALERTS
+   ========================================================================== */
+function pushAlert(kind, title, desc, value, ts) {
+  const key = kind + '|' + title + '|' + Math.floor((ts || Date.now()) / 1000);
+  if (S.alertKeys.has(key)) return;
+  S.alertKeys.add(key);
+  S.alerts.unshift({ kind, title, desc, value, ts: ts || Date.now() });
+  if (S.alerts.length > MAX_ALERTS) S.alerts.length = MAX_ALERTS;
+  renderAlerts();
+}
 
-            for (let i = 0; i <= totalSteps; i++) {
-                if (i % labelStep !== 0) continue;
-                
-                const price = viewMax - (i * tickSize);
-                const y = (i * rowHeight) + padding + (rowHeight / 2);
-                if (y > chartHeight) break;
-                ctx.fillText(getPriceKey(price), priceColX + 10, y);
+function detectAlerts() {
+  const n = S.candles.length;
+  if (n < 3) return;
+  const last = S.candles[n - 1];
+  const prev = S.candles[n - 2];
 
-                const currentBucket = Math.floor(currentPrice / tickSize) * tickSize;
-                if (Math.abs(price - currentBucket) < tickSize / 2) {
-                    ctx.save();
-                    ctx.textAlign = 'right';
-                    ctx.fillStyle = '#d5be88';
-                    ctx.font = '600 8px Inter, Arial, sans-serif';
-                    ctx.fillText(getPageTranslation('orderflow-live'), priceColX - 6, y);
-                    ctx.restore();
-                }
-            }
+  /* --- 1. absorption: heavy volume, small range --- */
+  const ranges = S.candles.map(c => c.high - c.low).filter(r => r > 0);
+  const avgRange = ranges.length ? ranges.reduce((a, b) => a + b, 0) / ranges.length : 0;
+  const vols = S.candles.map(c => c.vol).filter(v => v > 0);
+  const avgVol = vols.length ? vols.reduce((a, b) => a + b, 0) / vols.length : 0;
 
-            if (shouldScroll) {
-                container.scrollLeft = container.scrollWidth;
-                shouldScroll = false;
-            }
-        }
-    </script>
-    <script src="/static/js/footer.js"></script>
-    <script src="/static/js/access_control.js"></script>
+  if (avgRange > 0 && avgVol > 0) {
+    const r = last.high - last.low;
+    if (last.vol > avgVol * ABSORB_MULT && r < avgRange * ABSORB_RANGE) {
+      const side = last.delta >= 0 ? 'buy' : 'sell';
+      pushAlert(
+        side === 'buy' ? 'buy' : 'sell',
+        'Absorption',
+        `${side === 'buy' ? 'Buy' : 'Sell'} хэмжээ шингээгдлээ · range ${(r / avgRange * 100).toFixed(0)}% дунджаас`,
+        last.vol, last.time
+      );
+    }
+  }
+
+  /* --- 2. stacked imbalance (3+ consecutive rows same side) --- */
+  const step = S.tickSize;
+  const keys = [...last.profile.keys()].map(parseFloat).sort((a, b) => a - b);
+  let runBuy = 0, runSell = 0, bestBuy = 0, bestSell = 0;
+  for (let i = 1; i < keys.length; i++) {
+    const cur = last.profile.get(priceKey(keys[i]));
+    const below = last.profile.get(priceKey(keys[i - 1]));
+    if (!cur || !below) { runBuy = runSell = 0; continue; }
+    if (below.bid > 0 && cur.ask / below.bid >= IMB_RATIO) { runBuy++; runSell = 0; }
+    else if (cur.ask > 0 && below.bid / cur.ask >= IMB_RATIO) { runSell++; runBuy = 0; }
+    else { runBuy = 0; runSell = 0; }
+    bestBuy = Math.max(bestBuy, runBuy);
+    bestSell = Math.max(bestSell, runSell);
+  }
+  if (bestBuy >= 3) {
+    pushAlert('buy', 'Stacked buy imbalance', `${bestBuy + 1} түвшин дараалан buy давамгай`, bestBuy, last.time);
+  }
+  if (bestSell >= 3) {
+    pushAlert('sell', 'Stacked sell imbalance', `${bestSell + 1} түвшин дараалан sell давамгай`, bestSell, last.time);
+  }
+
+  /* --- 3. delta divergence: price up but delta down (or reverse) --- */
+  if (prev && last) {
+    const priceUp = last.close > prev.close;
+    const deltaUp = last.delta > prev.delta;
+    const strong = Math.abs(last.delta) > avgVol * 0.12;
+    if (strong && priceUp && !deltaUp && last.delta < 0) {
+      pushAlert('sell', 'Bearish delta divergence', 'Үнэ өссөн ч delta сөрөг — худалдан авалт суларсан', last.delta, last.time);
+    } else if (strong && !priceUp && deltaUp && last.delta > 0) {
+      pushAlert('buy', 'Bullish delta divergence', 'Үнэ унасан ч delta эерэг — худалдан авалт идэвхтэй', last.delta, last.time);
+    }
+  }
+
+  /* --- 4. single-row extreme imbalance --- */
+  let maxImb = 0, maxImbSide = 0, maxImbPrice = 0;
+  for (const [k, cell] of last.profile) {
+    const tot = cell.bid + cell.ask;
+    if (tot <= 0) continue;
+    const d = (cell.ask - cell.bid) / tot;
+    if (Math.abs(d) > Math.abs(maxImb)) { maxImb = d; maxImbSide = Math.sign(d); maxImbPrice = parseFloat(k); }
+  }
+  if (Math.abs(maxImb) > 0.82 && last.vol > avgVol * 0.5) {
+    pushAlert(
+      maxImbSide > 0 ? 'buy' : 'sell',
+      maxImbSide > 0 ? 'Buy imbalance' : 'Sell imbalance',
+      `${fmtPrice(maxImbPrice)} түвшинд ${(Math.abs(maxImb) * 100).toFixed(0)}% нэг тал`,
+      maxImb, last.time
+    );
+  }
+
+  /* --- 5. book pressure shift --- */
+  const { bids, asks } = S.book;
+  if (bids.length && asks.length) {
+    const bv = bids.reduce((a, r) => a + r[1], 0);
+    const av = asks.reduce((a, r) => a + r[1], 0);
+    if (av > 0) {
+      const ratio = bv / av;
+      if (ratio > 1.8) pushAlert('buy', 'Bid wall', `Order book bid/ask ${ratio.toFixed(2)}:1`, ratio, Date.now());
+      else if (ratio < 0.55) pushAlert('sell', 'Ask wall', `Order book bid/ask ${ratio.toFixed(2)}:1`, ratio, Date.now());
+    }
+  }
+}
+
+function renderAlerts() {
+  const el = $('alerts');
+  $('alertCount').textContent = S.alerts.length;
+  if (!S.alerts.length) {
+    el.innerHTML = '<div class="empty">Урсгал цугларч байна…</div>';
+    return;
+  }
+  el.innerHTML = S.alerts.map(a => {
+    const cls = a.kind === 'buy' ? 'buy' : a.kind === 'sell' ? 'sell' : 'neutral';
+    const tag = a.kind === 'buy' ? 'BUY' : a.kind === 'sell' ? 'SELL' : 'INFO';
+    const val = typeof a.value === 'number'
+      ? (Math.abs(a.value) < 10 ? a.value.toFixed(2) : fmtVol(a.value))
+      : '';
+    return `<div class="alert ${cls}">
+      <span class="a-tag">${tag}</span>
+      <div class="a-body">
+        <div class="a-title">${a.title}</div>
+        <div class="a-desc">${a.desc}</div>
+      </div>
+      <div class="a-meta"><b>${val}</b>${fmtClock(a.ts)}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ============================================================================
+   KPI PANEL
+   ========================================================================== */
+function renderKpis() {
+  const n = S.candles.length;
+  if (!n) return;
+  const last = S.candles[n - 1];
+  const base = baseAsset();
+
+  let buy = 0, sell = 0, delta = 0;
+  for (const c of S.candles) { buy += c.buy; sell += c.sell; delta += c.delta; }
+  const total = buy + sell;
+
+  $('kPrice').textContent = '$' + fmtPrice(last.close);
+  const chg = S.prevPrice ? ((last.close - S.prevPrice) / S.prevPrice) * 100 : 0;
+  $('kPriceSub').textContent = `${base} · ${fmtTime(last.time)} · ${chg >= 0 ? '+' : ''}${chg.toFixed(3)}%`;
+  $('kPriceSub').style.color = chg >= 0 ? C.green2 : C.red2;
+
+  $('kDelta').textContent = fmtSigned(delta) + ' ' + base;
+  $('kDelta').className = 'k-value ' + (delta >= 0 ? 'up' : 'down');
+  $('kDeltaCard').dataset.tone = delta >= 0 ? 'up' : 'down';
+  $('kDeltaSub').textContent = `Buy ${fmtVol(buy)} − Sell ${fmtVol(sell)}`;
+
+  const cvd = last.cvd;
+  $('kCvd').textContent = fmtSigned(cvd) + ' ' + base;
+  $('kCvd').className = 'k-value ' + (cvd >= 0 ? 'up' : 'down');
+
+  const bp = total ? (buy / total) * 100 : 0;
+  const sp = total ? (sell / total) * 100 : 0;
+  $('kBuy').textContent = bp.toFixed(1) + '%';
+  $('kSell').textContent = sp.toFixed(1) + '%';
+  $('kBuyBar').style.width = bp.toFixed(1) + '%';
+  $('kSellBar').style.width = sp.toFixed(1) + '%';
+
+  $('kVol').textContent = fmtVol(total) + ' ' + base;
+  $('kVolSub').textContent = `${S.candles.length} лаа · ${S.synthetic ? 'демо' : 'шууд'}`;
+}
+
+/* ============================================================================
+   MASTER RENDER
+   ========================================================================== */
+function renderAll() {
+  renderFootprint();
+  renderCvd();
+  renderKpis();
+  detectAlerts();
+}
+
+/* ============================================================================
+   EVENTS
+   ========================================================================== */
+fpCanvas.addEventListener('mousemove', onFpMove);
+fpCanvas.addEventListener('mouseleave', onFpLeave);
+fpCanvas.addEventListener('touchstart', ev => {
+  if (ev.touches.length === 1) onFpMove(ev.touches[0]);
+}, { passive: true });
+fpCanvas.addEventListener('touchmove', ev => {
+  if (ev.touches.length === 1) onFpMove(ev.touches[0]);
+}, { passive: true });
+fpCanvas.addEventListener('touchend', onFpLeave);
+
+['market', 'interval', 'candleCount', 'stepMode'].forEach(id => {
+  $(id).addEventListener('change', startEngine);
+});
+$('coin').addEventListener('keydown', e => { if (e.key === 'Enter') startEngine(); });
+$('btnReload').addEventListener('click', startEngine);
+$('btnPause').addEventListener('click', () => {
+  S.paused = !S.paused;
+  const b = $('btnPause');
+  b.setAttribute('aria-pressed', String(S.paused));
+  b.textContent = S.paused ? '▶ Resume' : '⏸ Pause';
+});
+
+let resizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => { renderAll(); renderDepth(); }, 90);
+});
+window.addEventListener('orientationchange', () => setTimeout(() => { renderAll(); renderDepth(); }, 220));
+
+/* boot */
+document.addEventListener('DOMContentLoaded', () => {
+  $('stepLabel').textContent = '—';
+  startEngine();
+});
+if (document.readyState !== 'loading') {
+  $('stepLabel').textContent = '—';
+  startEngine();
+}
+</script>
+<script src="/static/js/access_control.js"></script>
 </body>
 </html>

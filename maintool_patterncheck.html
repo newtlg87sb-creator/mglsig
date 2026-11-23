@@ -2,305 +2,3385 @@
 <html lang="mn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Candlestick Pattern Scanner - MGL Signal</title>
-    <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: { brand: { 'dark': '#05070a', 'dark-blue': '#0f1217', 'gold': '#c5a059', 'border': '#1f242d' } },
-                    fontFamily: { 'inter': ['Inter', 'sans-serif'] }
-                }
-            }
-        }
-    </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/static/main_style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#05070a">
+    <meta name="description" content="MGL Signal-ийн крипто графикаар Binance Spot болон Futures зах зээлийн лаа, MACD, RSI үзүүлэлтүүдийг хараарай.">
+    <meta name="keywords" content="крипто график, crypto chart, Binance, Spot, Futures, MACD, RSI, MGL Signal">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
+    <meta name="bingbot" content="noindex, nofollow">
+    <link rel="canonical" href="https://mglsignal.com/main_chart.html">
+
+    <title>Зах зээлийн график | MGL Signal</title>
+    <meta property="og:title" content="Зах зээлийн график | MGL Signal">
+    <meta property="og:description" content="Binance Spot болон Futures зах зээлийн лаа, MACD, RSI график.">
+    <meta property="og:image" content="https://mglsignal.com/static/new/images/logogo1.png">
+    <meta property="og:url" content="https://mglsignal.com/main_chart.html">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="mn_MN">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Зах зээлийн график | MGL Signal">
+    <meta name="twitter:description" content="Binance Spot болон Futures зах зээлийн лаа, MACD, RSI график.">
+    <meta name="twitter:image" content="https://mglsignal.com/static/new/images/logogo1.png">
+
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0f16'/%3E%3Crect x='7' y='12' width='4' height='12' rx='1' fill='%2326c98b'/%3E%3Crect x='14' y='7' width='4' height='17' rx='1' fill='%23f05d68'/%3E%3Crect x='21' y='10' width='4' height='14' rx='1' fill='%23c5a059'/%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0f16'/%3E%3Crect x='7' y='12' width='4' height='12' rx='1' fill='%2326c98b'/%3E%3Crect x='14' y='7' width='4' height='17' rx='1' fill='%23f05d68'/%3E%3Crect x='21' y='10' width='4' height='14' rx='1' fill='%23c5a059'/%3E%3C/svg%3E">
+
     <style>
-        .pattern-page #chart-wrapper {
-            height: clamp(360px, 62vh, 520px) !important;
-            border: 1px solid #1f242d;
-            border-radius: 12px;
-        }
+/* ===== inlined chart_style.css ===== */
+:root {
+    color-scheme: dark;
+    font-family: Inter, "Segoe UI", Arial, sans-serif;
+    background: #05070a;
+    color: #e6edf5;
+    font-synthesis: none;
+}
 
-        .pattern-filter {
-            display: flex;
-            min-height: 42px;
-            align-items: center;
-            gap: 8px;
-            border: 1px solid #1f242d;
-            border-radius: 9px;
-            background: rgba(255, 255, 255, .025);
-            padding: 8px 10px;
-            color: #cbd5e1;
-            font-size: 11px;
-            font-weight: 600;
-        }
+* {
+    box-sizing: border-box;
+}
 
-        .pattern-filter input {
-            accent-color: #c5a059;
-            flex: 0 0 auto;
-        }
-    </style>
+body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    background: #05070a;
+}
+
+.chart-page {
+    flex: 1 0 auto;
+    min-width: 0;
+    padding: 96px 16px 16px;
+}
+
+.chart-app {
+    display: flex;
+    flex-direction: column;
+    width: min(100%, 1600px);
+    height: clamp(560px, calc(100vh - 160px), 1100px);
+    height: clamp(560px, calc(100dvh - 160px), 1100px);
+    margin: 0 auto;
+}
+
+.toolbar {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 2px;
+    padding: 6px;
+    overflow-x: auto;
+    border: 1px solid #222b38;
+    border-radius: 8px;
+    background: #10151d;
+    scrollbar-width: none;
+}
+
+.toolbar::-webkit-scrollbar {
+    display: none;
+}
+
+.trade-settings {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-top: 5px;
+    padding: 6px 8px;
+    border: 1px solid #222b38;
+    border-radius: 8px;
+    background: #10151d;
+}
+
+.trade-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.chart-app .trade-action {
+    min-width: 46px;
+    min-height: 27px;
+    border-color: #344151;
+    background: #18212c;
+    color: #a7b3c2;
+}
+
+.chart-app .trade-action[data-active="true"] {
+    border-color: currentColor;
+    background: #202a35;
+    box-shadow: inset 0 0 0 1px currentColor;
+}
+
+.chart-app .trade-action[data-action="buy"],
+.chart-app .trade-action[data-action="long"] {
+    color: #38d996;
+}
+
+.chart-app .trade-action[data-action="sell"],
+.chart-app .trade-action[data-action="short"] {
+    color: #ff6874;
+}
+
+.trade-field {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #a7b3c2;
+    font-size: 9px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.trade-field input {
+    width: 76px;
+    min-height: 27px;
+    text-align: right;
+}
+
+.trade-field select {
+    min-height: 27px;
+}
+
+.trade-field .trade-leverage-input {
+    width: 52px;
+}
+
+.trade-settings-status {
+    flex: 1 1 100%;
+    min-height: 12px;
+    color: #708095;
+    font-size: 9px;
+}
+
+.trade-settings-status[data-state="error"] {
+    color: #ff7b82;
+}
+
+.chart-app select,
+.chart-app input,
+.chart-app button {
+    min-height: 28px;
+    border: 1px solid #2a3544;
+    border-radius: 5px;
+    background: #0a0f16;
+    color: #e6edf5;
+    font-family: inherit;
+    font-size: 11px;
+}
+
+.chart-app select,
+.chart-app input {
+    padding: 0 7px;
+}
+
+.chart-app select,
+.chart-app button {
+    cursor: pointer;
+}
+
+#market {
+    width: 66px;
+}
+
+#symbol {
+    width: 78px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+#interval {
+    width: 52px;
+}
+
+.chart-app button {
+    min-width: 24px;
+    padding: 0 5px;
+    border-color: #9c7a3c;
+    background: #b89452;
+    color: #080b10;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.chart-app button:hover {
+    background: #d3b36f;
+}
+
+.chart-app button:disabled {
+    cursor: wait;
+    opacity: .65;
+}
+
+.toolbar-divider {
+    flex: 0 0 1px;
+    height: 20px;
+    margin: 0 1px;
+    background: #2a3544;
+}
+
+.indicator-toggle,
+.indicator-period {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    color: #a7b3c2;
+    font-size: 9px;
+    white-space: nowrap;
+}
+
+.indicator-toggle input {
+    width: 13px;
+    min-height: 13px;
+    margin: 0;
+    accent-color: #c5a059;
+}
+
+.indicator-period input {
+    width: 36px;
+    min-height: 25px;
+    padding: 0 3px;
+    text-align: center;
+}
+
+.indicator-settings {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 5px;
+    margin-top: 5px;
+    padding: 6px;
+    overflow-x: auto;
+    border: 1px solid #222b38;
+    border-radius: 8px;
+    background: #10151d;
+    scrollbar-width: none;
+}
+
+.indicator-settings::-webkit-scrollbar {
+    display: none;
+}
+
+.indicator-apply-wrap {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+}
+
+.indicator-apply-wrap #applyIndicators {
+    width: 24px;
+    min-height: 27px;
+}
+
+#reload {
+    border-color: #344151;
+    background: #18212c;
+    color: #d5be88;
+}
+
+#reload:hover {
+    background: #263445;
+}
+
+#applyIndicators {
+    min-height: 27px;
+    border-color: #344151;
+    background: #18212c;
+    color: #c4d0de;
+    font-size: 10px;
+}
+
+#applyIndicators:hover {
+    background: #263445;
+}
+
+.symbols-status {
+    flex: 0 0 auto;
+    color: #708095;
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+.countdown {
+    flex: 0 0 auto;
+    color: #64c8dc;
+    font: 10px ui-monospace, Consolas, monospace;
+    white-space: nowrap;
+}
+
+.status-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 26px;
+    padding: 3px 8px;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
+}
+
+.status-row::-webkit-scrollbar {
+    display: none;
+}
+
+.status {
+    flex: 0 0 auto;
+    min-height: 0;
+    padding: 0;
+    color: #9aa8b8;
+    font-size: 10px;
+}
+
+.status[data-state="error"] {
+    color: #ff7b82;
+}
+
+.status[data-state="live"] {
+    color: #56d69a;
+}
+
+#status {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ohlc {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    overflow: hidden;
+    pointer-events: none;
+    color: #a7b3c2;
+    font: 9px/16px ui-monospace, Consolas, monospace;
+}
+
+.chart-topbar {
+    position: absolute;
+    z-index: 2;
+    top: 4px;
+    right: 12px;
+    left: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.chart-panel-toggles {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 4px;
+    pointer-events: auto;
+}
+
+.chart-app .chart-panel-toggle {
+    min-width: 0;
+    min-height: 22px;
+    padding: 0 7px;
+    border-color: #344151;
+    background: #18212c;
+    color: #c4d0de;
+    font-size: 9px;
+    line-height: 1;
+}
+
+.chart-app .chart-panel-toggle[aria-expanded="false"] {
+    color: #8b98a8;
+}
+
+.chart-app .chart-panel-toggle.indicator-set-toggle {
+    border-color: #c5a059;
+    background: #c5a059;
+    color: #080b10;
+}
+
+.chart-app .chart-panel-toggle.indicator-set-toggle[aria-expanded="true"] {
+    background: #d3b36f;
+    box-shadow: 0 0 0 1px #e4c98f inset;
+}
+
+.toolbar[hidden],
+.indicator-settings[hidden],
+.trade-settings[hidden] {
+    display: none;
+}
+
+.ohlc span {
+    white-space: nowrap;
+}
+
+.ohlc b {
+    color: #647386;
+    font-weight: 500;
+}
+
+.ohlc [data-value="up"] {
+    color: #38d996;
+}
+
+.ohlc [data-value="down"] {
+    color: #ff6874;
+}
+
+.chart-frame {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 220px;
+    overflow: hidden;
+    border: 1px solid #222b38;
+    border-radius: 10px;
+    background: #080b10;
+}
+
+.chart-frame canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    touch-action: none;
+}
+
+@media (max-width: 640px) {
+    .chart-page {
+        padding: 88px 8px 12px;
+    }
+
+    .toolbar {
+        gap: 2px;
+        padding: 5px;
+    }
+
+    .indicator-settings {
+        gap: 4px;
+        padding: 5px;
+    }
+
+    .chart-frame {
+        min-height: 200px;
+    }
+
+    .ohlc {
+        gap: 4px;
+        font-size: 7px;
+    }
+
+    .chart-topbar {
+        right: 6px;
+        left: 6px;
+        gap: 4px;
+    }
+
+    .chart-app .chart-panel-toggle {
+        padding: 0 5px;
+        font-size: 8px;
+    }
+}
+
+@media (max-width: 380px) {
+    #ohlc-symbol {
+        display: none;
+    }
+
+    .indicator-settings {
+        gap: 4px;
+        padding: 5px;
+    }
+}
+
+/* ===== single-file base reset (replaces site main_style.css) ===== */
+html, body { margin: 0; padding: 0; }
+body {
+    background: #05070a;
+    color: #e6edf5;
+    font-family: Inter, "Segoe UI", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+.sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+.chart-page { padding: 12px 16px 16px; }
+
+/* ===== pattern panel ===== */
+.pattern-settings {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    margin-top: 5px; padding: 7px 9px;
+    border: 1px solid #222b38; border-radius: 8px; background: #10151d;
+}
+.pattern-settings[hidden] { display: none; }
+.pattern-group {
+    display: flex; align-items: center; gap: 5px;
+    padding-right: 8px; border-right: 1px solid #222b38;
+}
+.pattern-group:last-child { border-right: 0; padding-right: 0; }
+.pattern-group-label {
+    color: #647386; font-size: 8px; font-weight: 700;
+    letter-spacing: .08em; text-transform: uppercase;
+}
+.pattern-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 7px; border: 1px solid #2a3544; border-radius: 20px;
+    background: #0a0f16; color: #a7b3c2;
+    font-size: 9px; font-weight: 600; cursor: pointer; user-select: none;
+    transition: all .15s ease;
+}
+.pattern-chip input { display: none; }
+.pattern-chip .dot {
+    width: 6px; height: 6px; border-radius: 50%; background: #3a4757;
+    transition: all .15s ease;
+}
+.pattern-chip[data-on="true"] { border-color: currentColor; background: #18212c; }
+.pattern-chip[data-on="true"] .dot { box-shadow: 0 0 6px currentColor; }
+.pattern-chip[data-type="bullish"] { color: #26c98b; }
+.pattern-chip[data-type="bearish"] { color: #f05d68; }
+.pattern-chip[data-type="neutral"] { color: #c5a059; }
+.pattern-chip[data-on="true"][data-type="bullish"] .dot { background: #26c98b; }
+.pattern-chip[data-on="true"][data-type="bearish"] .dot { background: #f05d68; }
+.pattern-chip[data-on="true"][data-type="neutral"] .dot { background: #c5a059; }
+.pattern-chip[data-on="false"] { opacity: .45; }
+
+.pattern-legend {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+    margin-top: 5px; padding: 5px 9px;
+    border: 1px solid #1a222c; border-radius: 7px; background: #0b1017;
+    font-size: 9px; color: #8b98a8;
+}
+.pattern-legend[hidden] { display: none; }
+.pattern-legend .lg { display: inline-flex; align-items: center; gap: 4px; }
+.pattern-legend .sw {
+    width: 8px; height: 8px; border-radius: 2px; display: inline-block;
+}
+.pattern-legend .lg b { color: #c4d0de; font-weight: 600; }
+.pattern-legend .lg-sep { color: #2a3544; }
+.pattern-legend .lg-stat { margin-left: auto; color: #647386; }
+.pattern-legend .lg-stat b { color: #c5a059; }
+
+.pattern-recent {
+    display: flex; flex-wrap: wrap; gap: 4px;
+    margin-top: 5px; padding: 5px 9px;
+    border: 1px solid #1a222c; border-radius: 7px; background: #0b1017;
+    font-size: 9px; color: #8b98a8; align-items: center;
+}
+.pattern-recent[hidden] { display: none; }
+.pattern-recent .pr-label {
+    color: #647386; font-size: 8px; font-weight: 700;
+    letter-spacing: .08em; text-transform: uppercase; margin-right: 3px;
+}
+.pattern-recent .pr-item {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 6px; border-radius: 4px;
+    border: 1px solid #222b38; background: #0f151d;
+    white-space: nowrap;
+}
+.pattern-recent .pr-item .pr-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+}
+.pattern-recent .pr-item .pr-name { color: #c4d0de; font-weight: 600; }
+.pattern-recent .pr-item .pr-time { color: #5d6b7d; font-family: ui-monospace, Consolas, monospace; }
+
+@media (max-width: 640px) {
+    .pattern-settings { gap: 5px; padding: 5px 6px; }
+    .pattern-group { padding-right: 5px; }
+    .pattern-chip { padding: 2px 5px; font-size: 8px; }
+    .pattern-legend, .pattern-recent { font-size: 8px; padding: 4px 6px; }
+}
+</style>
 </head>
 <body class="bg-brand-dark text-white font-inter flex flex-col min-h-screen">
-    <script src="/static/js/header.js"></script>
+    <main class="chart-page">
+      <h1 class="sr-only">Зах зээлийн график</h1>
+      <div class="chart-app">
+        <section id="chart-settings" class="toolbar" aria-label="Графикийн тохиргоо">
+            <select id="market" aria-label="Зах зээл" title="Зах зээл">
+                <option value="spot">Spot</option>
+                <option value="futures">Futures</option>
+            </select>
+            <input id="symbol" type="text" value="BTCUSDT" list="symbol-suggestions" maxlength="20"
+                autocomplete="off" spellcheck="false" aria-label="Хослол" title="Хослол">
+            <datalist id="symbol-suggestions"></datalist>
+            <select id="interval" aria-label="Хугацаа" title="Хугацаа">
+                <option value="1m">1m</option>
+                <option value="3m">3m</option>
+                <option value="5m">5m</option>
+                <option value="15m">15m</option>
+                <option value="30m">30m</option>
+                <option value="1h">1h</option>
+                <option value="2h">2h</option>
+                <option value="4h">4h</option>
+                <option value="6h">6h</option>
+                <option value="12h">12h</option>
+                <option value="1d">1d</option>
+                <option value="1w">1w</option>
+                <option value="1M">1M</option>
+            </select>
+            <button id="reload" type="button" aria-label="Шинэчлэх" title="Шинэчлэх">↻</button>
+        </section>
 
-    <main class="pattern-page flex-grow pt-16 pb-8 px-3 md:px-6">
-        <div class="max-w-7xl mx-auto flex flex-col gap-3">
-            <div class="flex flex-col gap-1">
-                <p class="text-[9px] font-bold uppercase tracking-[.18em] text-brand-gold">MGL SIGNAL · TECHNICAL TOOL</p>
-                <div class="flex flex-wrap items-end justify-between gap-2">
-                    <h1 class="text-xl md:text-2xl font-bold tracking-tight text-white">Лааны хээний сканнер <span class="text-sm font-medium text-gray-500">· Candlestick Patterns</span></h1>
-                    <p id="pattern-summary" class="text-[10px] font-semibold text-gray-400" aria-live="polite">Лаа ачаалж байна…</p>
-                </div>
-                <p class="text-[11px] leading-relaxed text-gray-500">Хээ нь өмнөх үнийн чиглэл болон лааны харьцааг хамтад нь шалгана. 24/7 крипто захад gap шаардахгүй. Зөвхөн хаагдсан лааг тэмдэглэнэ; дангаараа арилжааны дохио биш.</p>
+        <section id="indicator-settings" class="indicator-settings" aria-label="Индикаторын тохиргоо" hidden>
+            <label class="indicator-toggle" title="Идэвхжүүлээд график дээр эхлэлээс төгсгөл хүртэл чирнэ">
+                <input id="showVolumeProfile" type="checkbox" aria-label="Volume Profile"> VP
+            </label>
+            <span class="toolbar-divider" aria-hidden="true"></span>
+            <label class="indicator-toggle" title="MACD үзүүлэлт">
+                <input id="showMACD" type="checkbox" checked> MACD
+            </label>
+            <label class="indicator-period" title="MACD Fast">
+                F <input id="macdFast" type="number" min="1" max="500" value="12" aria-label="MACD Fast">
+            </label>
+            <label class="indicator-period" title="MACD Slow">
+                S <input id="macdSlow" type="number" min="2" max="500" value="26" aria-label="MACD Slow">
+            </label>
+            <label class="indicator-period" title="MACD Signal">
+                Sig <input id="macdSignal" type="number" min="1" max="500" value="9" aria-label="MACD Signal">
+            </label>
+            <label class="indicator-toggle" title="RSI үзүүлэлт">
+                <input id="showRSI" type="checkbox" checked> RSI
+            </label>
+            <label class="indicator-period" title="RSI Period">
+                P <input id="rsiPeriod" type="number" min="1" max="500" value="14" aria-label="RSI Period">
+            </label>
+            <label class="indicator-toggle" title="EMA 1 үзүүлэлт">
+                <input id="showEMA1" type="checkbox" checked>
+                <span style="color:#f0b90b">EMA 1</span>
+            </label>
+            <label class="indicator-period" title="EMA 1 Period">
+                P <input id="emaPeriod1" type="number" min="1" max="500" value="20" aria-label="EMA 1 Period">
+            </label>
+            <label class="indicator-toggle" title="EMA 2 үзүүлэлт">
+                <input id="showEMA2" type="checkbox" checked>
+                <span style="color:#38bdf8">EMA 2</span>
+            </label>
+            <label class="indicator-period" title="EMA 2 Period">
+                P <input id="emaPeriod2" type="number" min="1" max="500" value="50" aria-label="EMA 2 Period">
+            </label>
+            <label class="indicator-toggle" title="Moving Average 1 үзүүлэлт">
+                <input id="showMA1" type="checkbox" checked>
+                <span style="color:#f472b6">MA 1</span>
+            </label>
+            <label class="indicator-period" title="Moving Average 1 Period">
+                P <input id="maPeriod1" type="number" min="1" max="500" value="20" aria-label="Moving Average 1 Period">
+            </label>
+            <label class="indicator-toggle" title="Moving Average 2 үзүүлэлт">
+                <input id="showMA2" type="checkbox" checked>
+                <span style="color:#a3e635">MA 2</span>
+            </label>
+            <label class="indicator-period" title="Moving Average 2 Period">
+                P <input id="maPeriod2" type="number" min="1" max="500" value="50" aria-label="Moving Average 2 Period">
+            </label>
+            <div class="indicator-apply-wrap">
+                <button id="applyIndicators" type="button" aria-label="Үзүүлэлт хэрэглэх" title="Үзүүлэлт хэрэглэх">✓</button>
             </div>
+        </section>
 
-            <script src="/static/js/control.js" data-hide="rsi,ema,ma,leverage,balance,side"></script>
-
-            <section class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2" aria-label="Pattern filters">
-                <label class="pattern-filter"><input type="checkbox" id="toggle-doji" checked><span>Doji · indecision</span></label>
-                <label class="pattern-filter"><input type="checkbox" id="toggle-hammer" checked><span>Hammer / Shooting Star</span></label>
-                <label class="pattern-filter"><input type="checkbox" id="toggle-engulfing" checked><span>Engulfing</span></label>
-                <label class="pattern-filter"><input type="checkbox" id="toggle-soldiers" checked><span>3 Soldiers / Crows</span></label>
-                <label class="pattern-filter"><input type="checkbox" id="toggle-stars" checked><span>Morning / Evening Star</span></label>
-                <label class="pattern-filter"><input type="checkbox" id="toggle-harami" checked><span>Harami</span></label>
+        <section id="trade-settings" class="trade-settings" aria-label="Арилжааны тохиргоо">
+            <div class="trade-actions" role="group" aria-label="Арилжааны чиглэл">
+                <button class="trade-action" type="button" data-action="buy" aria-pressed="false">BUY</button>
+                <button class="trade-action" type="button" data-action="sell" aria-pressed="false">SELL</button>
+                <button class="trade-action" type="button" data-action="long" aria-pressed="false">LONG</button>
+                <button class="trade-action" type="button" data-action="short" aria-pressed="false">SHORT</button>
             </div>
+            <label class="trade-field" for="trade-side">Side
+                <select id="trade-side">
+                    <option value="long">Long</option>
+                    <option value="short">Short</option>
+                    <option value="both">Long + Short</option>
+                </select>
+            </label>
+            <label class="trade-field" for="account-balance">Balance
+                <input id="account-balance" type="number" min="0" step="any" inputmode="decimal" placeholder="0.00" aria-label="Account balance in USDT">
+                <span>USDT</span>
+            </label>
+            <label class="trade-field" for="trade-margin">Margin
+                <input id="trade-margin" type="number" min="0" step="any" inputmode="decimal" placeholder="0.00" aria-label="Trade margin in USDT">
+                <span>USDT</span>
+            </label>
+            <label class="trade-field" for="trade-leverage">Leverage
+                <input id="trade-leverage" class="trade-leverage-input" type="number" min="1" max="125" step="1" placeholder="1" aria-label="Leverage">
+                <span>x</span>
+            </label>
+        </section>
 
-            <script src="/static/js/candle.js"></script>
 
-            <section class="rounded-xl border border-brand-border bg-brand-dark-blue/70 p-3 md:p-4">
-                <div class="mb-2 flex items-center justify-between gap-3">
-                    <h2 class="text-xs font-bold uppercase tracking-wider text-gray-300">Сүүлд батлагдсан хээнүүд</h2>
-                    <span class="text-[9px] text-gray-600">Recent confirmed patterns</span>
-                </div>
-                <div id="pattern-list" class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4" aria-live="polite">
-                    <p class="text-[11px] text-gray-500">Хээ илрүүлж байна…</p>
-                </div>
-            </section>
+        <section id="pattern-settings" class="pattern-settings" aria-label="Candle pattern тохиргоо" hidden>
+            <div class="pattern-group">
+                <span class="pattern-group-label">Patterns</span>
+                <label class="pattern-chip" data-type="master" data-on="true" title="Бүх pattern-ыг асаах/унтраах">
+                    <input id="showPatterns" type="checkbox" checked>
+                    <span class="dot"></span> ON
+                </label>
+            </div>
+            <div class="pattern-group">
+                <span class="pattern-group-label">Төрөл</span>
+                <label class="pattern-chip" data-type="bullish" data-on="true" title="Өсөх чиглэлийн pattern">
+                    <input id="patBullish" type="checkbox" checked>
+                    <span class="dot"></span> Bullish
+                </label>
+                <label class="pattern-chip" data-type="bearish" data-on="true" title="Унах чиглэлийн pattern">
+                    <input id="patBearish" type="checkbox" checked>
+                    <span class="dot"></span> Bearish
+                </label>
+                <label class="pattern-chip" data-type="neutral" data-on="true" title="Тэнцвэр / эргэлзээ">
+                    <input id="patNeutral" type="checkbox" checked>
+                    <span class="dot"></span> Neutral
+                </label>
+            </div>
+            <div class="pattern-group">
+                <span class="pattern-group-label">Лаа</span>
+                <label class="pattern-chip" data-type="c1" data-on="true" title="1 лааны pattern">
+                    <input id="patC1" type="checkbox" checked>
+                    <span class="dot"></span> 1
+                </label>
+                <label class="pattern-chip" data-type="c2" data-on="true" title="2 лааны pattern">
+                    <input id="patC2" type="checkbox" checked>
+                    <span class="dot"></span> 2
+                </label>
+                <label class="pattern-chip" data-type="c3" data-on="true" title="3 лааны pattern">
+                    <input id="patC3" type="checkbox" checked>
+                    <span class="dot"></span> 3
+                </label>
+            </div>
+            <div class="pattern-group">
+                <span class="pattern-group-label">Хүч</span>
+                <select id="patStrength" aria-label="Pattern-ийн хүч" title="Хамгийн бага хүч">
+                    <option value="1">1+ (бүгд)</option>
+                    <option value="2" selected>2+ (дунд)</option>
+                    <option value="3">3 (хүчтэй)</option>
+                </select>
+            </div>
+            <div class="pattern-group">
+                <label class="pattern-chip" data-type="labels" data-on="true" title="Pattern-ийн нэрийг chart дээр харуулах">
+                    <input id="patLabels" type="checkbox" checked>
+                    <span class="dot"></span> Нэр
+                </label>
+            </div>
+        </section>
+
+        <div id="pattern-legend" class="pattern-legend" aria-label="Pattern тайлбар">
+            <span class="lg"><span class="sw" style="background:#26c98b"></span><b>Bullish</b> — өсөх боломж</span>
+            <span class="lg-sep">|</span>
+            <span class="lg"><span class="sw" style="background:#f05d68"></span><b>Bearish</b> — унах боломж</span>
+            <span class="lg-sep">|</span>
+            <span class="lg"><span class="sw" style="background:#c5a059"></span><b>Neutral</b> — тэнцвэр</span>
+            <span class="lg-sep">|</span>
+            <span class="lg">▲ доор = bullish, ▼ дээр = bearish</span>
+            <span class="lg-stat" id="pattern-stat">—</span>
         </div>
+
+        <div id="pattern-recent" class="pattern-recent" aria-label="Сүүлийн pattern-ууд">
+            <span class="pr-label">Сүүлийн</span>
+            <span id="pattern-recent-list" style="display:contents"></span>
+        </div>
+        <div class="status-row" aria-label="Графикийн төлөв">
+            <span class="countdown"><span>Дараагийн лаа</span> <b id="candle-countdown">--:--</b></span>
+            <span id="symbols-status" class="symbols-status" role="status" aria-live="polite"></span>
+            <span id="volume-profile-status" class="symbols-status" role="status" aria-live="polite"></span>
+            <span id="status" class="status" role="status" aria-live="polite">График ачаалж байна...</span>
+        </div>
+        <section class="chart-frame" aria-label="Үнийн лаан график">
+            <div class="chart-topbar">
+                <div class="ohlc" aria-label="Лааны O H L C үнэ" aria-live="polite">
+                    <span id="ohlc-symbol">BTCUSDT</span>
+                    <span><b>O</b> <span id="ohlc-open">—</span></span>
+                    <span><b>H</b> <span id="ohlc-high">—</span></span>
+                    <span><b>L</b> <span id="ohlc-low">—</span></span>
+                    <span><b>C</b> <span id="ohlc-close">—</span></span>
+                </div>
+                <div class="chart-panel-toggles" role="group" aria-label="Тохиргооны хэсгүүд">
+                    <button class="chart-panel-toggle" id="toggle-chart-settings" type="button"
+                        aria-controls="chart-settings" aria-expanded="true">Chart Set</button>
+                    <button class="chart-panel-toggle indicator-set-toggle" id="toggle-indicator-settings" type="button"
+                        aria-controls="indicator-settings" aria-expanded="false">Indicator Set</button>
+                    <button class="chart-panel-toggle" id="toggle-trade-settings" type="button"
+                        aria-controls="trade-settings" aria-expanded="true">Trade Set</button>
+                    <button class="chart-panel-toggle pattern-set-toggle" id="toggle-pattern-settings" type="button"
+                        aria-controls="pattern-settings" aria-expanded="false">Patterns</button>
+                </div>
+            </div>
+            <canvas id="chart" role="img" aria-label="BTCUSDT үнийн график"></canvas>
+        </section>
+      </div>
     </main>
-
-    <script src="/static/js/footer.js"></script>
-    <script src="/static/js/access_control.js"></script>
-
     <script>
-    (function() {
-        let lastResultSignature = null;
+/* ===== market.js ===== */
+(function () {
+    "use strict";
 
-        const getCandle = (rows, index) => {
-            const row = rows[index];
-            if (!row) return null;
-            const [, o, h, l, c] = row.map(Number);
-            if (![o, h, l, c].every(Number.isFinite) || h <= l || h < Math.max(o, c) || l > Math.min(o, c)) return null;
-            return {
-                o, h, l, c,
-                range: h - l,
-                body: Math.abs(c - o),
-                upper: h - Math.max(o, c),
-                lower: Math.min(o, c) - l
+    const input = document.getElementById("market");
+    if (!input) return;
+
+    window.ChartControls = window.ChartControls || {};
+    window.ChartControls.market = {
+        input,
+        get value() {
+            return input.value;
+        }
+    };
+
+    input.addEventListener("change", () => {
+        window.dispatchEvent(new CustomEvent("chart:market-change", {
+            detail: { market: input.value }
+        }));
+    });
+})();
+
+</script>
+<script>
+/* ===== ticker.js ===== */
+(function () {
+    "use strict";
+
+    const input = document.getElementById("symbol");
+    const suggestions = document.getElementById("symbol-suggestions");
+    const status = document.getElementById("symbols-status");
+    if (!input) return;
+
+    const cache = new Map();
+    let requestId = 0;
+    let controller = null;
+
+    function normalize() {
+        return input.value.trim().toUpperCase();
+    }
+
+    function render(symbols) {
+        const options = document.createDocumentFragment();
+        symbols.forEach(symbol => {
+            const option = document.createElement("option");
+            option.value = symbol;
+            options.append(option);
+        });
+        suggestions.replaceChildren(options);
+        if (status) status.textContent = `${symbols.length.toLocaleString()} хослол`;
+    }
+
+    async function load(market) {
+        const selectedMarket = market || window.ChartControls?.market?.value || "spot";
+        const currentRequest = ++requestId;
+        controller?.abort();
+        controller = null;
+
+        const cached = cache.get(selectedMarket);
+        if (cached) {
+            render(cached);
+            return;
+        }
+
+        controller = new AbortController();
+        if (status) status.textContent = "Хослолын жагсаалт...";
+
+        const isFutures = selectedMarket === "futures";
+        const hosts = isFutures
+            ? ["https://data-api.binance.vision", "https://fapi.binance.com"]
+            : ["https://data-api.binance.vision", "https://api.binance.com"];
+        const path = isFutures ? "/fapi/v1/exchangeInfo" : "/api/v3/exchangeInfo";
+
+        try {
+            let response = null, data = null;
+            for (const host of hosts) {
+                try {
+                    const res = await fetch(host + path, { cache: "force-cache", signal: controller.signal });
+                    const body = await res.json();
+                    if (res.ok && Array.isArray(body?.symbols)) { response = res; data = body; break; }
+                } catch (e) {
+                    if (e.name === "AbortError") throw e;
+                }
+            }
+            if (!response) throw new Error("Биржийн хослолын жагсаалт авах боломжгүй");
+            if (!Array.isArray(data.symbols)) throw new Error("Биржийн хослолын жагсаалт буруу байна.");
+
+            const symbols = data.symbols
+                .filter(item => item.status === "TRADING" && item.quoteAsset === "USDT" &&
+                    (selectedMarket !== "futures" || item.contractType === "PERPETUAL"))
+                .map(item => item.symbol)
+                .sort();
+            if (!symbols.length) throw new Error("Арилжааны хослолын жагсаалт хоосон байна.");
+            if (currentRequest !== requestId) return;
+
+            cache.set(selectedMarket, symbols);
+            render(symbols);
+        } catch (error) {
+            if (error.name === "AbortError" || currentRequest !== requestId) return;
+            if (status) status.textContent = "Хослолын санал авах боломжгүй";
+            console.error("[CHART SYMBOLS ERROR]", error);
+        } finally {
+            if (currentRequest === requestId) controller = null;
+        }
+    }
+
+    window.ChartControls = window.ChartControls || {};
+    window.ChartControls.ticker = {
+        input,
+        suggestions,
+        status,
+        get value() {
+            return normalize();
+        },
+        set value(value) {
+            input.value = String(value).trim().toUpperCase();
+        },
+        load
+    };
+
+    input.addEventListener("change", () => {
+        input.value = normalize();
+        window.dispatchEvent(new CustomEvent("chart:ticker-change", {
+            detail: { ticker: input.value }
+        }));
+    });
+    input.addEventListener("keydown", event => {
+        if (event.key === "Enter") {
+            input.value = normalize();
+            window.dispatchEvent(new CustomEvent("chart:ticker-change", {
+                detail: { ticker: input.value }
+            }));
+        }
+    });
+
+    window.addEventListener("chart:market-change", event => {
+        load(event.detail.market);
+    });
+})();
+
+</script>
+<script>
+/* ===== interval.js ===== */
+(function () {
+    "use strict";
+
+    const input = document.getElementById("interval");
+    if (!input) return;
+
+    window.ChartControls = window.ChartControls || {};
+    window.ChartControls.interval = {
+        input,
+        get value() {
+            return input.value;
+        }
+    };
+
+    input.addEventListener("change", () => {
+        window.dispatchEvent(new CustomEvent("chart:interval-change", {
+            detail: { interval: input.value }
+        }));
+    });
+})();
+
+</script>
+<script>
+/* ===== vp.js ===== */
+(function () {
+    "use strict";
+
+    let enabled = false;
+    let selection = null;
+    let dragSelection = null;
+    let candles = [];
+    let statusElement = null;
+    let interval = "1m";
+    let formatTime = String;
+    let dragAnchor = null;
+
+    function calculate(selected, sourceCandles = candles) {
+        if (!selected || !sourceCandles.length) return null;
+        const selectedCandles = sourceCandles.filter(candle =>
+            candle[0] >= selected.startTime && candle[0] <= selected.endTime
+        );
+        if (!selectedCandles.length) return null;
+
+        const binCount = 32;
+        let minPrice = Math.min(...selectedCandles.map(candle => candle[3]));
+        let maxPrice = Math.max(...selectedCandles.map(candle => candle[2]));
+        if (minPrice === maxPrice) {
+            const padding = Math.max(Math.abs(minPrice) * 0.000001, 0.00000001);
+            minPrice -= padding;
+            maxPrice += padding;
+        }
+
+        const binSize = (maxPrice - minPrice) / binCount;
+        const bins = new Array(binCount).fill(0);
+        selectedCandles.forEach(candle => {
+            const volume = Math.max(0, candle[5]);
+            if (!Number.isFinite(volume) || volume === 0) return;
+            const low = candle[3];
+            const high = candle[2];
+            if (high <= low) {
+                const index = Math.min(binCount - 1, Math.max(0, Math.floor((low - minPrice) / binSize)));
+                bins[index] += volume;
+                return;
+            }
+            const firstBin = Math.max(0, Math.floor((low - minPrice) / binSize));
+            const lastBin = Math.min(binCount - 1, Math.floor((high - minPrice) / binSize));
+            for (let index = firstBin; index <= lastBin; index++) {
+                const binLow = minPrice + index * binSize;
+                const binHigh = binLow + binSize;
+                const overlap = Math.max(0, Math.min(high, binHigh) - Math.max(low, binLow));
+                bins[index] += volume * overlap / (high - low);
+            }
+        });
+        const maxVolume = Math.max(...bins);
+        return { bins, candleCount: selectedCandles.length, minPrice, maxPrice, pocIndex: bins.indexOf(maxVolume) };
+    }
+
+    function updateStatus() {
+        if (!statusElement) return;
+        if (!enabled) {
+            statusElement.textContent = "";
+            return;
+        }
+        if (!selection) {
+            statusElement.textContent = "VP · Эхлэлээс төгсгөл хүртэл чирнэ үү";
+            return;
+        }
+        const profile = calculate(selection);
+        statusElement.textContent = profile
+            ? `VP · ${profile.candleCount} лаа · ${formatTime(selection.startTime)} → ${formatTime(selection.endTime)} · ойролцоо`
+            : "VP · Сонгосон хүрээнд лаа алга";
+    }
+
+    function drawSelection(ctx, selected, plotLeft, plotTop, plotWidth, mainHeight, barWidth) {
+        if (!selected) return;
+        const selectedIndices = [];
+        candles.forEach((candle, index) => {
+            if (candle[0] >= selected.startTime && candle[0] <= selected.endTime) selectedIndices.push(index);
+        });
+        if (!selectedIndices.length) return;
+        const visibleLeft = Math.max(plotLeft, plotLeft + selectedIndices[0] * barWidth);
+        const visibleRight = Math.min(plotLeft + plotWidth, plotLeft + (selectedIndices[selectedIndices.length - 1] + 1) * barWidth);
+        if (visibleRight <= visibleLeft) return;
+        ctx.save();
+        ctx.fillStyle = "rgba(197, 160, 89, .08)";
+        ctx.fillRect(visibleLeft, plotTop, visibleRight - visibleLeft, mainHeight);
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = "rgba(197, 160, 89, .65)";
+        [visibleLeft, visibleRight].forEach(x => {
+            ctx.beginPath();
+            ctx.moveTo(x, plotTop);
+            ctx.lineTo(x, plotTop + mainHeight);
+            ctx.stroke();
+        });
+        ctx.setLineDash([]);
+        ctx.restore();
+    }
+
+    function drawProfile(ctx, profile, priceToY, plotLeft, plotTop, plotWidth, mainHeight) {
+        const maxVolume = Math.max(...profile.bins);
+        if (!maxVolume) return;
+        const binSize = (profile.maxPrice - profile.minPrice) / profile.bins.length;
+        const maxBarWidth = Math.min(150, plotWidth * 0.32);
+        const right = plotLeft + plotWidth;
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(plotLeft, plotTop, plotWidth, mainHeight);
+        ctx.clip();
+        profile.bins.forEach((volume, index) => {
+            if (!volume) return;
+            const binLow = profile.minPrice + index * binSize;
+            const binHigh = binLow + binSize;
+            const top = Math.max(plotTop, priceToY(binHigh));
+            const bottom = Math.min(plotTop + mainHeight, priceToY(binLow));
+            if (bottom <= top) return;
+            const width = maxBarWidth * volume / maxVolume;
+            ctx.fillStyle = index === profile.pocIndex
+                ? "rgba(197, 160, 89, .78)"
+                : "rgba(90, 160, 195, .38)";
+            ctx.fillRect(right - width, top, width, Math.max(1, bottom - top - 0.5));
+        });
+        const pocPrice = profile.minPrice + (profile.pocIndex + 0.5) * binSize;
+        const pocY = priceToY(pocPrice);
+        ctx.setLineDash([3, 3]);
+        ctx.strokeStyle = "rgba(255, 213, 128, .9)";
+        ctx.beginPath();
+        ctx.moveTo(Math.max(plotLeft, right - maxBarWidth), pocY);
+        ctx.lineTo(right, pocY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+    }
+
+    function configure(options) {
+        statusElement = options.statusElement;
+        formatTime = options.formatTime;
+        interval = options.getInterval();
+        const input = document.getElementById("showVolumeProfile");
+        if (input) {
+            input.addEventListener("change", () => {
+                enabled = input.checked;
+                if (!enabled) selection = null;
+                dragSelection = null;
+                dragAnchor = null;
+                updateStatus();
+                options.onChange();
+            });
+        }
+    }
+
+    window.ChartIndicators = window.ChartIndicators || {};
+    window.ChartIndicators.vp = {
+        configure,
+        updateCandles(value) { candles = value || []; },
+        updateInterval(value) { interval = value; },
+        isEnabled() { return enabled; },
+        getSelection() { return selection; },
+        getDragSelection() { return dragSelection; },
+        calculate,
+        updateStatus,
+        drawSelection,
+        drawProfile,
+        begin(layout, candleTime) {
+            dragAnchor = candleTime;
+            dragSelection = { startTime: candleTime, endTime: candleTime };
+            selection = dragSelection;
+            updateStatus();
+        },
+        move(layout, candleTime) {
+            if (!dragSelection || dragAnchor === null) return;
+            dragSelection = {
+                startTime: Math.min(dragAnchor, candleTime),
+                endTime: Math.max(dragAnchor, candleTime)
             };
-        };
-        const isBullish = k => k.c > k.o;
-        const isBearish = k => k.c < k.o;
-        const hasLongBody = k => k.body / k.range >= 0.55;
-        const hasSmallBody = k => k.body / k.range <= 0.3;
+            selection = dragSelection;
+            updateStatus();
+        },
+        end() { dragSelection = null; dragAnchor = null; },
+        clear() { selection = null; dragSelection = null; dragAnchor = null; updateStatus(); }
+    };
+})();
 
-        const hasTrend = (rows, endIndex, direction) => {
-            const start = endIndex - 4;
-            if (start < 0) return false;
-            const candles = Array.from({ length: 4 }, (_, i) => getCandle(rows, start + i));
-            if (candles.some(c => !c)) return false;
-            const moves = candles.slice(1).map((c, i) => c.c - candles[i].c);
-            const directionalMoves = moves.filter(move => direction === 'up' ? move > 0 : move < 0).length;
-            const averageRange = candles.reduce((sum, c) => sum + c.range, 0) / candles.length;
-            const netMove = candles[3].c - candles[0].c;
-            return directionalMoves >= 2 && (direction === 'up'
-                ? netMove > averageRange * 0.25
-                : netMove < -averageRange * 0.25);
-        };
-
-        const getPattern = (rows, index, show) => {
-            const k = getCandle(rows, index);
-            const p = getCandle(rows, index - 1);
-            const pp = getCandle(rows, index - 2);
-            if (!k || index === rows.length - 1) return null;
-
-            if (show.soldiers && index >= 2) {
-                const first = getCandle(rows, index - 2);
-                const second = p;
-                const third = k;
-                if (first && second && third) {
-                    const soldiers = [first, second, third].every((c, i, bars) =>
-                        isBullish(c) && hasLongBody(c) && c.upper / c.range <= 0.25 &&
-                        (i === 0 || (c.o >= bars[i - 1].o && c.o <= bars[i - 1].c && c.c > bars[i - 1].c))
-                    );
-                    if (soldiers && hasTrend(rows, index - 2, 'down')) {
-                        return { text: '3 WHITE SOLDIERS', direction: 'bullish', price: k.l };
-                    }
-
-                    const crows = [first, second, third].every((c, i, bars) =>
-                        isBearish(c) && hasLongBody(c) && c.lower / c.range <= 0.25 &&
-                        (i === 0 || (c.o <= bars[i - 1].o && c.o >= bars[i - 1].c && c.c < bars[i - 1].c))
-                    );
-                    if (crows && hasTrend(rows, index - 2, 'up')) {
-                        return { text: '3 BLACK CROWS', direction: 'bearish', price: k.h };
-                    }
-                }
+</script>
+<script>
+/* ===== macd.js ===== */
+(function () {
+    "use strict";
+    function ema(values, period) {
+        if (!values.length) return [];
+        const multiplier = 2 / (period + 1);
+        const result = [values[0]];
+        for (let i = 1; i < values.length; i++) result.push(values[i] * multiplier + result[i - 1] * (1 - multiplier));
+        return result;
+    }
+    function calculate(closes, periods) {
+        const fast = ema(closes, periods.fast);
+        const slow = ema(closes, periods.slow);
+        const macd = fast.map((value, i) => value - slow[i]);
+        const signal = ema(macd, periods.signal);
+        return { macd, signal, histogram: macd.map((value, i) => value - signal[i]) };
+    }
+    function draw(ctx, data, periods, { start, candles, plotLeft, plotWidth, top, height, barWidth, hoverIndex }) {
+        const macd = data.macd.slice(start, start + candles.length);
+        const signal = data.signal.slice(start, start + candles.length);
+        const histogram = data.histogram.slice(start, start + candles.length);
+        const values = [...macd, ...signal, ...histogram, 0];
+        let min = Math.min(...values);
+        let max = Math.max(...values);
+        if (max === min) { min += 1; max -= 1; }
+        const innerTop = top + 16;
+        const innerHeight = Math.max(1, height - 20);
+        const valueToY = value => innerTop + (max - value) / (max - min) * innerHeight;
+        const zeroY = valueToY(0);
+        ctx.strokeStyle = "#26303d";
+        ctx.beginPath(); ctx.moveTo(plotLeft, top); ctx.lineTo(plotLeft + plotWidth, top); ctx.stroke();
+        ctx.fillStyle = "#7e8da0"; ctx.font = "10px Inter, Arial, sans-serif";
+        ctx.textAlign = "left"; ctx.textBaseline = "top";
+        ctx.fillText(`MACD (${periods.fast}, ${periods.slow}, ${periods.signal})`, plotLeft + 5, top + 3);
+        ctx.beginPath(); ctx.moveTo(plotLeft, zeroY); ctx.lineTo(plotLeft + plotWidth, zeroY); ctx.stroke();
+        histogram.forEach((value, i) => {
+            const x = plotLeft + (i + 0.5) * barWidth;
+            ctx.fillStyle = value >= 0 ? "rgba(38, 201, 139, .72)" : "rgba(240, 93, 104, .72)";
+            ctx.fillRect(x - Math.max(1, barWidth * 0.32), Math.min(zeroY, valueToY(value)),
+                Math.max(1, barWidth * 0.64), Math.max(1, Math.abs(valueToY(value) - zeroY)));
+        });
+        [[macd, "#40b8f5"], [signal, "#f5a64a"]].forEach(([series, color]) => {
+            ctx.strokeStyle = color; ctx.lineWidth = 1.4; ctx.beginPath();
+            series.forEach((value, i) => {
+                const x = plotLeft + (i + 0.5) * barWidth;
+                const y = valueToY(value);
+                if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+        });
+        if (hoverIndex !== null) {
+            const i = hoverIndex - start;
+            if (i >= 0 && i < macd.length) {
+                ctx.fillStyle = "#40b8f5";
+                ctx.fillText(`MACD ${macd[i].toFixed(6)}   Signal ${signal[i].toFixed(6)}`, plotLeft + 130, top + 3);
             }
+        }
+    }
+    window.ChartIndicators = window.ChartIndicators || {};
+    window.ChartIndicators.macd = { calculate, draw };
+})();
 
-            if (show.stars && p && pp && hasLongBody(pp) && hasTrend(rows, index - 2, isBearish(pp) ? 'down' : 'up')) {
-                const midpoint = (pp.o + pp.c) / 2;
-                const smallStar = p.body <= pp.body * 0.3 && hasSmallBody(p);
-                if (isBearish(pp) && smallStar && Math.max(p.o, p.c) <= midpoint &&
-                    isBullish(k) && hasLongBody(k) && k.c > midpoint) {
-                    return { text: 'MORNING STAR', direction: 'bullish', price: k.l };
-                }
-                if (isBullish(pp) && smallStar && Math.min(p.o, p.c) >= midpoint &&
-                    isBearish(k) && hasLongBody(k) && k.c < midpoint) {
-                    return { text: 'EVENING STAR', direction: 'bearish', price: k.h };
-                }
+</script>
+<script>
+/* ===== rsi.js ===== */
+(function () {
+    "use strict";
+
+    function calculate(closes, period) {
+        if (!closes.length) return [];
+        const win = Math.max(1, Number(period) || 14);
+        if (closes.length <= win) return new Array(closes.length).fill(NaN);
+
+        const result = new Array(closes.length).fill(NaN);
+        let avgGain = 0;
+        let avgLoss = 0;
+
+        for (let i = 1; i <= win; i++) {
+            const change = closes[i] - closes[i - 1];
+            avgGain += change > 0 ? change : 0;
+            avgLoss += change < 0 ? -change : 0;
+        }
+        avgGain /= win;
+        avgLoss /= win;
+
+        result[win] = avgLoss === 0
+            ? 100
+            : 100 - (100 / (1 + avgGain / avgLoss));
+
+        for (let i = win + 1; i < closes.length; i++) {
+            const change = closes[i] - closes[i - 1];
+            avgGain = (avgGain * (win - 1) + (change > 0 ? change : 0)) / win;
+            avgLoss = (avgLoss * (win - 1) + (change < 0 ? -change : 0)) / win;
+            result[i] = avgLoss === 0
+                ? 100
+                : 100 - (100 / (1 + avgGain / avgLoss));
+        }
+        return result;
+    }
+
+    function draw(ctx, values, period, { start, candles, plotLeft, plotWidth, top, height, barWidth, hoverIndex }) {
+        const innerTop = top + 16;
+        const innerHeight = Math.max(1, height - 20);
+        const valueToY = value => innerTop + (100 - value) / 100 * innerHeight;
+
+        ctx.strokeStyle = "#26303d";
+        ctx.beginPath();
+        ctx.moveTo(plotLeft, top);
+        ctx.lineTo(plotLeft + plotWidth, top);
+        ctx.stroke();
+
+        ctx.fillStyle = "#7e8da0";
+        ctx.font = "10px Inter, Arial, sans-serif";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "top";
+        ctx.fillText(`RSI (${period})`, plotLeft + 5, top + 3);
+
+        ctx.setLineDash([3, 3]);
+        [70, 50, 30].forEach(value => {
+            const y = valueToY(value);
+            ctx.strokeStyle = value === 50 ? "#26303d" : "rgba(214, 225, 238, .28)";
+            ctx.beginPath();
+            ctx.moveTo(plotLeft, y);
+            ctx.lineTo(plotLeft + plotWidth, y);
+            ctx.stroke();
+        });
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = "#8795a7";
+        ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
+        [100, 70, 50, 30, 0].forEach(value => {
+            ctx.fillText(String(value), plotLeft + plotWidth - 4, valueToY(value));
+        });
+
+        const visibleValues = values.slice(start, start + candles.length);
+        ctx.strokeStyle = "#b679e5";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        let drawing = false;
+        visibleValues.forEach((value, i) => {
+            if (!Number.isFinite(value)) {
+                drawing = false;
+                return;
             }
+            const x = plotLeft + (i + 0.5) * barWidth;
+            const y = valueToY(Math.max(0, Math.min(100, value)));
+            if (drawing) ctx.lineTo(x, y);
+            else ctx.moveTo(x, y);
+            drawing = true;
+        });
+        ctx.stroke();
 
-            if (show.engulfing && p && p.body > 0) {
-                if (isBullish(k) && isBearish(p) && hasLongBody(k) &&
-                    k.o < p.c && k.c > p.o && hasTrend(rows, index - 1, 'down')) {
-                    return { text: 'BULL ENGULFING', direction: 'bullish', price: k.l };
-                }
-                if (isBearish(k) && isBullish(p) && hasLongBody(k) &&
-                    k.o > p.c && k.c < p.o && hasTrend(rows, index - 1, 'up')) {
-                    return { text: 'BEAR ENGULFING', direction: 'bearish', price: k.h };
-                }
+        if (hoverIndex !== null) {
+            const i = hoverIndex - start;
+            if (i >= 0 && i < visibleValues.length && Number.isFinite(visibleValues[i])) {
+                ctx.fillStyle = "#b679e5";
+                ctx.textAlign = "left";
+                ctx.textBaseline = "top";
+                ctx.fillText(`RSI ${visibleValues[i].toFixed(2)}`, plotLeft + 130, top + 3);
             }
+        }
+    }
 
-            if (show.harami && p && hasLongBody(p) && k.body < p.body * 0.5) {
-                if (isBullish(k) && isBearish(p) && k.o > p.c && k.c < p.o &&
-                    hasTrend(rows, index - 1, 'down')) {
-                    return { text: 'BULL HARAMI', direction: 'bullish', price: k.l };
-                }
-                if (isBearish(k) && isBullish(p) && k.o < p.c && k.c > p.o &&
-                    hasTrend(rows, index - 1, 'up')) {
-                    return { text: 'BEAR HARAMI', direction: 'bearish', price: k.h };
-                }
+    window.ChartIndicators = window.ChartIndicators || {};
+    window.ChartIndicators.rsi = { calculate, draw };
+})();
+
+</script>
+<script>
+/* ===== ema.js ===== */
+(function () {
+    "use strict";
+    function calculate(closes, period) {
+        if (!closes.length) return [];
+        const multiplier = 2 / (period + 1);
+        const result = [closes[0]];
+        for (let i = 1; i < closes.length; i++) result.push(closes[i] * multiplier + result[i - 1] * (1 - multiplier));
+        return result;
+    }
+    function draw(ctx, values, color, { start, candles, plotLeft, plotWidth, barWidth, priceToY }) {
+        ctx.strokeStyle = color; ctx.lineWidth = 1.6; ctx.beginPath();
+        let drawing = false;
+        values.slice(start, start + candles.length).forEach((value, i) => {
+            if (!Number.isFinite(value)) { drawing = false; return; }
+            const x = plotLeft + (i + 0.5) * barWidth;
+            const y = priceToY(value);
+            if (drawing) ctx.lineTo(x, y); else ctx.moveTo(x, y);
+            drawing = true;
+        });
+        ctx.stroke();
+    }
+    window.ChartIndicators = window.ChartIndicators || {};
+    window.ChartIndicators.ema = { calculate, draw };
+})();
+
+</script>
+<script>
+/* ===== ma.js ===== */
+(function () {
+    "use strict";
+    function calculate(closes, period) {
+        const result = new Array(closes.length).fill(null);
+        let sum = 0;
+        for (let i = 0; i < closes.length; i++) {
+            sum += closes[i];
+            if (i >= period) sum -= closes[i - period];
+            if (i >= period - 1) result[i] = sum / period;
+        }
+        return result;
+    }
+    function draw(ctx, values, color, options) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        let drawing = false;
+        values.slice(options.start, options.start + options.candles.length).forEach((value, i) => {
+            if (!Number.isFinite(value)) {
+                drawing = false;
+                return;
             }
+            const x = options.plotLeft + (i + 0.5) * options.barWidth;
+            const y = options.priceToY(value);
+            if (drawing) ctx.lineTo(x, y);
+            else ctx.moveTo(x, y);
+            drawing = true;
+        });
+        ctx.stroke();
+    }
+    window.ChartIndicators = window.ChartIndicators || {};
+    window.ChartIndicators.ma = { calculate, draw };
+})();
 
-            if (show.hammer && k.body > 0 && k.body / k.range <= 0.3) {
-                if (k.lower >= k.body * 2 && k.lower / k.range >= 0.55 &&
-                    k.upper / k.range <= 0.15 && hasTrend(rows, index, 'down')) {
-                    return { text: 'HAMMER', direction: 'bullish', price: k.l };
-                }
-                if (k.upper >= k.body * 2 && k.upper / k.range >= 0.55 &&
-                    k.lower / k.range <= 0.15 && hasTrend(rows, index, 'up')) {
-                    return { text: 'SHOOTING STAR', direction: 'bearish', price: k.h };
-                }
-            }
+</script>
+<script>
+/* ===== pattern_engine.js ===== */
+/* ============================================================================
+   CANDLESTICK PATTERN ENGINE  —  MGL Signal
+   ----------------------------------------------------------------------------
+   Detects 38 classical candlestick patterns (single / double / triple candle)
+   and renders them on the price chart as professional, non-overlapping badges.
 
-            if (show.doji && k.body / k.range <= 0.1) {
-                return { text: 'DOJI', direction: 'neutral', price: k.h };
-            }
-            return null;
-        };
+   Public API (window.ChartPatterns):
+     compute(candles)              -> rebuild detection cache
+     draw(ctx, layout)             -> render markers for the visible window
+     getAt(index)                  -> patterns detected at absolute candle index
+     getRecent(limit)              -> most recent detections (newest first)
+     setOptions(patch)             -> { enabled, types, minStrength, counts, labels, all }
+     getOptions()                  -> current options
+     stats()                       -> { total, bullish, bearish, neutral, byName }
+   ========================================================================== */
+(function () {
+    "use strict";
 
-        window.onChartDrawOverlay = function(ctx, engine) {
-            const { priceToY, candleWidth, padding, visibleData, visibleStartIndex, allData } = engine;
-            const show = {
-                doji: document.getElementById('toggle-doji').checked,
-                hammer: document.getElementById('toggle-hammer').checked,
-                engulfing: document.getElementById('toggle-engulfing').checked,
-                soldiers: document.getElementById('toggle-soldiers').checked,
-                stars: document.getElementById('toggle-stars').checked,
-                harami: document.getElementById('toggle-harami').checked
-            };
+    /* ---------------------------------------------------------------- helpers */
+    const body = c => Math.abs(c[4] - c[1]);
+    const rng = c => Math.max(1e-12, c[2] - c[3]);
+    const upSh = c => c[2] - Math.max(c[1], c[4]);
+    const dnSh = c => Math.min(c[1], c[4]) - c[3];
+    const isBull = c => c[4] > c[1];
+    const isBear = c => c[4] < c[1];
+    const midBody = c => (c[1] + c[4]) / 2;
+    const topBody = c => Math.max(c[1], c[4]);
+    const botBody = c => Math.min(c[1], c[4]);
+    const isDoji = c => body(c) <= rng(c) * 0.1;
+    const isSmall = c => body(c) <= rng(c) * 0.3;
+    const isLong = c => body(c) >= rng(c) * 0.6;
 
-            const matches = [];
-            ctx.save();
-            ctx.font = "600 9px Inter, Arial, sans-serif";
-            ctx.textAlign = "center";
+    const COLORS = {
+        bullish: "#26c98b",
+        bearish: "#f05d68",
+        neutral: "#c5a059"
+    };
+    const GLYPH = { bullish: "\u25B2", bearish: "\u25BC", neutral: "\u25C6" };
 
-            for (let i = 0; i < visibleData.length; i++) {
-                const idx = visibleStartIndex + i;
-                const pattern = getPattern(allData, idx, show);
-                if (pattern) {
-                    const x = padding + i * candleWidth + candleWidth / 2;
-                    const color = pattern.direction === 'bullish' ? '#34d399'
-                        : pattern.direction === 'bearish' ? '#fb7185' : '#fbbf24';
-                    const yOffset = pattern.direction === 'bullish' ? 10 : -10;
-                    const y = Math.max(8, Math.min(ctx.canvas.height - 8, priceToY(pattern.price) + yOffset));
-                    ctx.fillStyle = color;
-                    ctx.beginPath();
-                    if (pattern.direction === 'neutral') {
-                        ctx.arc(x, y, 3, 0, Math.PI * 2);
-                    } else if (pattern.direction === 'bullish') {
-                        ctx.moveTo(x, y - 4);
-                        ctx.lineTo(x + 4, y + 3);
-                        ctx.lineTo(x - 4, y + 3);
-                        ctx.closePath();
-                    } else {
-                        ctx.moveTo(x, y + 4);
-                        ctx.lineTo(x + 4, y - 3);
-                        ctx.lineTo(x - 4, y - 3);
-                        ctx.closePath();
-                    }
-                    ctx.fill();
-                    matches.push({ ...pattern, time: allData[idx][0] });
-                }
-            }
+    /* ------------------------------------------------------------- detection */
+    const REGISTRY = [];
+    function reg(def) { REGISTRY.push(def); }
 
-            ctx.restore();
+    /* trend context: EMA20 slope measured in ATR units */
+    function buildContext(candles) {
+        const n = candles.length;
+        const atr = new Array(n).fill(NaN);
+        const ema = new Array(n).fill(NaN);
+        const k = 2 / 21;
+        let prevEma = candles.length ? candles[0][4] : 0;
+        let sumTr = 0;
+        for (let i = 0; i < n; i++) {
+            const c = candles[i];
+            const tr = i === 0
+                ? c[2] - c[3]
+                : Math.max(c[2] - c[3], Math.abs(c[2] - candles[i - 1][4]), Math.abs(c[3] - candles[i - 1][4]));
+            sumTr += tr;
+            if (i >= 14) sumTr -= (i >= 15 ? (function () {
+                const p = candles[i - 14], pp = candles[i - 15];
+                return Math.max(p[2] - p[3], Math.abs(p[2] - pp[4]), Math.abs(p[3] - pp[4]));
+            })() : 0);
+            atr[i] = i >= 13 ? sumTr / 14 : tr;
+            prevEma = i === 0 ? c[4] : c[4] * k + prevEma * (1 - k);
+            ema[i] = prevEma;
+        }
+        return { atr, ema };
+    }
 
-            const summary = document.getElementById('pattern-summary');
-            if (summary) {
-                summary.textContent = matches.length
-                    ? `${matches.length} хээ · Сүүлийн: ${matches[matches.length - 1].text}`
-                    : 'Харагдаж буй лаанд батлагдсан хээ алга';
-            }
+    function trendAt(ctx, i) {
+        if (i < 6) return 0;
+        const a = ctx.ema[i - 5], b = ctx.ema[i], atr = ctx.atr[i];
+        if (!Number.isFinite(a) || !Number.isFinite(b) || !Number.isFinite(atr) || atr <= 0) return 0;
+        const slope = b - a;
+        if (slope > atr * 0.35) return 1;
+        if (slope < -atr * 0.35) return -1;
+        return 0;
+    }
 
-            const signature = matches.map(pattern => `${pattern.time}:${pattern.text}`).join('|');
-            if (signature !== lastResultSignature) {
-                lastResultSignature = signature;
-                const list = document.getElementById('pattern-list');
-                if (!list) return;
-                list.replaceChildren();
-                const recent = matches.slice(-8).reverse();
-                if (!recent.length) {
-                    const empty = document.createElement('p');
-                    empty.className = 'text-[11px] text-gray-500';
-                    empty.textContent = 'Харагдаж буй лаанд батлагдсан хээ алга';
-                    list.appendChild(empty);
-                    return;
-                }
-                recent.forEach(pattern => {
-                    const row = document.createElement('div');
-                    row.className = 'flex items-center justify-between gap-3 rounded-lg border border-white/5 bg-black/20 px-3 py-2';
-                    const details = document.createElement('div');
-                    details.className = 'min-w-0';
-                    const name = document.createElement('p');
-                    name.className = 'truncate text-[10px] font-bold text-gray-200';
-                    name.textContent = pattern.text;
-                    const time = document.createElement('p');
-                    time.className = 'mt-0.5 text-[9px] text-gray-500';
-                    time.textContent = new Date(pattern.time).toLocaleString();
-                    details.append(name, time);
-                    const direction = document.createElement('span');
-                    direction.className = 'shrink-0 text-[9px] font-bold uppercase';
-                    direction.style.color = pattern.direction === 'bullish' ? '#34d399'
-                        : pattern.direction === 'bearish' ? '#fb7185' : '#fbbf24';
-                    direction.textContent = pattern.direction === 'neutral' ? 'NEUTRAL' : pattern.direction;
-                    row.append(details, direction);
-                    list.appendChild(row);
+    /* ============================ SINGLE CANDLE ============================ */
+
+    reg({
+        name: "Doji", type: "neutral", count: 1, strength: 1,
+        desc: "Нээлт ба хаалт бараг тэнцүү — тэнцвэр, эргэлтийн боломж",
+        detect(c, i, ctx) {
+            if (!isDoji(c[i]) || rng(c[i]) <= 0) return null;
+            if (upSh(c[i]) > rng(c[i]) * 0.3 && dnSh(c[i]) > rng(c[i]) * 0.3) return null;
+            return { strength: 1 };
+        }
+    });
+
+    reg({
+        name: "Dragonfly Doji", type: "bullish", count: 1, strength: 2,
+        desc: "Урт доод сүүдэр, бие нь дээр — худалдан авагчид буцаж ирлээ",
+        detect(c, i) {
+            const x = c[i];
+            if (!isDoji(x)) return null;
+            if (dnSh(x) < rng(x) * 0.6) return null;
+            if (upSh(x) > rng(x) * 0.1) return null;
+            return { strength: 2 };
+        }
+    });
+
+    reg({
+        name: "Gravestone Doji", type: "bearish", count: 1, strength: 2,
+        desc: "Урт дээд сүүдэр, бие нь доор — худалдан авагчид бууж өглөө",
+        detect(c, i) {
+            const x = c[i];
+            if (!isDoji(x)) return null;
+            if (upSh(x) < rng(x) * 0.6) return null;
+            if (dnSh(x) > rng(x) * 0.1) return null;
+            return { strength: 2 };
+        }
+    });
+
+    reg({
+        name: "Long-Legged Doji", type: "neutral", count: 1, strength: 2,
+        desc: "Хоёр талд урт сүүдэр — хүчтэй тэмцэл, чиглэл тодорхойгүй",
+        detect(c, i) {
+            const x = c[i];
+            if (!isDoji(x)) return null;
+            if (upSh(x) < rng(x) * 0.3 || dnSh(x) < rng(x) * 0.3) return null;
+            return { strength: 2 };
+        }
+    });
+
+    reg({
+        name: "Hammer", type: "bullish", count: 1, strength: 3,
+        desc: "Урт доод сүүдэр, жижиг бие — уналтын ёроолд эргэлт",
+        detect(c, i, ctx) {
+            const x = c[i], b = body(x), r = rng(x);
+            if (b <= 0 || r <= 0) return null;
+            if (dnSh(x) < b * 2) return null;
+            if (upSh(x) > b * 0.35) return null;
+            if (b > r * 0.4) return null;
+            if (trendAt(ctx, i) !== -1) return null;
+            return { strength: 3 };
+        }
+    });
+
+    reg({
+        name: "Inverted Hammer", type: "bullish", count: 1, strength: 2,
+        desc: "Урт дээд сүүдэр, уналтын ёроолд — эргэлтийн дохио",
+        detect(c, i, ctx) {
+            const x = c[i], b = body(x), r = rng(x);
+            if (b <= 0 || r <= 0) return null;
+            if (upSh(x) < b * 2) return null;
+            if (dnSh(x) > b * 0.35) return null;
+            if (b > r * 0.4) return null;
+            if (trendAt(ctx, i) !== -1) return null;
+            return { strength: 2 };
+        }
+    });
+
+    reg({
+        name: "Hanging Man", type: "bearish", count: 1, strength: 2,
+        desc: "Hammer хэлбэр өсөлтийн оргилд — уналтын сануулга",
+        detect(c, i, ctx) {
+            const x = c[i], b = body(x), r = rng(x);
+            if (b <= 0 || r <= 0) return null;
+            if (dnSh(x) < b * 2) return null;
+            if (upSh(x) > b * 0.35) return null;
+            if (b > r * 0.4) return null;
+            if (trendAt(ctx, i) !== 1) return null;
+            return { strength: 2 };
+        }
+    });
+
+    reg({
+        name: "Shooting Star", type: "bearish", count: 1, strength: 3,
+        desc: "Урт дээд сүүдэр, оргилд — худалдан авагчид бүтэлгүйтлээ",
+        detect(c, i, ctx) {
+            const x = c[i], b = body(x), r = rng(x);
+            if (b <= 0 || r <= 0) return null;
+            if (upSh(x) < b * 2) return null;
+            if (dnSh(x) > b * 0.35) return null;
+            if (b > r * 0.4) return null;
+            if (trendAt(ctx, i) !== 1) return null;
+            return { strength: 3 };
+        }
+    });
+
+    reg({
+        name: "Bullish Marubozu", type: "bullish", count: 1, strength: 2,
+        desc: "Сүүдэргүй урт ногоон лаа — хүчтэй худалдан авалт",
+        detect(c, i) {
+            const x = c[i];
+            if (!isBull(x)) return null;
+            if (body(x) < rng(x) * 0.9) return null;
+            return { strength: 2 };
+        }
+    });
+
+    reg({
+        name: "Bearish Marubozu", type: "bearish", count: 1, strength: 2,
+        desc: "Сүүдэргүй урт улаан лаа — хүчтэй худалдаа",
+        detect(c, i) {
+            const x = c[i];
+            if (!isBear(x)) return null;
+            if (body(x) < rng(x) * 0.9) return null;
+            return { strength: 2 };
+        }
+    });
+
+    reg({
+        name: "Spinning Top", type: "neutral", count: 1, strength: 1,
+        desc: "Жижиг бие, хоёр талд сүүдэр — эргэлзээ",
+        detect(c, i) {
+            const x = c[i], b = body(x), r = rng(x);
+            if (b <= 0 || r <= 0) return null;
+            if (b > r * 0.3) return null;
+            if (upSh(x) < b * 0.8 || dnSh(x) < b * 0.8) return null;
+            return { strength: 1 };
+        }
+    });
+
+    reg({
+        name: "Bullish Belt Hold", type: "bullish", count: 1, strength: 2,
+        desc: "Доод цэгээс нээгдэж өссөн — баавгайнууд хяналтаа алдлаа",
+        detect(c, i, ctx) {
+            const x = c[i];
+            if (!isBull(x)) return null;
+            if (dnSh(x) > rng(x) * 0.05) return null;
+            if (body(x) < rng(x) * 0.6) return null;
+            if (trendAt(ctx, i) !== -1) return null;
+            return { strength: 2 };
+        }
+    });
+
+    reg({
+        name: "Bearish Belt Hold", type: "bearish", count: 1, strength: 2,
+        desc: "Дээд цэгээс нээгдэж унасан — бухнууд хяналтаа алдлаа",
+        detect(c, i, ctx) {
+            const x = c[i];
+            if (!isBear(x)) return null;
+            if (upSh(x) > rng(x) * 0.05) return null;
+            if (body(x) < rng(x) * 0.6) return null;
+            if (trendAt(ctx, i) !== 1) return null;
+            return { strength: 2 };
+        }
+    });
+
+    /* ============================ DOUBLE CANDLE ============================ */
+
+    reg({
+        name: "Bullish Engulfing", type: "bullish", count: 2, strength: 3,
+        desc: "Ногоон лаа өмнөх улааныг бүрэн залгилаа — эргэлт",
+        detect(c, i) {
+            if (i < 1) return null;
+            const p = c[i - 1], x = c[i];
+            if (!isBear(p) || !isBull(x)) return null;
+            if (topBody(x) <= topBody(p) || botBody(x) >= botBody(p)) return null;
+            if (body(x) < body(p) * 1.05) return null;
+            return { strength: 3 };
+        }
+    });
+
+    reg({
+        name: "Bearish Engulfing", type: "bearish", count: 2, strength: 3,
+        desc: "Улаан лаа өмнөх ногооныг бүрэн залгилаа — эргэлт",
+        detect(c, i) {
+            if (i < 1) return null;
+            const p = c[i - 1], x = c[i];
+            if (!isBull(p) || !isBear(x)) return null;
+            if (topBody(x) <= topBody(p) || botBody(x) >= botBody(p)) return null;
+            if (body(x) < body(p) * 1.05) return null;
+            return { strength: 3 };
+        }
+    });
+
+    reg({
+        name: "Bullish Harami", type: "bullish", count: 2, strength: 2,
+        desc: "Жижиг ногоон лаа том улааны дотор — уналт зогслоо",
+        detect(c, i) {
+            if (i < 1) return null;
+            const p = c[i - 1], x = c[i];
+            if (!isBear(p) || !isBull(x)) return null;
+            if (body(p) < rng(p) * 0.5) return null;
+            if (topBody(x) >= topBody(p) || botBody(x) <= botBody(p)) return null;
+            if (body(x) > body(p) * 0.7) return null;
+            return { strength: 2 };
+        }
+    });
+
+    reg({
+        name: "Bearish Harami", type: "bearish", count: 2, strength: 2,
+        desc: "Жижиг улаан лаа том ногооны дотор — өсөлт зогслоо",
+        detect(c, i) {
+            if (i < 1) return null;
+            const p = c[i - 1], x = c[i];
+            if (!isBull(p) || !isBear(x)) return null;
+            if (body(p) < rng(p) * 0.5) return null;
+            if (topBody(x) >= topBody(p) || botBody(x) <= botBody(p)) return null;
+            if (body(x) > body(p) * 0.7) return null;
+            return { strength: 2 };
+        }
+    });
+
+    reg({
+        name: "Harami Cross", type: "neutral", count: 2, strength: 2,
+        desc: "Doji том лааны дотор — хүчтэй эргэлтийн боломж",
+        detect(c, i) {
+            if (i < 1) return null;
+            const p = c[i - 1], x = c[i];
+            if (body(p) < rng(p) * 0.5) return null;
+            if (!isDoji(x)) return null;
+            if (topBody(x) >= topBody(p) || botBody(x) <= botBody(p)) return null;
+            return { strength: 2 };
+        }
+    });
+
+    reg({
+        name: "Piercing Line", type: "bullish", count: 2, strength: 3,
+        desc: "Ногоон лаа улааны дундаас дээш нэвтэрлээ — эргэлт",
+        detect(c, i) {
+            if (i < 1) return null;
+            const p = c[i - 1], x = c[i];
+            if (!isBear(p) || !isBull(x)) return null;
+            if (body(p) < rng(p) * 0.4) return null;
+            if (x[1] >= p[4]) return null;
+            if (x[4] <= midBody(p) || x[4] >= p[1]) return null;
+            return { strength: 3 };
+        }
+    });
+
+    reg({
+        name: "Dark Cloud Cover", type: "bearish", count: 2, strength: 3,
+        desc: "Улаан лаа ногооны дундаас доош нэвтэрлээ — эргэлт",
+        detect(c, i) {
+            if (i < 1) return null;
+            const p = c[i - 1], x = c[i];
+            if (!isBull(p) || !isBear(x)) return null;
+            if (body(p) < rng(p) * 0.4) return null;
+            if (x[1] <= p[4]) return null;
+            if (x[4] >= midBody(p) || x[4] <= p[1]) return null;
+            return { strength: 3 };
+        }
+    });
+
+    reg({
+        name: "Tweezer Bottom", type: "bullish", count: 2, strength: 2,
+        desc: "Хоёр лаа ижил доод цэгт — дэмжлэг батлагдлаа",
+        detect(c, i, ctx) {
+            if (i < 1) return null;
+            const p = c[i - 1], x = c[i];
+            const tol = ctx.atr[i] * 0.12;
+            if (Math.abs(p[3] - x[3]) > tol) return null;
+            if (!isBear(p) || !isBull(x)) return null;
+            if (trendAt(ctx, i) !== -1) return null;
+            return { strength: 2 };
+        }
+    });
+
+    reg({
+        name: "Tweezer Top", type: "bearish", count: 2, strength: 2,
+        desc: "Хоёр лаа ижил дээд цэгт — эсэргүүцэл батлагдлаа",
+        detect(c, i, ctx) {
+            if (i < 1) return null;
+            const p = c[i - 1], x = c[i];
+            const tol = ctx.atr[i] * 0.12;
+            if (Math.abs(p[2] - x[2]) > tol) return null;
+            if (!isBull(p) || !isBear(x)) return null;
+            if (trendAt(ctx, i) !== 1) return null;
+            return { strength: 2 };
+        }
+    });
+
+    reg({
+        name: "Bullish Kicker", type: "bullish", count: 2, strength: 3,
+        desc: "Гэнэтийн цоорхойтой эргэлт дээш — маш хүчтэй",
+        detect(c, i) {
+            if (i < 1) return null;
+            const p = c[i - 1], x = c[i];
+            if (!isBear(p) || !isBull(x)) return null;
+            if (x[1] <= p[1]) return null;
+            if (body(p) < rng(p) * 0.5 || body(x) < rng(x) * 0.5) return null;
+            return { strength: 3 };
+        }
+    });
+
+    reg({
+        name: "Bearish Kicker", type: "bearish", count: 2, strength: 3,
+        desc: "Гэнэтийн цоорхойтой эргэлт доош — маш хүчтэй",
+        detect(c, i) {
+            if (i < 1) return null;
+            const p = c[i - 1], x = c[i];
+            if (!isBull(p) || !isBear(x)) return null;
+            if (x[1] >= p[1]) return null;
+            if (body(p) < rng(p) * 0.5 || body(x) < rng(x) * 0.5) return null;
+            return { strength: 3 };
+        }
+    });
+
+    reg({
+        name: "Meeting Lines", type: "neutral", count: 2, strength: 1,
+        desc: "Эсрэг чиглэлийн хоёр лаа ижил хаалтад — тэнцвэр",
+        detect(c, i) {
+            if (i < 1) return null;
+            const p = c[i - 1], x = c[i];
+            if (isBull(p) === isBull(x)) return null;
+            const tol = rng(x) * 0.08;
+            if (Math.abs(p[4] - x[4]) > tol) return null;
+            if (body(p) < rng(p) * 0.5 || body(x) < rng(x) * 0.5) return null;
+            return { strength: 1 };
+        }
+    });
+
+    /* ============================ TRIPLE CANDLE ============================ */
+
+    reg({
+        name: "Morning Star", type: "bullish", count: 3, strength: 3,
+        desc: "Уналт → жижиг лаа → хүчтэй ногоон — ёроолын эргэлт",
+        detect(c, i) {
+            if (i < 2) return null;
+            const a = c[i - 2], b = c[i - 1], x = c[i];
+            if (!isBear(a) || !isBull(x)) return null;
+            if (body(a) < rng(a) * 0.5 || body(x) < rng(x) * 0.5) return null;
+            if (body(b) > body(a) * 0.5) return null;
+            if (topBody(b) > botBody(a)) return null;
+            if (x[4] <= midBody(a)) return null;
+            return { strength: 3 };
+        }
+    });
+
+    reg({
+        name: "Evening Star", type: "bearish", count: 3, strength: 3,
+        desc: "Өсөлт → жижиг лаа → хүчтэй улаан — оргилын эргэлт",
+        detect(c, i) {
+            if (i < 2) return null;
+            const a = c[i - 2], b = c[i - 1], x = c[i];
+            if (!isBull(a) || !isBear(x)) return null;
+            if (body(a) < rng(a) * 0.5 || body(x) < rng(x) * 0.5) return null;
+            if (body(b) > body(a) * 0.5) return null;
+            if (botBody(b) < topBody(a)) return null;
+            if (x[4] >= midBody(a)) return null;
+            return { strength: 3 };
+        }
+    });
+
+    reg({
+        name: "Morning Doji Star", type: "bullish", count: 3, strength: 3,
+        desc: "Morning Star боловч дунд нь Doji — илүү хүчтэй",
+        detect(c, i) {
+            if (i < 2) return null;
+            const a = c[i - 2], b = c[i - 1], x = c[i];
+            if (!isBear(a) || !isBull(x)) return null;
+            if (!isDoji(b)) return null;
+            if (body(a) < rng(a) * 0.5 || body(x) < rng(x) * 0.5) return null;
+            if (topBody(b) > botBody(a)) return null;
+            if (x[4] <= midBody(a)) return null;
+            return { strength: 3 };
+        }
+    });
+
+    reg({
+        name: "Evening Doji Star", type: "bearish", count: 3, strength: 3,
+        desc: "Evening Star боловч дунд нь Doji — илүү хүчтэй",
+        detect(c, i) {
+            if (i < 2) return null;
+            const a = c[i - 2], b = c[i - 1], x = c[i];
+            if (!isBull(a) || !isBear(x)) return null;
+            if (!isDoji(b)) return null;
+            if (body(a) < rng(a) * 0.5 || body(x) < rng(x) * 0.5) return null;
+            if (botBody(b) < topBody(a)) return null;
+            if (x[4] >= midBody(a)) return null;
+            return { strength: 3 };
+        }
+    });
+
+    reg({
+        name: "Three White Soldiers", type: "bullish", count: 3, strength: 3,
+        desc: "Гурван дараалсан хүчтэй ногоон лаа — өсөлт батлагдлаа",
+        detect(c, i) {
+            if (i < 2) return null;
+            const a = c[i - 2], b = c[i - 1], x = c[i];
+            if (!isBull(a) || !isBull(b) || !isBull(x)) return null;
+            if (body(a) < rng(a) * 0.5 || body(b) < rng(b) * 0.5 || body(x) < rng(x) * 0.5) return null;
+            if (!(b[4] > a[4] && x[4] > b[4])) return null;
+            if (!(b[1] > a[1] && x[1] > b[1])) return null;
+            if (upSh(a) > body(a) * 0.4 || upSh(b) > body(b) * 0.4 || upSh(x) > body(x) * 0.4) return null;
+            return { strength: 3 };
+        }
+    });
+
+    reg({
+        name: "Three Black Crows", type: "bearish", count: 3, strength: 3,
+        desc: "Гурван дараалсан хүчтэй улаан лаа — уналт батлагдлаа",
+        detect(c, i) {
+            if (i < 2) return null;
+            const a = c[i - 2], b = c[i - 1], x = c[i];
+            if (!isBear(a) || !isBear(b) || !isBear(x)) return null;
+            if (body(a) < rng(a) * 0.5 || body(b) < rng(b) * 0.5 || body(x) < rng(x) * 0.5) return null;
+            if (!(b[4] < a[4] && x[4] < b[4])) return null;
+            if (!(b[1] < a[1] && x[1] < b[1])) return null;
+            if (dnSh(a) > body(a) * 0.4 || dnSh(b) > body(b) * 0.4 || dnSh(x) > body(x) * 0.4) return null;
+            return { strength: 3 };
+        }
+    });
+
+    reg({
+        name: "Three Inside Up", type: "bullish", count: 3, strength: 3,
+        desc: "Harami + баталгаажуулах ногоон лаа — эргэлт батлагдлаа",
+        detect(c, i) {
+            if (i < 2) return null;
+            const a = c[i - 2], b = c[i - 1], x = c[i];
+            if (!isBear(a) || !isBull(b) || !isBull(x)) return null;
+            if (body(a) < rng(a) * 0.5) return null;
+            if (topBody(b) >= topBody(a) || botBody(b) <= botBody(a)) return null;
+            if (x[4] <= topBody(a)) return null;
+            return { strength: 3 };
+        }
+    });
+
+    reg({
+        name: "Three Inside Down", type: "bearish", count: 3, strength: 3,
+        desc: "Harami + баталгаажуулах улаан лаа — эргэлт батлагдлаа",
+        detect(c, i) {
+            if (i < 2) return null;
+            const a = c[i - 2], b = c[i - 1], x = c[i];
+            if (!isBull(a) || !isBear(b) || !isBear(x)) return null;
+            if (body(a) < rng(a) * 0.5) return null;
+            if (topBody(b) >= topBody(a) || botBody(b) <= botBody(a)) return null;
+            if (x[4] >= botBody(a)) return null;
+            return { strength: 3 };
+        }
+    });
+
+    reg({
+        name: "Three Outside Up", type: "bullish", count: 3, strength: 3,
+        desc: "Engulfing + баталгаажуулах ногоон лаа — хүчтэй эргэлт",
+        detect(c, i) {
+            if (i < 2) return null;
+            const a = c[i - 2], b = c[i - 1], x = c[i];
+            if (!isBear(a) || !isBull(b) || !isBull(x)) return null;
+            if (topBody(b) <= topBody(a) || botBody(b) >= botBody(a)) return null;
+            if (x[4] <= b[4]) return null;
+            return { strength: 3 };
+        }
+    });
+
+    reg({
+        name: "Three Outside Down", type: "bearish", count: 3, strength: 3,
+        desc: "Engulfing + баталгаажуулах улаан лаа — хүчтэй эргэлт",
+        detect(c, i) {
+            if (i < 2) return null;
+            const a = c[i - 2], b = c[i - 1], x = c[i];
+            if (!isBull(a) || !isBear(b) || !isBear(x)) return null;
+            if (topBody(b) <= topBody(a) || botBody(b) >= botBody(a)) return null;
+            if (x[4] >= b[4]) return null;
+            return { strength: 3 };
+        }
+    });
+
+    reg({
+        name: "Bullish Abandoned Baby", type: "bullish", count: 3, strength: 3,
+        desc: "Doji цоорхойтой тусгаарлагдсан — маш хүчтэй ёроол",
+        detect(c, i) {
+            if (i < 2) return null;
+            const a = c[i - 2], b = c[i - 1], x = c[i];
+            if (!isBear(a) || !isBull(x)) return null;
+            if (!isDoji(b)) return null;
+            if (b[2] >= a[3]) return null;
+            if (b[3] <= x[2]) return null;
+            if (x[4] <= midBody(a)) return null;
+            return { strength: 3 };
+        }
+    });
+
+    reg({
+        name: "Bearish Abandoned Baby", type: "bearish", count: 3, strength: 3,
+        desc: "Doji цоорхойтой тусгаарлагдсан — маш хүчтэй оргил",
+        detect(c, i) {
+            if (i < 2) return null;
+            const a = c[i - 2], b = c[i - 1], x = c[i];
+            if (!isBull(a) || !isBear(x)) return null;
+            if (!isDoji(b)) return null;
+            if (b[3] <= a[2]) return null;
+            if (b[2] >= x[3]) return null;
+            if (x[4] >= midBody(a)) return null;
+            return { strength: 3 };
+        }
+    });
+
+    reg({
+        name: "Tri-Star Bottom", type: "bullish", count: 3, strength: 2,
+        desc: "Гурван дараалсан Doji ёроолд — эргэлтийн бүс",
+        detect(c, i) {
+            if (i < 2) return null;
+            const a = c[i - 2], b = c[i - 1], x = c[i];
+            if (!isDoji(a) || !isDoji(b) || !isDoji(x)) return null;
+            if (!(b[4] < a[4] && x[4] > b[4])) return null;
+            return { strength: 2 };
+        }
+    });
+
+    reg({
+        name: "Tri-Star Top", type: "bearish", count: 3, strength: 2,
+        desc: "Гурван дараалсан Doji оргилд — эргэлтийн бүс",
+        detect(c, i) {
+            if (i < 2) return null;
+            const a = c[i - 2], b = c[i - 1], x = c[i];
+            if (!isDoji(a) || !isDoji(b) || !isDoji(x)) return null;
+            if (!(b[4] > a[4] && x[4] < b[4])) return null;
+            return { strength: 2 };
+        }
+    });
+
+    reg({
+        name: "Stick Sandwich", type: "bullish", count: 3, strength: 2,
+        desc: "Хоёр ижил хаалттай ногоон лааны дунд улаан — дэмжлэг",
+        detect(c, i) {
+            if (i < 2) return null;
+            const a = c[i - 2], b = c[i - 1], x = c[i];
+            if (!isBull(a) || !isBear(b) || !isBull(x)) return null;
+            const tol = rng(a) * 0.1;
+            if (Math.abs(a[4] - x[4]) > tol) return null;
+            if (b[4] >= a[4]) return null;
+            return { strength: 2 };
+        }
+    });
+
+    /* ------------------------------------------------------------- compute */
+    const cache = {
+        candles: [],
+        ctx: null,
+        byIndex: new Map(),
+        list: [],
+        stats: { total: 0, bullish: 0, bearish: 0, neutral: 0, byName: {} }
+    };
+    let lastDraw = { placed: 0, skipped: 0, boxes: [], labels: [] };
+
+    function compute(candles) {
+        cache.candles = candles || [];
+        cache.byIndex = new Map();
+        cache.list = [];
+        cache.stats = { total: 0, bullish: 0, bearish: 0, neutral: 0, byName: {} };
+        if (!cache.candles.length) { cache.ctx = null; return; }
+
+        const ctx = buildContext(cache.candles);
+        cache.ctx = ctx;
+
+        for (let i = 0; i < cache.candles.length; i++) {
+            const hits = [];
+            for (let p = 0; p < REGISTRY.length; p++) {
+                const def = REGISTRY[p];
+                if (i < def.count - 1) continue;
+                let res = null;
+                try { res = def.detect(cache.candles, i, ctx); } catch (e) { res = null; }
+                if (!res) continue;
+                hits.push({
+                    name: def.name,
+                    type: def.type,
+                    count: def.count,
+                    strength: res.strength || def.strength || 1,
+                    desc: def.desc,
+                    index: i,
+                    time: cache.candles[i][0]
                 });
             }
+            if (!hits.length) continue;
+            hits.sort((a, b) => b.strength - a.strength || b.count - a.count);
+            cache.byIndex.set(i, hits);
+            hits.forEach(h => {
+                cache.list.push(h);
+                cache.stats.total++;
+                cache.stats[h.type]++;
+                cache.stats.byName[h.name] = (cache.stats.byName[h.name] || 0) + 1;
+            });
+        }
+
+        /* ---- quality filter: keep only meaningful, well-separated signals ----
+           Raw detection is intentionally permissive (every classical definition).
+           A pattern is promoted to a *signal* only when it also passes:
+             1. size  — the pattern's own range is a real move, not noise
+             2. space — no stronger signal within COOLDOWN bars
+           This is what turns 700+ raw hits into a readable set of markers. */
+        const COOLDOWN = 6;
+        const atr = ctx.atr;
+        const ranked = cache.list.slice().sort((a, b) =>
+            b.strength - a.strength || b.count - a.count || a.index - b.index);
+        const accepted = [];
+        const taken = new Set();
+        ranked.forEach(hit => {
+            const c = cache.candles[hit.index];
+            const a = atr[hit.index];
+            if (!Number.isFinite(a) || a <= 0) return;
+            /* 1. size: pattern range must be at least 0.55 ATR */
+            const span = c[2] - c[3];
+            if (span < a * 0.55) return;
+            /* 2. space: no accepted signal of the same direction nearby */
+            for (let d = -COOLDOWN; d <= COOLDOWN; d++) {
+                if (d === 0) continue;
+                if (taken.has(hit.index + d)) return;
+            }
+            taken.add(hit.index);
+            accepted.push(hit);
+        });
+
+        cache.byIndex = new Map();
+        cache.list = accepted;
+        cache.stats = { total: 0, bullish: 0, bearish: 0, neutral: 0, byName: {} };
+        accepted.forEach(h => {
+            if (!cache.byIndex.has(h.index)) cache.byIndex.set(h.index, []);
+            cache.byIndex.get(h.index).push(h);
+            cache.stats.total++;
+            cache.stats[h.type]++;
+            cache.stats.byName[h.name] = (cache.stats.byName[h.name] || 0) + 1;
+        });
+        cache.byIndex.forEach(list => list.sort((a, b) => b.strength - a.strength || b.count - a.count));
+    }
+
+    function getAt(index) { return cache.byIndex.get(index) || null; }
+
+    function getRecent(limit) {
+        const out = cache.list.filter(passes).sort((a, b) => b.index - a.index);
+        return limit ? out.slice(0, limit) : out;
+    }
+
+    /* stats reflect the CURRENT filter, so the panel number matches the chart */
+    function stats() {
+        const s = { total: 0, bullish: 0, bearish: 0, neutral: 0, byName: {} };
+        cache.list.forEach(h => {
+            if (!passes(h)) return;
+            s.total++;
+            s[h.type]++;
+            s.byName[h.name] = (s.byName[h.name] || 0) + 1;
+        });
+        return s;
+    }
+
+    /* raw (unfiltered) totals, for reporting */
+    function rawStats() { return cache.stats; }
+
+    /* ------------------------------------------------------------ options */
+    const options = {
+        enabled: true,
+        types: { bullish: true, bearish: true, neutral: true },
+        minStrength: 1,
+        counts: { 1: true, 2: true, 3: true },
+        labels: true,
+        all: false
+    };
+
+    function setOptions(patch) {
+        if (!patch) return options;
+        if (typeof patch.enabled === "boolean") options.enabled = patch.enabled;
+        if (patch.types) Object.assign(options.types, patch.types);
+        if (typeof patch.minStrength === "number") options.minStrength = patch.minStrength;
+        if (patch.counts) Object.assign(options.counts, patch.counts);
+        if (typeof patch.labels === "boolean") options.labels = patch.labels;
+        if (typeof patch.all === "boolean") options.all = patch.all;
+        return options;
+    }
+
+    function getOptions() { return options; }
+
+    function passes(hit) {
+        if (!options.types[hit.type]) return false;
+        if (hit.strength < options.minStrength) return false;
+        if (!options.counts[hit.count]) return false;
+        return true;
+    }
+
+    /* ------------------------------------------------------------- drawing */
+    function roundRect(ctx, x, y, w, h, r) {
+        const rr = Math.min(r, h / 2, w / 2);
+        ctx.beginPath();
+        ctx.moveTo(x + rr, y);
+        ctx.lineTo(x + w - rr, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + rr);
+        ctx.lineTo(x + w, y + h - rr);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - rr, y + h);
+        ctx.lineTo(x + rr, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - rr);
+        ctx.lineTo(x, y + rr);
+        ctx.quadraticCurveTo(x, y, x + rr, y);
+        ctx.closePath();
+    }
+
+    function overlaps(a, b) {
+        return !(a.x1 < b.x0 || a.x0 > b.x1 || a.y1 < b.y0 || a.y0 > b.y1);
+    }
+
+    function draw(ctx, layout) {
+        lastDraw = { placed: 0, skipped: 0, boxes: [], labels: [] };
+        if (!options.enabled || !cache.candles.length) return;
+        const { plotLeft, plotTop, mainHeight, barWidth, start, candles, priceToY } = layout;
+        if (!candles || !candles.length) return;
+
+        const occupied = [];
+        const plotRight = plotLeft + layout.plotWidth;
+        const plotBottom = plotTop + mainHeight;
+
+        /* collect visible hits, one badge per candle unless options.all */
+        const items = [];
+        for (let v = 0; v < candles.length; v++) {
+            const abs = start + v;
+            const hits = cache.byIndex.get(abs);
+            if (!hits) continue;
+            const filtered = hits.filter(passes);
+            if (!filtered.length) continue;
+            const primary = filtered[0];
+            items.push({
+                abs, v, primary, extra: filtered.length - 1,
+                all: filtered,
+                x: plotLeft + (v + 0.5) * barWidth,
+                candle: candles[v]
+            });
+        }
+        if (!items.length) return;
+
+        /* draw in order of strength so strong ones win the closest slot */
+        items.sort((a, b) => b.primary.strength - a.primary.strength);
+
+        const placed = [];
+        const FONT = "600 8.5px Inter, Arial, sans-serif";
+        ctx.font = FONT;
+
+        /* ------------------------------------------------------------------
+           Placement strategy (professional, never hides its own candle):
+             1. try to the RIGHT of the candle, vertically at its extreme
+             2. then to the LEFT
+             3. then stacked further out on either side
+           A leader line ties the badge back to the candle's high/low.
+           ------------------------------------------------------------------ */
+        const laneRows = [];
+        items.forEach(item => {
+            const { primary, candle, x } = item;
+            const color = COLORS[primary.type];
+            const isBearish = primary.type === "bearish";
+
+            const highY = priceToY(candle[2]);
+            const lowY = priceToY(candle[3]);
+
+            /* ---- compact triangle marker, always just outside the candle ---- */
+            const MS = 9;                       /* marker box */
+            const gap = 3;
+            let my = isBearish ? highY - gap - MS : lowY + gap;
+            my = Math.max(plotTop + 1, Math.min(my, plotBottom - MS - 1));
+
+            /* nudge sideways only when the slot is already taken */
+            let mx = x - MS / 2;
+            let mrect = { x0: mx - 1, x1: mx + MS + 1, y0: my - 1, y1: my + MS + 1 };
+            if (placed.some(p => overlaps(p, mrect))) {
+                let found = false;
+                for (let step = 1; step <= 6 && !found; step++) {
+                    for (const sgn of [1, -1]) {
+                        const cx2 = x - MS / 2 + sgn * step * (MS + 2);
+                        if (cx2 < plotLeft + 1 || cx2 + MS > plotRight - 1) continue;
+                        const r2 = { x0: cx2 - 1, x1: cx2 + MS + 1, y0: my - 1, y1: my + MS + 1 };
+                        if (placed.some(p => overlaps(p, r2))) continue;
+                        mx = cx2; mrect = r2; found = true; break;
+                    }
+                }
+                if (!found) { lastDraw.skipped++; return; }
+            }
+            placed.push(mrect);
+            lastDraw.placed++;
+            lastDraw.boxes.push({ x: mrect.x0, y: mrect.y0, w: MS + 2, h: MS + 2, name: primary.name });
+
+            /* leader line from the candle's extreme to the marker */
+            ctx.strokeStyle = color;
+            ctx.globalAlpha = 0.35;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x, isBearish ? highY : lowY);
+            ctx.lineTo(mx + MS / 2, isBearish ? my + MS : my);
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+
+            /* triangle */
+            ctx.save();
+            ctx.shadowColor = "rgba(0,0,0,0.8)";
+            ctx.shadowBlur = 3;
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            if (isBearish) {
+                ctx.moveTo(mx + MS / 2, my + MS);
+                ctx.lineTo(mx, my);
+                ctx.lineTo(mx + MS, my);
+            } else {
+                ctx.moveTo(mx + MS / 2, my);
+                ctx.lineTo(mx, my + MS);
+                ctx.lineTo(mx + MS, my + MS);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+            ctx.strokeStyle = "rgba(6,9,13,0.9)";
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            /* ---- name label: only when the zoom gives real horizontal room ----
+               At the default zoom one bar is ~1.4px, so a 90px label would span
+               ~60 candles and inevitably sit on top of price action. Labels are
+               therefore shown only once the user zooms in (barWidth >= 14px).
+               Names stay available at every zoom in the hover tooltip and in
+               the "Сүүлийн" strip under the chart. */
+            const canLabel = options.labels && barWidth >= 14 && (primary.strength >= 2 || options.all);
+            if (!canLabel) return;
+
+            const text = item.extra > 0 ? `${primary.name} +${item.extra}` : primary.name;
+            ctx.font = FONT;
+            const tw = ctx.measureText(text).width;
+            const w = tw + 16;
+            const h = 13;
+
+            /* label sits beside the marker, on the far side from the candle */
+            const labelCands = [
+                { x: mx + MS + 3, y: my + MS / 2 - h / 2 },
+                { x: mx - w - 3, y: my + MS / 2 - h / 2 },
+                { x: mx + MS + 3, y: my - h - 2 },
+                { x: mx - w - 3, y: my - h - 2 },
+                { x: mx + MS + 3, y: my + MS + 2 },
+                { x: mx - w - 3, y: my + MS + 2 }
+            ];
+
+            /* every visible candle's body+wick, so a label never covers price */
+            const candleRects = [];
+            for (let v = 0; v < candles.length; v++) {
+                const cc = candles[v];
+                const cxp = plotLeft + (v + 0.5) * barWidth;
+                candleRects.push({
+                    x0: cxp - Math.max(1, barWidth / 2) - 1,
+                    x1: cxp + Math.max(1, barWidth / 2) + 1,
+                    y0: priceToY(cc[2]) - 1,
+                    y1: priceToY(cc[3]) + 1
+                });
+            }
+
+            let lb = null;
+            for (const c2 of labelCands) {
+                let bx = c2.x, by = c2.y;
+                if (bx < plotLeft + 1 || bx + w > plotRight - 1) continue;
+                if (by < plotTop + 1 || by + h > plotBottom - 1) continue;
+                const r3 = { x0: bx - 1, x1: bx + w + 1, y0: by - 1, y1: by + h + 1 };
+                if (placed.some(p => overlaps(p, r3))) continue;
+                if (candleRects.some(cr => overlaps(cr, r3))) continue;
+                lb = { x: bx, y: by, rect: r3 };
+                break;
+            }
+            if (!lb) return;
+            placed.push(lb.rect);
+            lastDraw.labels.push({ x: lb.rect.x0, y: lb.rect.y0, w: w + 2, h: h + 2, name: primary.name });
+
+            ctx.save();
+            ctx.shadowColor = "rgba(0,0,0,0.7)";
+            ctx.shadowBlur = 3;
+            ctx.fillStyle = "rgba(6,9,13,0.95)";
+            roundRect(ctx, lb.x, lb.y, w, h, 3);
+            ctx.fill();
+            ctx.restore();
+            ctx.strokeStyle = color;
+            ctx.globalAlpha = 0.55;
+            ctx.lineWidth = 1;
+            roundRect(ctx, lb.x, lb.y, w, h, 3);
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+
+            ctx.textBaseline = "middle";
+            ctx.textAlign = "left";
+            ctx.font = FONT;
+            ctx.fillStyle = "#eef4fb";
+            ctx.fillText(text, lb.x + 6, lb.y + h / 2 + 0.5);
+        });
+
+        /* hover tooltip listing every pattern on the hovered candle */
+        const hoverIndex = layout.hoverIndex;
+        if (hoverIndex !== null && hoverIndex !== undefined) {
+            const hits = cache.byIndex.get(hoverIndex);
+            if (hits && hits.length) {
+                const filtered = hits.filter(passes);
+                if (filtered.length) drawTooltip(ctx, layout, filtered, hoverIndex);
+            }
+        }
+    }
+
+    function drawTooltip(ctx, layout, hits, hoverIndex) {
+        const { plotLeft, plotTop, plotWidth, mainHeight, barWidth, start, candles } = layout;
+        const v = hoverIndex - start;
+        if (v < 0 || v >= candles.length) return;
+        const x = plotLeft + (v + 0.5) * barWidth;
+
+        const padX = 8, padY = 7, lineH = 13;
+        const title = `${hits.length} pattern${hits.length > 1 ? "s" : ""}`;
+        ctx.font = "700 9px Inter, Arial, sans-serif";
+        let maxW = ctx.measureText(title).width;
+        ctx.font = "9px Inter, Arial, sans-serif";
+        hits.forEach(h => {
+            const t = `${h.name}  ·  ${h.type}  ·  ${h.strength}/3`;
+            maxW = Math.max(maxW, ctx.measureText(t).width);
+        });
+        const w = Math.min(230, maxW + padX * 2 + 10);
+        const h = padY * 2 + lineH * (hits.length + 1);
+
+        let bx = x + 12;
+        if (bx + w > plotLeft + plotWidth) bx = x - w - 12;
+        bx = Math.max(plotLeft + 2, bx);
+        let by = plotTop + 8;
+        if (by + h > plotTop + mainHeight) by = plotTop + mainHeight - h - 2;
+
+        ctx.fillStyle = "rgba(10, 14, 20, 0.97)";
+        roundRect(ctx, bx, by, w, h, 5);
+        ctx.fill();
+        ctx.strokeStyle = "#2a3544";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+        ctx.font = "700 9px Inter, Arial, sans-serif";
+        ctx.fillStyle = "#8fa0b5";
+        ctx.fillText(title, bx + padX, by + padY + lineH / 2);
+
+        hits.forEach((hit, k) => {
+            const y = by + padY + lineH * (k + 1) + lineH / 2;
+            const color = COLORS[hit.type];
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(bx + padX + 3, y, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.font = "600 9px Inter, Arial, sans-serif";
+            ctx.fillStyle = "#e6edf5";
+            ctx.fillText(hit.name, bx + padX + 10, y);
+
+            ctx.font = "9px Inter, Arial, sans-serif";
+            ctx.fillStyle = color;
+            const nameW = ctx.measureText(hit.name).width;
+            ctx.fillText(`${hit.type} · ${hit.strength}/3`, bx + padX + 16 + nameW, y);
+        });
+    }
+
+    /* --------------------------------------------------------------- export */
+    window.ChartPatterns = {
+        compute, draw, getAt, getRecent, setOptions, getOptions, stats, rawStats,
+        lastDraw: () => lastDraw,
+        COLORS, GLYPH,
+        registry: REGISTRY.map(d => ({ name: d.name, type: d.type, count: d.count, strength: d.strength, desc: d.desc }))
+    };
+})();
+
+</script>
+<script>
+/* ===== chart.js ===== */
+(() => {
+    "use strict";
+
+    const HISTORY_LIMIT = 1000;
+    const LIVE_POLL_MS = 1000;
+    const MIN_VISIBLE = 20;
+    const MAX_VISIBLE = 500;
+    const LEFT = 12;
+    const RIGHT = 60;
+    const TOP = 28;
+    const BOTTOM = 30;
+
+    const canvas = document.getElementById("chart");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const chartControls = window.ChartControls || {};
+    const marketInput = chartControls.market?.input || document.getElementById("market") || { value: "spot" };
+    const symbolInput = chartControls.ticker?.input || document.getElementById("symbol") || { value: "BTCUSDT", focus() {} };
+    const intervalInput = chartControls.interval?.input || document.getElementById("interval") || { value: "1m" };
+    const reloadButton = document.getElementById("reload");
+    const applyIndicatorsButton = document.getElementById("applyIndicators");
+    const chartSettingsPanel = document.getElementById("chart-settings");
+    const indicatorSettingsPanel = document.getElementById("indicator-settings");
+    const tradeSettingsPanel = document.getElementById("trade-settings");
+    const toggleChartSettingsButton = document.getElementById("toggle-chart-settings");
+    const toggleIndicatorSettingsButton = document.getElementById("toggle-indicator-settings");
+    const toggleTradeSettingsButton = document.getElementById("toggle-trade-settings");
+    const statusElement = document.getElementById("status");
+    const countdownElement = document.getElementById("candle-countdown");
+    const volumeProfileStatusElement = document.getElementById("volume-profile-status");
+    const showMacdInput = document.getElementById("showMACD");
+    const showRsiInput = document.getElementById("showRSI");
+    const showEma1Input = document.getElementById("showEMA1");
+    const showEma2Input = document.getElementById("showEMA2");
+    const showMa1Input = document.getElementById("showMA1");
+    const showMa2Input = document.getElementById("showMA2");
+    const tradeActionButtons = Array.from(document.querySelectorAll(".trade-action"));
+    const tradeSideInput = document.getElementById("trade-side");
+    const balanceInput = document.getElementById("account-balance");
+    const marginInput = document.getElementById("trade-margin");
+    const leverageInput = document.getElementById("trade-leverage");
+    const tradeSettingsStatus = document.getElementById("trade-settings-status");
+    const indicatorInputs = {
+        fast: document.getElementById("macdFast"),
+        slow: document.getElementById("macdSlow"),
+        signal: document.getElementById("macdSignal"),
+        rsi: document.getElementById("rsiPeriod"),
+        ema1: document.getElementById("emaPeriod1"),
+        ema2: document.getElementById("emaPeriod2"),
+        ma1: document.getElementById("maPeriod1"),
+        ma2: document.getElementById("maPeriod2")
+    };
+    const ohlcElements = {
+        symbol: document.getElementById("ohlc-symbol"),
+        open: document.getElementById("ohlc-open"),
+        high: document.getElementById("ohlc-high"),
+        low: document.getElementById("ohlc-low"),
+        close: document.getElementById("ohlc-close")
+    };
+
+    const state = {
+        candles: [],
+        market: marketInput.value,
+        symbol: symbolInput.value,
+        interval: intervalInput.value,
+        visible: 100,
+        offset: 0,
+        priceScale: 1,
+        priceShift: 0,
+        periods: { fast: 12, slow: 26, signal: 9, rsi: 14, ema1: 20, ema2: 50, ma1: 20, ma2: 50 },
+        indicators: { macd: [], signal: [], histogram: [], rsi: [], ema1: [], ema2: [], ma1: [], ma2: [] },
+        hover: null,
+        drag: null,
+        layout: null,
+        loading: false,
+        requestId: 0,
+        controller: null,
+        latestData: null
+    };
+    let selectedTradeAction = null;
+
+    function bindPanelToggle(button, panel) {
+        if (!button || !panel) return;
+        button.addEventListener("click", () => {
+            const isExpanded = button.getAttribute("aria-expanded") === "true";
+            panel.hidden = isExpanded;
+            button.setAttribute("aria-expanded", String(!isExpanded));
+        });
+    }
+
+    bindPanelToggle(toggleChartSettingsButton, chartSettingsPanel);
+    bindPanelToggle(toggleIndicatorSettingsButton, indicatorSettingsPanel);
+    bindPanelToggle(toggleTradeSettingsButton, tradeSettingsPanel);
+
+    const indicators = window.ChartIndicators || {};
+    if (indicators.vp?.configure) {
+        indicators.vp.configure({
+            statusElement: volumeProfileStatusElement,
+            formatTime,
+            getInterval: () => state.interval,
+            onChange: draw
+        });
+    }
+
+    function setStatus(message, stateName = "") {
+        if (!statusElement) return;
+        statusElement.textContent = message;
+        statusElement.dataset.state = stateName;
+    }
+
+    function updateTradeSettings() {
+        if (!balanceInput && !marginInput && !leverageInput && !tradeSideInput) return;
+        const balance = balanceInput && balanceInput.value !== "" ? Number(balanceInput.value) : null;
+        const margin = marginInput && marginInput.value !== "" ? Number(marginInput.value) : null;
+        const leverage = leverageInput && leverageInput.value !== "" ? Number(leverageInput.value) : null;
+        let error = "";
+
+        if (balance !== null && (!Number.isFinite(balance) || balance < 0)) {
+            error = "Balance 0 буюу түүнээс их байх ёстой.";
+        } else if (margin !== null && (!Number.isFinite(margin) || margin < 0)) {
+            error = "Margin 0 буюу түүнээс их байх ёстой.";
+        } else if (balance !== null && margin !== null && margin > balance) {
+            error = "Margin нь Balance-аас их байж болохгүй.";
+        } else if (leverage !== null && (!Number.isInteger(leverage) || leverage < 1 || leverage > 125)) {
+            error = "Leverage 1–125 бүхэл тоо байх ёстой.";
+        }
+    }
+
+    function formatPrice(value) {
+        const price = Number(value);
+        if (!Number.isFinite(price)) return "—";
+        const digits = price >= 1000 ? 2 : price >= 1 ? 4 : price >= 0.001 ? 6 : 8;
+        return price.toLocaleString("en-US", {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: digits
+        });
+    }
+
+    function formatTime(timestamp) {
+        const date = new Date(timestamp);
+        const options = /[dwM]$/.test(state.interval)
+            ? { timeZone: "Asia/Ulaanbaatar", month: "short", day: "2-digit" }
+            : { timeZone: "Asia/Ulaanbaatar", month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false };
+        return new Intl.DateTimeFormat("en-GB", options).format(date);
+    }
+
+
+    function formatCrosshairTime(timestamp) {
+        return new Intl.DateTimeFormat("en-GB", {
+            timeZone: "Asia/Ulaanbaatar",
+            year: "numeric",
+            month: "short",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false
+        }).format(new Date(timestamp));
+    }
+
+    function nextCandleTime(now = Date.now()) {
+        const match = /^(\d+)([smhdwM])$/.exec(state.interval);
+        if (!match) return now;
+        const count = Number(match[1]);
+        const unit = match[2];
+
+        if (unit === "M") {
+            const nextMonth = new Date(now);
+            nextMonth.setUTCDate(1);
+            nextMonth.setUTCHours(0, 0, 0, 0);
+            nextMonth.setUTCMonth(nextMonth.getUTCMonth() + count);
+            return nextMonth.getTime();
+        }
+        if (unit === "w") {
+            const day = 24 * 60 * 60 * 1000;
+            const startOfDay = Math.floor(now / day) * day;
+            const weekday = new Date(now).getUTCDay();
+            const daysToMonday = (8 - weekday) % 7 || 7;
+            return startOfDay + daysToMonday * day;
+        }
+
+        const duration = count * ({
+            s: 1000,
+            m: 60 * 1000,
+            h: 60 * 60 * 1000,
+            d: 24 * 60 * 60 * 1000
+        })[unit];
+        return (Math.floor(now / duration) + 1) * duration;
+    }
+
+    function updateCountdown() {
+        if (!countdownElement) return;
+        const secondsLeft = Math.max(0, Math.ceil((nextCandleTime() - Date.now()) / 1000));
+        const hours = Math.floor(secondsLeft / 3600);
+        const minutes = Math.floor((secondsLeft % 3600) / 60);
+        const seconds = secondsLeft % 60;
+        countdownElement.textContent = hours > 0
+            ? `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+            : `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    }
+
+    function updateOhlc(candle) {
+        if (!candle) return;
+        const rising = candle[4] >= candle[1];
+        if (ohlcElements.symbol) ohlcElements.symbol.textContent = state.symbol;
+        if (ohlcElements.open) ohlcElements.open.textContent = formatPrice(candle[1]);
+        if (ohlcElements.high) ohlcElements.high.textContent = formatPrice(candle[2]);
+        if (ohlcElements.low) ohlcElements.low.textContent = formatPrice(candle[3]);
+        if (ohlcElements.close) {
+            ohlcElements.close.textContent = formatPrice(candle[4]);
+            ohlcElements.close.dataset.value = rising ? "up" : "down";
+        }
+        canvas.setAttribute("aria-label", `${state.symbol} үнийн график`);
+    }
+
+    function parseCandles(rows) {
+        if (!Array.isArray(rows)) throw new Error("Биржээс буруу өгөгдөл ирлээ.");
+        return rows.map(row => {
+            const candle = [0, 1, 2, 3, 4, 5].map(index => Number(row[index]));
+            if (candle.length !== 6 || !candle.every(Number.isFinite)) {
+                throw new Error("Лааны өгөгдөл дутуу эсвэл буруу байна.");
+            }
+            return candle;
+        });
+    }
+
+    const BINANCE_HOSTS = {
+        spot: ["https://data-api.binance.vision", "https://api.binance.com"],
+        futures: ["https://data-api.binance.vision", "https://fapi.binance.com"]
+    };
+    let activeHost = null;
+
+    function endpoint(limit, host) {
+        const base = host || (state.market === "futures"
+            ? "https://fapi.binance.com/fapi/v1/klines"
+            : "https://api.binance.com/api/v3/klines");
+        const params = new URLSearchParams({
+            symbol: state.symbol,
+            interval: state.interval,
+            limit: String(limit)
+        });
+        return `${base}?${params}`;
+    }
+
+    /* try each host in order; remember the one that worked */
+    async function fetchKlines(limit, signal) {
+        const hosts = BINANCE_HOSTS[state.market] || BINANCE_HOSTS.spot;
+        const order = activeHost && hosts.includes(activeHost)
+            ? [activeHost, ...hosts.filter(h => h !== activeHost)]
+            : hosts;
+        let lastError = null;
+        for (const host of order) {
+            const path = state.market === "futures" ? "/fapi/v1/klines" : "/api/v3/klines";
+            try {
+                const response = await fetch(`${host}${path}?` + new URLSearchParams({
+                    symbol: state.symbol,
+                    interval: state.interval,
+                    limit: String(limit)
+                }), { cache: "no-store", signal });
+                if (!response.ok) {
+                    lastError = new Error(`HTTP ${response.status}`);
+                    continue;
+                }
+                const payload = await response.json();
+                if (!Array.isArray(payload)) {
+                    lastError = new Error(payload?.msg || "Буруу хариу");
+                    continue;
+                }
+                activeHost = host;
+                return { response, payload };
+            } catch (err) {
+                if (err.name === "AbortError") throw err;
+                lastError = err;
+            }
+        }
+        throw lastError || new Error("Бүх Binance host амжилтгүй");
+    }
+
+    function calculateIndicators() {
+        const closes = state.candles.map(candle => candle[4]);
+        if (!closes.length) {
+            state.indicators = { macd: [], signal: [], histogram: [], rsi: [], ema1: [], ema2: [], ma1: [], ma2: [] };
+            if (indicators.vp) {
+                indicators.vp.updateCandles([]);
+                indicators.vp.updateInterval(state.interval);
+                indicators.vp.clear();
+            }
+            return;
+        }
+        const macd = indicators.macd?.calculate
+            ? indicators.macd.calculate(closes, state.periods)
+            : { macd: [], signal: [], histogram: [] };
+        state.indicators = {
+            macd: macd.macd || [],
+            signal: macd.signal || [],
+            histogram: macd.histogram || [],
+            rsi: indicators.rsi?.calculate
+                ? indicators.rsi.calculate(closes, state.periods.rsi)
+                : [],
+            ema1: indicators.ema?.calculate
+                ? indicators.ema.calculate(closes, state.periods.ema1)
+                : [],
+            ema2: indicators.ema?.calculate
+                ? indicators.ema.calculate(closes, state.periods.ema2)
+                : [],
+            ma1: indicators.ma?.calculate
+                ? indicators.ma.calculate(closes, state.periods.ma1)
+                : [],
+            ma2: indicators.ma?.calculate
+                ? indicators.ma.calculate(closes, state.periods.ma2)
+                : []
+        };
+        if (indicators.vp) {
+            indicators.vp.updateCandles(state.candles);
+            indicators.vp.updateInterval(state.interval);
+        }
+            if (window.ChartPatterns) {
+                window.ChartPatterns.compute(state.candles);
+                updatePatternStats();
+            }
+    }
+
+    async function loadHistory(resetView = true) {
+        const symbol = symbolInput.value.trim().toUpperCase();
+        if (!/^[A-Z0-9]{2,20}$/.test(symbol)) {
+            setStatus("Арилжааны хослолын нэр буруу байна.", "error");
+            symbolInput?.focus?.();
+            return;
+        }
+
+        const chartChanged = symbol !== state.symbol ||
+            marketInput.value !== state.market ||
+            intervalInput.value !== state.interval;
+        state.symbol = symbol;
+        state.market = marketInput.value;
+        state.interval = intervalInput.value;
+        symbolInput.value = symbol;
+
+        if (chartChanged) {
+            state.candles = [];
+            calculateIndicators();
+            draw();
+        }
+
+        if (resetView) {
+            state.visible = 100;
+            state.offset = 0;
+            state.priceScale = 1;
+            state.priceShift = 0;
+        }
+
+        const requestId = ++state.requestId;
+        state.controller?.abort();
+        const controller = new AbortController();
+        state.controller = controller;
+        state.loading = true;
+        if (reloadButton) reloadButton.disabled = true;
+        setStatus(`${state.symbol} · ${state.market} · ${state.interval} ачаалж байна...`);
+
+        try {
+            const { payload } = await fetchKlines(HISTORY_LIMIT, controller.signal);
+            const candles = parseCandles(payload);
+            if (!candles.length) throw new Error("Энэ хослолд лааны өгөгдөл олдсонгүй.");
+            if (requestId !== state.requestId) return;
+
+            state.candles = candles.slice(-HISTORY_LIMIT);
+            state.offset = Math.min(state.offset, Math.max(0, state.candles.length - state.visible));
+            calculateIndicators();
+            updateOhlc(state.candles[state.candles.length - 1]);
+            setStatus(`${state.symbol} · ${state.market} · ${state.interval} · ${state.candles.length} лаа`, "live");
+            draw();
+        } catch (error) {
+            if (error.name === "AbortError" || requestId !== state.requestId) return;
+            setStatus(`График ачаалж чадсангүй: ${error.message}`, "error");
+            draw();
+        } finally {
+            if (requestId === state.requestId) {
+                state.loading = false;
+                state.controller = null;
+                if (reloadButton) reloadButton.disabled = false;
+            }
+        }
+    }
+
+    async function pollLatest() {
+        if (state.loading || document.hidden || !state.candles.length) return;
+        const requestId = state.requestId;
+        const controller = new AbortController();
+        state.controller = controller;
+        state.loading = true;
+
+        try {
+            const { payload } = await fetchKlines(2, controller.signal);
+            const updates = parseCandles(payload);
+            if (requestId !== state.requestId || !updates.length) return;
+
+            const lastTime = state.candles[state.candles.length - 1][0];
+            const added = updates.filter(candle => candle[0] > lastTime).length;
+            const merged = new Map(state.candles.map(candle => [candle[0], candle]));
+            updates.forEach(candle => merged.set(candle[0], candle));
+            state.candles = Array.from(merged.values()).sort((a, b) => a[0] - b[0]).slice(-HISTORY_LIMIT);
+            calculateIndicators();
+            if (state.offset > 0 && added) {
+                state.offset = Math.min(state.offset + added, Math.max(0, state.candles.length - state.visible));
+            }
+
+            if (state.offset === 0) {
+                updateOhlc(state.candles[state.candles.length - 1]);
+                setStatus(`${state.symbol} · ${state.market} · ${state.interval} · шинэчлэгдсэн ${new Date().toLocaleTimeString("mn-MN")}`, "live");
+            }
+            draw();
+        } catch (error) {
+            if (error.name !== "AbortError" && requestId === state.requestId) {
+                setStatus(`Шинэчлэхэд алдаа гарлаа: ${error.message}`, "error");
+            }
+        } finally {
+            if (requestId === state.requestId) {
+                state.loading = false;
+                state.controller = null;
+            }
+        }
+    }
+
+
+    function draw() {
+        const bounds = canvas.getBoundingClientRect();
+        if (!bounds.width || !bounds.height) return;
+
+        const ratio = window.devicePixelRatio || 1;
+        const width = Math.round(bounds.width * ratio);
+        const height = Math.round(bounds.height * ratio);
+        if (canvas.width !== width || canvas.height !== height) {
+            canvas.width = width;
+            canvas.height = height;
+        }
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+        ctx.clearRect(0, 0, bounds.width, bounds.height);
+        ctx.fillStyle = "#080b10";
+        ctx.fillRect(0, 0, bounds.width, bounds.height);
+
+        if (!state.candles.length) {
+            ctx.fillStyle = "#758397";
+            ctx.font = "13px Inter, Arial, sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("Лааны өгөгдөл хүлээж байна", bounds.width / 2, bounds.height / 2);
+            return;
+        }
+
+        const plotLeft = LEFT;
+        const plotTop = TOP;
+        const plotWidth = Math.max(1, bounds.width - LEFT - RIGHT);
+        const availableHeight = Math.max(1, bounds.height - TOP - BOTTOM);
+        const showMacd = showMacdInput?.checked === true && Boolean(indicators.macd?.draw);
+        const showRsi = showRsiInput?.checked === true && Boolean(indicators.rsi?.draw);
+        const panelGap = 9;
+        let mainHeight = availableHeight;
+        let macdTop = null;
+        let macdHeight = 0;
+        let rsiTop = null;
+        let rsiHeight = 0;
+        const indicatorCount = Number(showMacd) + Number(showRsi);
+
+        if (indicatorCount === 2) {
+            mainHeight = availableHeight * 0.62;
+            const indicatorHeight = (availableHeight - mainHeight - panelGap * 2) / 2;
+            macdTop = plotTop + mainHeight + panelGap;
+            macdHeight = indicatorHeight;
+            rsiTop = macdTop + macdHeight + panelGap;
+            rsiHeight = indicatorHeight;
+        } else if (indicatorCount === 1) {
+            mainHeight = availableHeight * 0.72;
+            const indicatorHeight = availableHeight - mainHeight - panelGap;
+            if (showMacd) {
+                macdTop = plotTop + mainHeight + panelGap;
+                macdHeight = indicatorHeight;
+            } else {
+                rsiTop = plotTop + mainHeight + panelGap;
+                rsiHeight = indicatorHeight;
+            }
+        }
+
+        const plotBottom = plotTop + availableHeight;
+        const end = state.candles.length - state.offset;
+        const start = Math.max(0, end - state.visible);
+        const candles = state.candles.slice(start, end);
+        if (!candles.length) return;
+
+        const barWidth = plotWidth / candles.length;
+        const rangePrices = candles.flatMap(candle => [candle[2], candle[3]]);
+        if (indicators.ema && showEma1Input?.checked) rangePrices.push(...state.indicators.ema1.slice(start, end).filter(Number.isFinite));
+        if (indicators.ema && showEma2Input?.checked) rangePrices.push(...state.indicators.ema2.slice(start, end).filter(Number.isFinite));
+        if (indicators.ma && showMa1Input?.checked) rangePrices.push(...state.indicators.ma1.slice(start, end).filter(Number.isFinite));
+        if (indicators.ma && showMa2Input?.checked) rangePrices.push(...state.indicators.ma2.slice(start, end).filter(Number.isFinite));
+        let minPrice = Math.min(...rangePrices);
+        let maxPrice = Math.max(...rangePrices);
+        if (maxPrice === minPrice) {
+            const padding = Math.max(maxPrice * 0.001, 0.001);
+            maxPrice += padding;
+            minPrice -= padding;
+        }
+        const baseMidpoint = (maxPrice + minPrice) / 2;
+        const baseRange = (maxPrice - minPrice) * 1.1;
+        const midpoint = baseMidpoint + state.priceShift;
+        const halfRange = baseRange * 0.5 * state.priceScale;
+        maxPrice = midpoint + halfRange;
+        minPrice = midpoint - halfRange;
+        const priceToY = price => plotTop + ((maxPrice - price) / (maxPrice - minPrice)) * mainHeight;
+
+        state.layout = {
+            plotLeft, plotTop, plotWidth, mainHeight, plotBottom, barWidth, start, candles,
+            minPrice, maxPrice, baseMidpoint, baseRange
         };
 
-        document.querySelectorAll('.pattern-filter input').forEach(el => {
-            el.addEventListener('change', () => {
-                if (typeof window.draw === 'function') window.draw();
+        ctx.font = "10px Inter, Arial, sans-serif";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+        for (let tick = 0; tick <= 6; tick++) {
+            const price = maxPrice - (maxPrice - minPrice) * tick / 6;
+            const y = plotTop + mainHeight * tick / 6;
+            ctx.strokeStyle = "#17202b";
+            ctx.beginPath();
+            ctx.moveTo(plotLeft, y);
+            ctx.lineTo(plotLeft + plotWidth, y);
+            ctx.stroke();
+            ctx.fillStyle = "#8795a7";
+            ctx.fillText(formatPrice(price), plotLeft + plotWidth + 5, y);
+        }
+
+        const tickCount = Math.max(2, Math.floor(plotWidth / 125));
+        const tickStep = Math.max(1, Math.ceil(candles.length / tickCount));
+        const chartBottom = rsiTop !== null ? rsiTop + rsiHeight :
+            macdTop !== null ? macdTop + macdHeight : plotTop + mainHeight;
+        for (let index = 0; index < candles.length; index += tickStep) {
+            const x = plotLeft + (index + 0.5) * barWidth;
+            ctx.strokeStyle = "#111923";
+            ctx.beginPath();
+            ctx.moveTo(x, plotTop);
+            ctx.lineTo(x, chartBottom);
+            ctx.stroke();
+            ctx.fillStyle = "#8795a7";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "top";
+            ctx.fillText(formatTime(candles[index][0]), x, plotBottom + 5);
+        }
+
+        candles.forEach((candle, index) => {
+            const [, open, high, low, close] = candle;
+            const x = plotLeft + (index + 0.5) * barWidth;
+            const openY = priceToY(open);
+            const closeY = priceToY(close);
+            const color = close >= open ? "#26c98b" : "#f05d68";
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x, priceToY(high));
+            ctx.lineTo(x, priceToY(low));
+            ctx.stroke();
+            const bodyWidth = Math.max(0.5, barWidth - Math.min(1.2, barWidth * 0.12));
+            ctx.fillRect(x - bodyWidth / 2, Math.min(openY, closeY), bodyWidth, Math.max(1, Math.abs(closeY - openY)));
+        });
+
+        if (window.ChartPatterns) {
+            window.ChartPatterns.draw(ctx, {
+                plotLeft, plotTop, plotWidth, mainHeight, plotBottom, barWidth,
+                start, candles, priceToY, hoverIndex: null
+            });
+        }
+
+
+        const averageOptions = { start, candles, plotLeft, plotWidth, barWidth, priceToY };
+        if (indicators.ema && showEma1Input?.checked) indicators.ema.draw(ctx, state.indicators.ema1, "#f0b90b", averageOptions);
+        if (indicators.ema && showEma2Input?.checked) indicators.ema.draw(ctx, state.indicators.ema2, "#38bdf8", averageOptions);
+        if (indicators.ma && showMa1Input?.checked) indicators.ma.draw(ctx, state.indicators.ma1, "#f472b6", averageOptions);
+        if (indicators.ma && showMa2Input?.checked) indicators.ma.draw(ctx, state.indicators.ma2, "#a3e635", averageOptions);
+
+        const vpSelection = indicators.vp?.getSelection?.() || null;
+        if (indicators.vp && vpSelection) {
+            indicators.vp.drawSelection(ctx, vpSelection, plotLeft, plotTop, plotWidth, mainHeight, barWidth);
+        }
+        if (indicators.vp?.isEnabled?.() && vpSelection) {
+            const profile = indicators.vp.calculate(vpSelection);
+            if (profile) indicators.vp.drawProfile(ctx, profile, priceToY, plotLeft, plotTop, plotWidth, mainHeight);
+        }
+
+        const latest = candles[candles.length - 1][4];
+        const latestY = priceToY(latest);
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = "#c5a059";
+        ctx.beginPath();
+        ctx.moveTo(plotLeft, latestY);
+        ctx.lineTo(plotLeft + plotWidth, latestY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = "#c5a059";
+        ctx.textAlign = "left";
+        ctx.font = "9px Inter, Arial, sans-serif";
+        ctx.fillRect(plotLeft + plotWidth + 2, latestY - 9, RIGHT - 4, 18);
+        ctx.fillStyle = "#080b10";
+        ctx.textBaseline = "middle";
+        ctx.fillText(formatPrice(latest), plotLeft + plotWidth + 5, latestY);
+
+        const hover = state.hover;
+        const insideChart = hover && hover.y >= plotTop && hover.y <= chartBottom;
+        const insidePricePanel = insideChart && hover.y <= plotTop + mainHeight;
+        const insidePlotX = hover && hover.x >= plotLeft && hover.x <= plotLeft + plotWidth;
+        const hoverIndex = insideChart && insidePlotX
+        ? start + Math.min(candles.length - 1, Math.max(0, Math.floor((hover.x - plotLeft) / barWidth)))
+        : null;
+
+        if (window.ChartPatterns && hoverIndex !== null) {
+            window.ChartPatterns.draw(ctx, {
+                plotLeft, plotTop, plotWidth, mainHeight, plotBottom, barWidth,
+                start, candles, priceToY, hoverIndex
+            });
+        }
+
+        if (showMacd && indicators.macd?.draw) indicators.macd.draw(ctx, state.indicators, state.periods, {
+            start, candles, plotLeft, plotWidth, top: macdTop, height: macdHeight, barWidth, hoverIndex
+        });
+
+        if (showRsi && indicators.rsi?.draw) indicators.rsi.draw(ctx, state.indicators.rsi, state.periods.rsi, {
+            start, candles, plotLeft, plotWidth, top: rsiTop, height: rsiHeight, barWidth, hoverIndex
+        });
+
+        if (insideChart && (insidePlotX || hover.x > plotLeft + plotWidth)) {
+        ctx.setLineDash([3, 4]);
+        ctx.strokeStyle = "rgba(214, 225, 238, .5)";
+        ctx.beginPath();
+        if (insidePlotX) {
+            const crossX = plotLeft + (hoverIndex - start + 0.5) * barWidth;
+            ctx.moveTo(crossX, plotTop);
+            ctx.lineTo(crossX, chartBottom);
+        }
+        ctx.moveTo(plotLeft, hover.y);
+        ctx.lineTo(plotLeft + plotWidth, hover.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        if (insidePricePanel) {
+            const crossPrice = maxPrice - ((hover.y - plotTop) / mainHeight) * (maxPrice - minPrice);
+            ctx.fillStyle = "#252014";
+            ctx.fillRect(plotLeft + plotWidth + 2, hover.y - 10, RIGHT - 4, 20);
+            ctx.strokeStyle = "#c5a059";
+            ctx.strokeRect(plotLeft + plotWidth + 2, hover.y - 10, RIGHT - 4, 20);
+            ctx.fillStyle = "#f1d58f";
+            ctx.textAlign = "left";
+            ctx.textBaseline = "middle";
+            ctx.font = "9px Inter, Arial, sans-serif";
+            ctx.fillText(formatPrice(crossPrice), plotLeft + plotWidth + 5, hover.y);
+        } else if (hoverIndex !== null) {
+            const activeMacd = state.indicators.macd[hoverIndex];
+            const activeSignal = state.indicators.signal[hoverIndex];
+            const activeRsi = state.indicators.rsi[hoverIndex];
+            
+        }
+
+        if (hoverIndex !== null) {
+            const candle = state.candles[hoverIndex];
+            updateOhlc(candle);
+            const label = formatCrosshairTime(candle[0]);
+            const labelWidth = Math.min(152, plotWidth);
+            const crossX = plotLeft + (hoverIndex - start + 0.5) * barWidth;
+            const labelX = Math.max(plotLeft, Math.min(crossX - labelWidth / 2, plotLeft + plotWidth - labelWidth));
+            const labelY = Math.min(bounds.height - 22, plotBottom + 3);
+            ctx.fillStyle = "#151d28";
+            ctx.fillRect(labelX, labelY, labelWidth, 18);
+            ctx.strokeStyle = "#384658";
+            ctx.strokeRect(labelX, labelY, labelWidth, 18);
+            ctx.fillStyle = "#d5deea";
+            ctx.font = "10px Inter, Arial, sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(label, labelX + labelWidth / 2, labelY + 9);
+        } else if (insidePricePanel) {
+            updateOhlc(state.candles[state.candles.length - 1]);
+        }
+        } else {
+        updateOhlc(state.candles[state.candles.length - 1]);
+        }
+    }
+
+    function onPointerDown(event) {
+        if (!state.layout) return;
+        const rect = canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        const { plotLeft, plotTop, plotWidth, mainHeight, plotBottom, barWidth } = state.layout;
+        const insideChart = y >= plotTop && y <= plotBottom;
+        const onPriceScale = x > plotLeft + plotWidth && y >= plotTop && y <= plotTop + mainHeight;
+        if (!insideChart || (!onPriceScale && (x < plotLeft || x > plotLeft + plotWidth))) return;
+
+        if (indicators.vp?.isEnabled?.()) {
+            if (indicators.vp.getSelection()) return;
+            if (x < plotLeft || x > plotLeft + plotWidth || y > plotTop + mainHeight) return;
+            const index = state.layout.start +
+                Math.min(state.layout.candles.length - 1, Math.max(0,
+                    Math.floor((x - plotLeft) / barWidth)));
+            const candleTime = state.candles[index]?.[0];
+            if (!candleTime) return;
+            indicators.vp.begin(state.layout, candleTime);
+            state.drag = { mode: "volumeProfile" };
+            canvas.setPointerCapture(event.pointerId);
+            canvas.style.cursor = "crosshair";
+            draw();
+            return;
+        }
+
+        state.drag = {
+            mode: onPriceScale ? "price" : "pan",
+            x,
+            y,
+            offset: state.offset,
+            priceShift: state.priceShift,
+            priceScale: state.priceScale,
+            barWidth,
+            plotHeight: mainHeight,
+            baseMidpoint: state.layout.baseMidpoint,
+            baseRange: state.layout.baseRange,
+            anchorRatio: Math.max(0, Math.min(1, (y - plotTop) / mainHeight)),
+            anchorPrice: state.layout.maxPrice -
+                ((y - plotTop) / mainHeight) * (state.layout.maxPrice - state.layout.minPrice),
+            visibleCandles: state.layout.candles
+        };
+        canvas.setPointerCapture(event.pointerId);
+        canvas.style.cursor = "grabbing";
+    }
+
+    function onPointerMove(event) {
+        const rect = canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        state.hover = { x, y };
+
+        if (state.drag) {
+            if (state.drag.mode === "volumeProfile") {
+                const { plotLeft, plotWidth, barWidth, start, candles } = state.layout;
+                const localIndex = Math.min(candles.length - 1, Math.max(0,
+                    Math.floor((x - plotLeft) / barWidth)));
+                const candleTime = state.candles[start + localIndex]?.[0];
+                if (candleTime && indicators.vp?.move) indicators.vp.move(state.layout, candleTime);
+            } else if (state.drag.mode === "pan") {
+                const move = Math.round((x - state.drag.x) / state.drag.barWidth);
+                state.offset = Math.max(0, Math.min(
+                    state.candles.length - state.visible,
+                    state.drag.offset + move
+                ));
+            } else {
+                const scale = Math.max(0.5, Math.min(6,
+                    state.drag.priceScale * Math.exp((y - state.drag.y) * 0.005)
+                ));
+                state.priceScale = scale;
+                const range = state.drag.baseRange * scale;
+                const midpoint = state.drag.anchorPrice +
+                    (state.drag.anchorRatio - 0.5) * range;
+                state.priceShift = midpoint - state.drag.baseMidpoint;
+            }
+        }
+        draw();
+    }
+
+    function endDrag(event) {
+        state.drag = null;
+        if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+        canvas.style.cursor = state.hover?.x > canvas.clientWidth - RIGHT ? "ns-resize" : "crosshair";
+        indicators.vp?.end?.();
+        draw();
+    }
+
+    canvas.addEventListener("pointerdown", onPointerDown);
+    canvas.addEventListener("pointermove", onPointerMove);
+    canvas.addEventListener("pointerup", endDrag);
+    canvas.addEventListener("pointercancel", endDrag);
+    canvas.addEventListener("pointerleave", () => {
+        if (!state.drag) {
+            state.hover = null;
+            draw();
+        }
+    });
+    canvas.addEventListener("wheel", event => {
+        if (!state.candles.length) return;
+        event.preventDefault();
+        state.visible = Math.max(MIN_VISIBLE, Math.min(
+            MAX_VISIBLE,
+            state.visible + (event.deltaY > 0 ? 15 : -15)
+        ));
+        state.offset = Math.min(state.offset, Math.max(0, state.candles.length - state.visible));
+        draw();
+    }, { passive: false });
+    canvas.addEventListener("dblclick", () => {
+        state.visible = 100;
+        state.offset = 0;
+        state.priceScale = 1;
+        state.priceShift = 0;
+        draw();
+    });
+
+    showMacdInput?.addEventListener("change", draw);
+    showRsiInput?.addEventListener("change", draw);
+    showEma1Input?.addEventListener("change", draw);
+    showEma2Input?.addEventListener("change", draw);
+    showMa1Input?.addEventListener("change", draw);
+    showMa2Input?.addEventListener("change", draw);
+    tradeActionButtons.forEach(button => {
+        button.addEventListener("click", () => {
+            selectedTradeAction = button.dataset.action;
+            tradeActionButtons.forEach(actionButton => {
+                const selected = actionButton === button;
+                actionButton.dataset.active = String(selected);
+                actionButton.setAttribute("aria-pressed", String(selected));
+            });
+            updateTradeSettings();
+        });
+    });
+    tradeSideInput?.addEventListener("change", updateTradeSettings);
+    [balanceInput, marginInput, leverageInput]
+        .filter(input => input)
+        .forEach(input => {
+            input.addEventListener("input", updateTradeSettings);
+        });
+    updateTradeSettings();
+
+    applyIndicatorsButton?.addEventListener("click", () => {
+        const periods = Object.fromEntries(
+            Object.entries(indicatorInputs)
+                .filter(([, input]) => input)
+                .map(([name, input]) => [name, Number(input.value)])
+        );
+        if (!Object.values(periods).every(period => Number.isInteger(period) && period >= 1 && period <= 500) ||
+            periods.fast >= periods.slow) {
+            setStatus("Indicator-ийн үе 1–500 байх ба MACD Fast нь Slow-оос бага байх ёстой.", "error");
+            return;
+        }
+        state.periods = periods;
+        calculateIndicators();
+        draw();
+        setStatus(`${state.symbol} · ${state.market} · ${state.interval} · indicator шинэчлэгдлээ`, "live");
+    });
+
+    window.addEventListener("chart:market-change", () => {
+        loadHistory();
+    });
+    window.addEventListener("chart:interval-change", () => loadHistory());
+    window.addEventListener("chart:ticker-change", () => loadHistory());
+    reloadButton?.addEventListener("click", () => loadHistory(false));
+
+    if ("ResizeObserver" in window) {
+        new ResizeObserver(draw).observe(canvas.parentElement);
+    } else {
+        window.addEventListener("resize", draw);
+    }
+        /* ===================== CANDLE PATTERN UI ===================== */
+        const patternPanel = document.getElementById("pattern-settings");
+        const patternLegend = document.getElementById("pattern-legend");
+        const patternRecent = document.getElementById("pattern-recent");
+        const patternRecentList = document.getElementById("pattern-recent-list");
+        const patternStat = document.getElementById("pattern-stat");
+        const togglePatternButton = document.getElementById("toggle-pattern-settings");
+        const showPatternsInput = document.getElementById("showPatterns");
+        const patBullishInput = document.getElementById("patBullish");
+        const patBearishInput = document.getElementById("patBearish");
+        const patNeutralInput = document.getElementById("patNeutral");
+        const patC1Input = document.getElementById("patC1");
+        const patC2Input = document.getElementById("patC2");
+        const patC3Input = document.getElementById("patC3");
+        const patStrengthSelect = document.getElementById("patStrength");
+        const patLabelsInput = document.getElementById("patLabels");
+
+        bindPanelToggle(togglePatternButton, patternPanel);
+
+        function syncChip(input) {
+            const chip = input?.closest(".pattern-chip");
+            if (chip) chip.dataset.on = String(input.checked);
+        }
+
+        function applyPatternOptions() {
+            if (!window.ChartPatterns) return;
+            window.ChartPatterns.setOptions({
+                enabled: showPatternsInput?.checked !== false,
+                types: {
+                    bullish: patBullishInput?.checked !== false,
+                    bearish: patBearishInput?.checked !== false,
+                    neutral: patNeutralInput?.checked !== false
+                },
+                counts: {
+                    1: patC1Input?.checked !== false,
+                    2: patC2Input?.checked !== false,
+                    3: patC3Input?.checked !== false
+                },
+                minStrength: Number(patStrengthSelect?.value || 2),
+                labels: patLabelsInput?.checked !== false
+            });
+            const on = showPatternsInput?.checked !== false;
+            if (patternLegend) patternLegend.hidden = !on;
+            if (patternRecent) patternRecent.hidden = !on;
+            updatePatternStats();
+            draw();
+        }
+
+        function updatePatternStats() {
+            if (!window.ChartPatterns) return;
+            const s = window.ChartPatterns.stats();
+            if (patternStat) {
+                patternStat.innerHTML = `Харагдах: <b>${s.total}</b> · ` +
+                    `<span style="color:#26c98b">${s.bullish}</span> / ` +
+                    `<span style="color:#f05d68">${s.bearish}</span> / ` +
+                    `<span style="color:#c5a059">${s.neutral}</span>`;
+            }
+            if (!patternRecentList) return;
+            const recent = window.ChartPatterns.getRecent(6);
+            const colors = { bullish: "#26c98b", bearish: "#f05d68", neutral: "#c5a059" };
+            patternRecentList.replaceChildren(...recent.map(hit => {
+                const el = document.createElement("span");
+                el.className = "pr-item";
+                el.title = hit.desc || hit.name;
+                const dot = document.createElement("span");
+                dot.className = "pr-dot";
+                dot.style.background = colors[hit.type] || "#8b98a8";
+                const name = document.createElement("span");
+                name.className = "pr-name";
+                name.textContent = hit.name;
+                const time = document.createElement("span");
+                time.className = "pr-time";
+                time.textContent = formatTime(hit.time);
+                el.append(dot, name, time);
+                return el;
+            }));
+        }
+
+        [showPatternsInput, patBullishInput, patBearishInput, patNeutralInput,
+         patC1Input, patC2Input, patC3Input, patLabelsInput].forEach(input => {
+            if (!input) return;
+            syncChip(input);
+            input.addEventListener("change", () => {
+                syncChip(input);
+                applyPatternOptions();
             });
         });
-    })();
-    </script>
+        patStrengthSelect?.addEventListener("change", applyPatternOptions);
+        applyPatternOptions();
+
+
+
+    chartControls.ticker?.load?.(marketInput.value);
+    loadHistory();
+    window.setInterval(pollLatest, LIVE_POLL_MS);
+    updateCountdown();
+    window.setInterval(updateCountdown, 1000);
+})();
+</script>
+<script src="/static/js/access_control.js"></script>
 </body>
 </html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Spot Signal | MGL Signal</title>
+    <link rel="icon" type="image/png" href="/static/new/images/logogo1.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/main_style.css">
+    <link rel="stylesheet" href="/static/chart_style.css">
+    <style>
+        .signal-page{min-height:100vh;padding:88px 14px 24px;background:radial-gradient(circle at 50% 0%,rgba(56,189,248,.055),transparent 34%),#05070a}
+        .signal-shell{width:min(1600px,100%);margin:0 auto}
+        .signal-head{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:10px}
+        .signal-title{margin:0;font-size:clamp(21px,3vw,34px);line-height:1;letter-spacing:-.04em;text-transform:uppercase}
+        .signal-kicker{margin:0 0 7px;color:#38bdf8;font-size:9px;font-weight:800;letter-spacing:.18em;text-transform:uppercase}
+        .live-status{color:#8795a7;font-size:10px;font-weight:800}.live-status[data-type="live"]{color:#26c98b}.live-status[data-type="error"]{color:#f05d68}
+        .signal-toolbar{display:flex;align-items:center;gap:7px;margin-bottom:8px;padding:7px;border:1px solid #222b38;border-radius:10px;background:#10151d}
+        .signal-toolbar input,.signal-toolbar select,.signal-toolbar button{height:32px;border:1px solid #2a3544;border-radius:6px;background:#0a0f16;color:#d5deea}
+        .signal-toolbar input,.signal-toolbar select{padding:0 9px;font-size:11px}
+        #signal-symbol{width:110px;text-transform:uppercase;font-weight:800}#signal-interval{width:66px}
+        .signal-toolbar button{width:34px;cursor:pointer;border-color:#38bdf8;background:#38bdf8;color:#080b10;font-weight:900}
+        .market-badge{margin-left:auto;border:1px solid rgba(56,189,248,.35);border-radius:999px;padding:6px 9px;color:#7dd3fc;background:rgba(56,189,248,.07);font-size:9px;font-weight:900;letter-spacing:.12em}
+        .signal-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-bottom:8px}
+        .signal-stat{min-height:68px;border:1px solid #222b38;border-radius:10px;background:linear-gradient(145deg,#151d28,#0b1017);padding:9px 11px}
+        .signal-stat-label{color:#8795a7;font-size:8px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+        .signal-stat-value{margin-top:7px;color:#d5deea;font-size:16px;font-weight:900}
+        #trend-direction[data-direction="bull"]{color:#26c98b}#trend-direction[data-direction="bear"]{color:#f05d68}
+        .timeframe-panel{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px;margin-bottom:8px}
+        .tf-card{min-height:58px;border:1px solid #222b38;border-radius:9px;background:#10151d;padding:8px 9px}
+        .tf-card[data-direction="bull"]{border-color:rgba(38,201,139,.38);box-shadow:inset 0 -2px #26c98b}
+        .tf-card[data-direction="bear"]{border-color:rgba(240,93,104,.38);box-shadow:inset 0 -2px #f05d68}
+        .tf-head{display:flex;justify-content:space-between;color:#8795a7;font-size:9px;font-weight:900}.tf-value{margin-top:8px;color:#8795a7;font-size:11px;font-weight:900}
+        .tf-card[data-direction="bull"] .tf-value{color:#26c98b}.tf-card[data-direction="bear"] .tf-value{color:#f05d68}
+        .chart-frame{height:clamp(520px,68vh,760px);border:1px solid #222b38;border-radius:12px;overflow:hidden;background:#080b10}
+        #signal-chart{display:block;width:100%;height:100%;cursor:crosshair}
+        @media(max-width:720px){.signal-page{padding:78px 7px 14px}.signal-head{align-items:flex-start}.signal-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.timeframe-panel{grid-template-columns:repeat(3,minmax(0,1fr))}.signal-toolbar{overflow-x:auto}.market-badge{margin-left:0}.chart-frame{height:520px}}
+    </style>
+</head>
+<body class="bg-brand-dark text-white" data-market="spot">
+    <script src="/static/js/header.js"></script>
+    <main class="signal-page">
+        <div class="signal-shell">
+            <header class="signal-head">
+                <div><p class="signal-kicker">MGL SIGNAL · LIVE SPOT</p><h1 class="signal-title">Spot <span style="color:#38bdf8">Terminal</span></h1></div>
+                <div id="signal-status" class="live-status" data-type="loading">Лаа ачаалж байна...</div>
+            </header>
+            <div class="signal-toolbar">
+                <input id="signal-symbol" value="BTCUSDT" maxlength="20" aria-label="Trading pair">
+                <select id="signal-interval" aria-label="Timeframe">
+                    <option value="1m">1M</option><option value="3m">3M</option><option value="5m">5M</option>
+                    <option value="15m">15M</option><option value="30m">30M</option><option value="1h">1H</option>
+                    <option value="4h">4H</option><option value="1d">1D</option>
+                </select>
+                <button id="reload-signal" type="button" title="Шинэчлэх">↻</button>
+                <span id="market-badge" class="market-badge">SPOT</span>
+            </div>
+            <section class="signal-stats">
+                <div class="signal-stat"><div class="signal-stat-label">Live Price</div><div id="live-price" class="signal-stat-value">--</div></div>
+                <div class="signal-stat"><div class="signal-stat-label">Trend</div><div id="trend-direction" class="signal-stat-value" data-direction="neutral">NEUTRAL</div></div>
+                <div class="signal-stat"><div class="signal-stat-label">RSI 14</div><div id="trend-rsi" class="signal-stat-value">--</div></div>
+                <div class="signal-stat"><div class="signal-stat-label">Direction</div><div class="signal-stat-value" style="color:#38bdf8">EMA 20 × 50</div></div>
+            </section>
+            <section id="timeframe-signals" class="timeframe-panel">
+                <div class="tf-card" data-timeframe="1m" data-direction="neutral"><div class="tf-head"><span>1M</span><b>●</b></div><div class="tf-value">SCAN</div></div>
+                <div class="tf-card" data-timeframe="5m" data-direction="neutral"><div class="tf-head"><span>5M</span><b>●</b></div><div class="tf-value">SCAN</div></div>
+                <div class="tf-card" data-timeframe="15m" data-direction="neutral"><div class="tf-head"><span>15M</span><b>●</b></div><div class="tf-value">SCAN</div></div>
+                <div class="tf-card" data-timeframe="1h" data-direction="neutral"><div class="tf-head"><span>1H</span><b>●</b></div><div class="tf-value">SCAN</div></div>
+                <div class="tf-card" data-timeframe="4h" data-direction="neutral"><div class="tf-head"><span>4H</span><b>●</b></div><div class="tf-value">SCAN</div></div>
+                <div class="tf-card" data-timeframe="1d" data-direction="neutral"><div class="tf-head"><span>1D</span><b>●</b></div><div class="tf-value">SCAN</div></div>
+            </section>
+            <section class="chart-frame" aria-label="Spot live candlestick chart">
+                <canvas id="signal-chart"></canvas>
+            </section>
+        </div>
+    </main>
+    <script src="/static/js/signals_page.js"></script>
+    <script src="/static/js/footer.js"></script>
+    <script src="/static/js/access_control.js"></script>
+</body>
+</html>
