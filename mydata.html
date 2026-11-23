@@ -295,15 +295,19 @@
                 const symbol = document.getElementById("mydata-symbol").value.trim().toUpperCase();
                 const market = document.getElementById("mydata-market").value;
                 const interval = document.getElementById("mydata-interval").value;
+                const fast = document.getElementById("mydata-fast").value || 12;
+                const slow = document.getElementById("mydata-slow").value || 26;
+                const signal = document.getElementById("mydata-signal").value || 9;
+                const rsiPeriod = document.getElementById("mydata-rsi-period").value || 7;
 
                 const params = new URLSearchParams({
                     symbol,
                     market,
                     interval,
-                    fast: 12,
-                    slow: 26,
-                    signal: 9,
-                    rsiPeriod: 7
+                    fast,
+                    slow,
+                    signal,
+                    rsiPeriod
                 });
 
                 mydataMessage.textContent = "Indicator татаж байна...";
