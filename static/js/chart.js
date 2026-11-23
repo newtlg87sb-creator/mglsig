@@ -75,10 +75,112 @@
         layout: null,
         loading: false,
         requestId: 0,
-        controller: null
+        controller: null,
+        latestData: null
     };
     let selectedTradeAction = null;
+    let isFetchingApiData1 = false;
 
+    async function fetchApiData1() {
+        if (isFetchingApiData1 || document.hidden || !state.candles.length) return;
+        isFetchingApiData1 = true;
+
+        try {
+            const params = new URLSearchParams({
+                symbol: state.symbol,
+                market: state.market,
+                interval: state.interval,
+                fast: String(state.periods.fast),
+                slow: String(state.periods.slow),
+                signal: String(state.periods.signal),
+                rsiPeriod: String(state.periods.rsi)
+            });
+
+            const res = await fetch(`/api/data1?${params}`, { cache: "no-store" });
+            if (!res.ok) return;
+
+            state.latestData = await res.json();
+            const d = state.latestData; // /api/data1-ээс ирсэн объект
+
+            // --- MACD VALUES ---
+            const latestMacdLine = d.latest_macd_line;
+            const previousMacdLine = d.previous_macd_line;
+            const previous2MacdLine = d.previous_2_macd_line;
+            const previous3MacdLine = d.previous_3_macd_line;
+            const previous4MacdLine = d.previous_4_macd_line;
+
+            const latestMacdSignal = d.latest_macd_signal;
+            const previousMacdSignal = d.previous_macd_signal;
+            const previous2MacdSignal = d.previous_2_macd_signal;
+            const previous3MacdSignal = d.previous_3_macd_signal;
+            const previous4MacdSignal = d.previous_4_macd_signal;
+
+            const latestMacdHistogram = d.latest_macd_histogram;
+            const previousMacdHistogram = d.previous_macd_histogram;
+            const previous2MacdHistogram = d.previous_2_macd_histogram;
+            const previous3MacdHistogram = d.previous_3_macd_histogram;
+            const previous4MacdHistogram = d.previous_4_macd_histogram;
+
+            // --- MACD CROSS & STATE & TREND ---
+            const macdUpcross = d.macd_upcross;
+            const macdDowncross = d.macd_downcross;
+            const macdLineUp = d.macd_line_up;
+            const macdLineDown = d.macd_line_down;
+            const macdUp = d.macd_up;
+            const macdDown = d.macd_down;
+            const macdTrend = d.macd_trend;
+
+            // --- MACD PEAKS & TROUGHS ---
+            const macdPeakValue = d.macd_peak_value;
+            const macdPeakPrice = d.macd_peak_price;
+            const macdPeakMaxprice = d.macd_peak_maxprice;
+            const macdTroughValue = d.macd_trough_value;
+            const macdTroughPrice = d.macd_trough_price;
+            const macdTroughMinprice = d.macd_trough_minprice;
+            const lastPeakValue = d.last_peak_value;
+            const lastPeakPrice = d.last_peak_price;
+            const lastPeakTime = d.last_peak_time;
+            const lastTroughValue = d.last_trough_value;
+            const lastTroughPrice = d.last_trough_price;
+            const lastTroughTime = d.last_trough_time;
+
+            // --- MACD AVERAGE & LIMITS ---
+            const macdMin = d.macd_min;
+            const macdMax = d.macd_max;
+            const macdAverage = d.macd_average;
+            const macdUplimit = d.macd_uplimit;
+            const macdDownlimit = d.macd_downlimit;
+            const uplimitCrossLine = d.uplimit_cross_line;
+            const downlimitCrossLine = d.downlimit_cross_line;
+
+            // --- MACD INITIAL CROSSES ---
+            const macdInitialUpPrice = d.macd_initial_up_price;
+            const macdInitialUpTime = d.macd_initial_up_time;
+            const macdInitialDownPrice = d.macd_initial_down_price;
+            const macdInitialDownTime = d.macd_initial_down_time;
+            const signalInitialUpPrice = d.signal_initial_up_price;
+            const signalInitialUpTime = d.signal_initial_up_time;
+            const signalInitialDownPrice = d.signal_initial_down_price;
+            const signalInitialDownTime = d.signal_initial_down_time;
+
+            // --- CUMULATIVE WEIGHT ---
+            const latestBarWeight = d.latest_bar_weight;
+            const cumulativeWeight = d.cumulative_weight;
+            const cumulativeWeightFloat = d.cumulative_weight_float;
+            const isPositive = d.is_positive;
+            const isNegative = d.is_negative;
+
+            console.log("api/data1:", d);
+        } catch (err) {
+            console.error("fetchApiData1 error:", err);
+        } finally {
+            isFetchingApiData1 = false;
+        }
+    }
+
+    const apiData1Timer = setInterval(fetchApiData1, LIVE_POLL_MS);
+    fetchApiData1();
+    window.addEventListener("beforeunload", () => clearInterval(apiData1Timer));
     function bindPanelToggle(button, panel) {
         if (!button || !panel) return;
         button.addEventListener("click", () => {

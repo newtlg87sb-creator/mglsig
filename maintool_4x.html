@@ -77,6 +77,7 @@
     <link rel="stylesheet" href="/static/chart_style.css">
 </head>
 <body class="bg-brand-dark text-white font-inter flex flex-col min-h-screen">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/static/js/header.js"></script>
     <main class="chart-page">
       <h1 class="sr-only">Зах зээлийн график</h1>
@@ -140,7 +141,6 @@
     <script src="/static/js/market.js"></script>
     <script src="/static/js/ticker.js"></script>
     <script src="/static/js/interval.js"></script>
-    <script src="/static/js/rsi.js"></script>
     <script>
         (() => {
             "use strict";
@@ -212,7 +212,6 @@
                 offset: 0,
                 priceScale: 1,
                 priceShift: 0,
-                rsiCrossHistory: null,
                 periods: { fast: 12, slow: 26, signal: 9, rsi: 14, ema1: 20, ema2: 50, ma1: 20, ma2: 50 },
                 indicators: { macd: [], signal: [], histogram: [], rsi: [], ema1: [], ema2: [], ma1: [], ma2: [] },
                 hover: null,
@@ -220,9 +219,128 @@
                 layout: null,
                 loading: false,
                 requestId: 0,
-                controller: null
+                controller: null,
+                latestData: null
             };
             let selectedTradeAction = null;
+            let privateIndicatorData = null;
+            let privateDataLoading = false;
+            let privateDataTimer = null;
+            let isFetchingApiData1 = false;
+
+            async function fetchApiData1() {
+            if (isFetchingApiData1 || document.hidden || !state.candles.length) return;
+            isFetchingApiData1 = true;
+
+            try {
+                const params = new URLSearchParams({
+                    symbol: state.symbol,
+                    market: state.market,
+                    interval: state.interval,
+                    fast: String(state.periods.fast),
+                    slow: String(state.periods.slow),
+                    signal: String(state.periods.signal),
+                    rsiPeriod: String(state.periods.rsi)
+                });
+
+                const res = await fetch(`/api/data1?${params}`, { cache: "no-store" });
+                if (!res.ok) return;
+
+                state.latestData = await res.json();
+                const sample = state.latestData.rsi0; // Жишээ ганц дата: эндээсээ авч ашиглана
+                console.log("api/data1:", sample, state.latestData);
+            } catch (_) {
+            } finally {
+                isFetchingApiData1 = false;
+            }
+        }
+
+        const apiData1Timer = setInterval(fetchApiData1, LIVE_POLL_MS);
+        fetchApiData1();
+        window.addEventListener("beforeunload", () => clearInterval(apiData1Timer));
+
+            async function fetchPrivateIndicatorData() {
+                if (privateDataLoading) return;
+
+                if (!window.supabaseClient) return;
+
+                privateDataLoading = true;
+
+                try {
+                    const {
+                        data: { session },
+                        error
+                    } = await window.supabaseClient.auth.getSession();
+
+                    if (error || !session) return;
+
+                    if (session.user.id !== ADMIN_USER_ID) return;
+
+                    const params = new URLSearchParams({
+                        symbol: state.symbol,
+                        market: state.market,
+                        interval: state.interval,
+                        fast: state.periods.fast,
+                        slow: state.periods.slow,
+                        signal: state.periods.signal,
+                        rsiPeriod: state.periods.rsi
+                    });
+
+                    const response = await fetch(`/api/data1?${params}`, {
+                        method: "GET",
+                        cache: "no-store",
+                        headers: {
+                            Authorization: `Bearer ${session.access_token}`,
+                            apikey: window.SUPABASE_API_KEY
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Private data HTTP ${response.status}`);
+                    }
+
+                    const result = await response.json();
+
+                    // JSON-ийг дэлгэцэнд гаргахгүй.
+                    // Зөвхөн JavaScript дотроо ашиглана.
+                    privateIndicatorData = result;
+
+                    // Энд өөрийн хэрэгтэй indicator утгуудыг ашиглаж болно.
+                    // Жишээ:
+                    // console.log(privateIndicatorData.cross_history);
+
+                    window.dispatchEvent(new CustomEvent(
+                        "private-indicator-updated",
+                        { detail: privateIndicatorData }
+                    ));
+
+                } catch (error) {
+                    console.error("Private indicator error:", error.message);
+                } finally {
+                    privateDataLoading = false;
+                }
+            }
+
+            function startPrivateDataRefresh() {
+                stopPrivateDataRefresh();
+
+                fetchPrivateIndicatorData();
+
+                privateDataTimer = setInterval(
+                    fetchPrivateIndicatorData,
+                    1000
+                );
+            }
+
+            function stopPrivateDataRefresh() {
+                if (privateDataTimer !== null) {
+                    clearInterval(privateDataTimer);
+                    privateDataTimer = null;
+                }
+            }
+
+
+
 
             function bindPanelToggle(button, panel) {
                 if (!button || !panel) return;
@@ -368,34 +486,6 @@
                 });
             }
 
-            async function loadRsiCrossHistory() {
-                try {
-                    const headers = {};
-                    if (window.supabaseClient) {
-                        const { data: { session } } = await window.supabaseClient.auth.getSession();
-                        if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
-                    }
-                    if (window.SUPABASE_API_KEY) headers.apikey = window.SUPABASE_API_KEY;
-
-                    const params = new URLSearchParams({
-                        symbol: state.symbol,
-                        market: state.market,
-                        interval: state.interval,
-                        rsiPeriod: String(state.periods.rsi),
-                        fast: "12",
-                        slow: "26",
-                        signal: "9"
-                    });
-                    const response = await fetch(`/api/data1?${params}`, { cache: "no-store", headers });
-                    if (!response.ok) return;
-                    const payload = await response.json();
-                    state.rsiCrossHistory = payload?.data?.rsi?.cross_history || null;
-                    draw();
-                } catch (error) {
-                    console.warn("[RSI CROSS LEVELS]", error);
-                }
-            }
-
             function endpoint(limit) {
                 const base = state.market === "futures"
                     ? "https://fapi.binance.com/fapi/v1/klines"
@@ -502,7 +592,6 @@
                     state.candles = candles.slice(-HISTORY_LIMIT);
                     state.offset = Math.min(state.offset, Math.max(0, state.candles.length - state.visible));
                     calculateIndicators();
-                    loadRsiCrossHistory();
                     updateOhlc(state.candles[state.candles.length - 1]);
                     setStatus(`${state.symbol} · ${state.market} · ${state.interval} · ${state.candles.length} лаа`, "live");
                     draw();
@@ -685,49 +774,6 @@
                     ctx.textAlign = "center";
                     ctx.textBaseline = "top";
                     ctx.fillText(formatTime(candles[index][0]), x, plotBottom + 5);
-                }
-
-                const s70d = Number(state.rsiCrossHistory?.s70d);
-                const s30u = Number(state.rsiCrossHistory?.s30u);
-                if (Number.isFinite(s70d) && Number.isFinite(s30u) && s70d !== s30u) {
-                    const oneHundredPrice = s70d;
-                    const zeroPrice = s30u;
-                    const zoneRange = oneHundredPrice - zeroPrice;
-                    const levels = [1, 0.75, 0.50, 0.25, 0];
-                    const percentageLabels = ["100%", "75%", "50%", "25%", "0%"];
-                    const zoneColors = [
-                        "rgba(239, 68, 68, 0.20)",
-                        "rgba(248, 113, 113, 0.14)",
-                        "rgba(74, 222, 128, 0.12)",
-                        "rgba(34, 197, 94, 0.20)"
-                    ];
-
-                    for (let zone = 0; zone < zoneColors.length; zone++) {
-                        const priceTop = zeroPrice + zoneRange * levels[zone];
-                        const priceBottom = zeroPrice + zoneRange * levels[zone + 1];
-                        const yTop = priceToY(priceTop);
-                        const yBottom = priceToY(priceBottom);
-                        ctx.fillStyle = zoneColors[zone];
-                        ctx.fillRect(plotLeft, Math.min(yTop, yBottom), plotWidth,
-                            Math.max(1, Math.abs(yBottom - yTop)));
-                        ctx.setLineDash([4, 4]);
-                        ctx.strokeStyle = "rgba(207, 215, 225, 0.28)";
-                        ctx.beginPath();
-                        ctx.moveTo(plotLeft, yTop);
-                        ctx.lineTo(plotLeft + plotWidth, yTop);
-                        ctx.stroke();
-                        ctx.setLineDash([]);
-                    }
-
-                    levels.forEach((level, index) => {
-                        const price = zeroPrice + zoneRange * level;
-                        const y = priceToY(price);
-                        ctx.fillStyle = "#cbd5e1";
-                        ctx.textAlign = "left";
-                        ctx.textBaseline = "middle";
-                        ctx.font = "9px Inter, Arial, sans-serif";
-                        ctx.fillText(percentageLabels[index], plotLeft + plotWidth - 38, y - 7);
-                    });
                 }
 
                 candles.forEach((candle, index) => {
@@ -984,18 +1030,6 @@
             showEma2Input?.addEventListener("change", draw);
             showMa1Input?.addEventListener("change", draw);
             showMa2Input?.addEventListener("change", draw);
-            indicatorInputs.rsi?.addEventListener("change", () => {
-                const period = Number(indicatorInputs.rsi.value);
-                if (!Number.isInteger(period) || period < 1 || period > 500) {
-                    setStatus("RSI Period 1–500 байх ёстой.", "error");
-                    return;
-                }
-                state.periods.rsi = period;
-                calculateIndicators();
-                loadRsiCrossHistory();
-                draw();
-                setStatus(`${state.symbol} · RSI (${period}) шинэчлэгдлээ`, "live");
-            });
             tradeActionButtons.forEach(button => {
                 button.addEventListener("click", () => {
                     selectedTradeAction = button.dataset.action;
@@ -1032,11 +1066,26 @@
                 setStatus(`${state.symbol} · ${state.market} · ${state.interval} · indicator шинэчлэгдлээ`, "live");
             });
 
+
+            
             window.addEventListener("chart:market-change", () => {
                 loadHistory();
+                fetchPrivateIndicatorData();
             });
-            window.addEventListener("chart:interval-change", () => loadHistory());
-            window.addEventListener("chart:ticker-change", () => loadHistory());
+
+            window.addEventListener("chart:interval-change", () => {
+                loadHistory();
+                fetchPrivateIndicatorData();
+            });
+
+            window.addEventListener("chart:ticker-change", () => {
+                loadHistory();
+                fetchPrivateIndicatorData();
+            });
+
+
+
+
             reloadButton?.addEventListener("click", () => loadHistory(false));
 
             if ("ResizeObserver" in window) {
@@ -1045,9 +1094,20 @@
                 window.addEventListener("resize", draw);
             }
 
+
+
+
+
             chartControls.ticker?.load?.(marketInput.value);
+
             loadHistory();
+
+            startPrivateDataRefresh();
+
             window.setInterval(pollLatest, LIVE_POLL_MS);
+            
+            
+            
             updateCountdown();
             window.setInterval(updateCountdown, 1000);
         })();
