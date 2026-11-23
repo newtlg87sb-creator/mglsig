@@ -290,6 +290,35 @@
             text-align: center;
         }
 
+        .indicator-settings {
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: center;
+            gap: 5px;
+            margin-top: 5px;
+            padding: 6px;
+            overflow-x: auto;
+            border: 1px solid #222b38;
+            border-radius: 8px;
+            background: #10151d;
+            scrollbar-width: none;
+        }
+
+        .indicator-settings::-webkit-scrollbar {
+            display: none;
+        }
+
+        .indicator-apply-wrap {
+            display: flex;
+            flex: 0 0 auto;
+            align-items: center;
+        }
+
+        .indicator-apply-wrap #applyIndicators {
+            width: 24px;
+            min-height: 27px;
+        }
+
         #reload {
             border-color: #344151;
             background: #18212c;
@@ -409,7 +438,19 @@
             color: #8b98a8;
         }
 
+        .chart-app .chart-panel-toggle.indicator-set-toggle {
+            border-color: #c5a059;
+            background: #c5a059;
+            color: #080b10;
+        }
+
+        .chart-app .chart-panel-toggle.indicator-set-toggle[aria-expanded="true"] {
+            background: #d3b36f;
+            box-shadow: 0 0 0 1px #e4c98f inset;
+        }
+
         .toolbar[hidden],
+        .indicator-settings[hidden],
         .trade-settings[hidden] {
             display: none;
         }
@@ -459,6 +500,11 @@
                 padding: 5px;
             }
 
+            .indicator-settings {
+                gap: 4px;
+                padding: 5px;
+            }
+
             .chart-frame {
                 min-height: 200px;
             }
@@ -483,6 +529,11 @@
         @media (max-width: 380px) {
             #ohlc-symbol {
                 display: none;
+            }
+
+            .indicator-settings {
+                gap: 4px;
+                padding: 5px;
             }
         }
     </style>
@@ -516,10 +567,13 @@
                 <option value="1M">1M</option>
             </select>
             <button id="reload" type="button" aria-label="Шинэчлэх" title="Шинэчлэх">↻</button>
-            <span class="toolbar-divider" aria-hidden="true"></span>
+        </section>
+
+        <section id="indicator-settings" class="indicator-settings" aria-label="Индикаторын тохиргоо" hidden>
             <label class="indicator-toggle" title="Идэвхжүүлээд график дээр эхлэлээс төгсгөл хүртэл чирнэ">
                 <input id="showVolumeProfile" type="checkbox" aria-label="Volume Profile"> VP
             </label>
+            <span class="toolbar-divider" aria-hidden="true"></span>
             <label class="indicator-toggle" title="MACD үзүүлэлт">
                 <input id="showMACD" type="checkbox" checked> MACD
             </label>
@@ -566,7 +620,9 @@
             <label class="indicator-period" title="Moving Average 2 Period">
                 P <input id="maPeriod2" type="number" min="1" max="500" value="50" aria-label="Moving Average 2 Period">
             </label>
-            <button id="applyIndicators" type="button" aria-label="Үзүүлэлт хэрэглэх" title="Үзүүлэлт хэрэглэх">✓</button>
+            <div class="indicator-apply-wrap">
+                <button id="applyIndicators" type="button" aria-label="Үзүүлэлт хэрэглэх" title="Үзүүлэлт хэрэглэх">✓</button>
+            </div>
         </section>
 
         <section id="trade-settings" class="trade-settings" aria-label="Арилжааны тохиргоо">
@@ -595,9 +651,6 @@
                 <input id="trade-leverage" class="trade-leverage-input" type="number" min="1" max="125" step="1" placeholder="1" aria-label="Leverage">
                 <span>x</span>
             </label>
-            <p id="trade-settings-status" class="trade-settings-status" role="status" aria-live="polite">
-                UI тохиргоо · Захиалга илгээхгүй
-            </p>
         </section>
 
         <div class="status-row" aria-label="Графикийн төлөв">
@@ -618,6 +671,8 @@
                 <div class="chart-panel-toggles" role="group" aria-label="Тохиргооны хэсгүүд">
                     <button class="chart-panel-toggle" id="toggle-chart-settings" type="button"
                         aria-controls="chart-settings" aria-expanded="true">Chart Set</button>
+                    <button class="chart-panel-toggle indicator-set-toggle" id="toggle-indicator-settings" type="button"
+                        aria-controls="indicator-settings" aria-expanded="false">Indicator Set</button>
                     <button class="chart-panel-toggle" id="toggle-trade-settings" type="button"
                         aria-controls="trade-settings" aria-expanded="true">Trade Set</button>
                 </div>
@@ -650,8 +705,10 @@
             const reloadButton = document.getElementById("reload");
             const applyIndicatorsButton = document.getElementById("applyIndicators");
             const chartSettingsPanel = document.getElementById("chart-settings");
+            const indicatorSettingsPanel = document.getElementById("indicator-settings");
             const tradeSettingsPanel = document.getElementById("trade-settings");
             const toggleChartSettingsButton = document.getElementById("toggle-chart-settings");
+            const toggleIndicatorSettingsButton = document.getElementById("toggle-indicator-settings");
             const toggleTradeSettingsButton = document.getElementById("toggle-trade-settings");
             const statusElement = document.getElementById("status");
             const countdownElement = document.getElementById("candle-countdown");
@@ -722,6 +779,7 @@
             }
 
             bindPanelToggle(toggleChartSettingsButton, chartSettingsPanel);
+            bindPanelToggle(toggleIndicatorSettingsButton, indicatorSettingsPanel);
             bindPanelToggle(toggleTradeSettingsButton, tradeSettingsPanel);
 
             function setStatus(message, stateName = "") {
@@ -744,14 +802,6 @@
                 } else if (leverage !== null && (!Number.isInteger(leverage) || leverage < 1 || leverage > 125)) {
                     error = "Leverage 1–125 бүхэл тоо байх ёстой.";
                 }
-
-                tradeSettingsStatus.dataset.state = error ? "error" : "";
-                tradeSettingsStatus.textContent = error ||
-                    `UI only · ${selectedTradeAction ? selectedTradeAction.toUpperCase() : "Action сонгоогүй"} · ` +
-                    `Side: ${tradeSideInput.options[tradeSideInput.selectedIndex].text} · ` +
-                    `Balance: ${balance === null ? "—" : `${balance} USDT`} · ` +
-                    `Margin: ${margin === null ? "—" : `${margin} USDT`} · ` +
-                    `Leverage: ${leverage === null ? "—" : `${leverage}x`} · Захиалга илгээхгүй`;
             }
 
             function formatPrice(value) {

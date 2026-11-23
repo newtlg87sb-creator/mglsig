@@ -213,6 +213,35 @@ body {
     text-align: center;
 }
 
+.indicator-settings {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 5px;
+    margin-top: 5px;
+    padding: 6px;
+    overflow-x: auto;
+    border: 1px solid #222b38;
+    border-radius: 8px;
+    background: #10151d;
+    scrollbar-width: none;
+}
+
+.indicator-settings::-webkit-scrollbar {
+    display: none;
+}
+
+.indicator-apply-wrap {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+}
+
+.indicator-apply-wrap #applyIndicators {
+    width: 24px;
+    min-height: 27px;
+}
+
 #reload {
     border-color: #344151;
     background: #18212c;
@@ -332,7 +361,19 @@ body {
     color: #8b98a8;
 }
 
+.chart-app .chart-panel-toggle.indicator-set-toggle {
+    border-color: #c5a059;
+    background: #c5a059;
+    color: #080b10;
+}
+
+.chart-app .chart-panel-toggle.indicator-set-toggle[aria-expanded="true"] {
+    background: #d3b36f;
+    box-shadow: 0 0 0 1px #e4c98f inset;
+}
+
 .toolbar[hidden],
+.indicator-settings[hidden],
 .trade-settings[hidden] {
     display: none;
 }
@@ -382,6 +423,11 @@ body {
         padding: 5px;
     }
 
+    .indicator-settings {
+        gap: 4px;
+        padding: 5px;
+    }
+
     .chart-frame {
         min-height: 200px;
     }
@@ -406,5 +452,10 @@ body {
 @media (max-width: 380px) {
     #ohlc-symbol {
         display: none;
+    }
+
+    .indicator-settings {
+        gap: 4px;
+        padding: 5px;
     }
 }
