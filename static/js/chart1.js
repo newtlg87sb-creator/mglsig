@@ -824,19 +824,6 @@
             const activeMacd = state.indicators.macd[hoverIndex];
             const activeSignal = state.indicators.signal[hoverIndex];
             const activeRsi = state.indicators.rsi[hoverIndex];
-            if (showMacd && Number.isFinite(activeMacd)) {
-                ctx.fillStyle = "#40b8f5";
-                ctx.textAlign = "left";
-                ctx.textBaseline = "top";
-                ctx.fillText(`MACD ${activeMacd.toFixed(6)} · Signal ${activeSignal.toFixed(6)}`,
-                    plotLeft + 5, macdTop + 3);
-            }
-            if (showRsi && Number.isFinite(activeRsi)) {
-                ctx.fillStyle = "#b679e5";
-                ctx.textAlign = "left";
-                ctx.textBaseline = "top";
-                ctx.fillText(`RSI ${activeRsi.toFixed(2)}`, plotLeft + 5, rsiTop + 3);
-            }
         }
 
         if (hoverIndex !== null) {
