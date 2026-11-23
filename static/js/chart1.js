@@ -668,11 +668,12 @@
         if (Number.isFinite(zeroPercentPrice) &&
             Number.isFinite(hundredPercentPrice) &&
             hundredPercentPrice > zeroPercentPrice) {
+            // Бүдэг, нэвт харагддаг (translucent) өнгөнүүд — лаанууд тод харагдана
             const rangeColors = [
-                "#26c98b",
-                "#16794d",
-                "#7f1d1d",
-                "#ef4444"
+                "rgba(38, 201, 139, 0.10)",
+                "rgba(22, 121, 77, 0.08)",
+                "rgba(127, 29, 29, 0.08)",
+                "rgba(239, 68, 68, 0.10)"
             ];
             ctx.save();
             ctx.beginPath();
