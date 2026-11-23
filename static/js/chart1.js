@@ -665,6 +665,7 @@
         const crossHistory = state.latestData?.data?.rsi?.cross_history;
         const zeroPercentPrice = Number(crossHistory?.s30u);
         const hundredPercentPrice = Number(crossHistory?.s70d);
+        console.log("CH:", crossHistory?.s30u, crossHistory?.s70d);
         if (Number.isFinite(zeroPercentPrice) &&
             Number.isFinite(hundredPercentPrice) &&
             hundredPercentPrice > zeroPercentPrice) {
