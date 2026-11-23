@@ -853,58 +853,13 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: "Method not allowed" });
     }
 
-    // --- CRON-JOB.ORG ШАЛГАЛТ (Хамгийн эхэнд байрлана) ---
     const secretKey = req.query?.secret;
     const cronSecret = "21f19ae0-b35e-4984-b8dc-dc8e463b0155";
     const isCronJob = secretKey === cronSecret;
 
     let user = null;
-    const authHeader = req.headers.authorization || "";
-    const accessToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseApiKey = req.headers.apikey;
-
-    if (!isCronJob) {
-        // Хэрэв cron робот биш бол энгийн хэрэглэгчийн auth шалгалтыг хийнэ
-        if (!accessToken || !supabaseApiKey) {
-            return res.status(401).json({ error: "Sign in to use MyData" });
-        }
-        if (!supabaseUrl) {
-            console.error("[MYDATA ACCESS ERROR] Supabase configuration is incomplete");
-            return res.status(503).json({ error: "MyData access is temporarily unavailable" });
-        }
-
-        try {
-            const authResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
-                headers: {
-                    apikey: supabaseApiKey,
-                    Authorization: `Bearer ${accessToken}`
-                },
-                signal: AbortSignal.timeout(10000)
-            });
-            if (!authResponse.ok) {
-                return res.status(401).json({ error: "Your session has expired. Please sign in again." });
-            }
-
-            user = await authResponse.json();
-            if (!user.id) {
-                return res.status(401).json({ error: "Unable to verify your account" });
-            }
-        } catch (error) {
-            return res.status(401).json({ error: "Authentication failed" });
-        }
-    }
 
     if (req.method === "GET") {
-        const adminUserId = "21f19ae0-b35e-4984-b8dc-dc8e463b0155";
-        
-        // Хэрэв cron робот биш БӨГӨӨД админ биш бол хаана
-        if (!isCronJob && (!user || user.id !== adminUserId)) {
-            return res.status(403).json({ error: "This account cannot access MyData" });
-        }
-
-        // --- Энд хуучны хэвээрээ зөвхөн хэрэглэгчийн browser-оор ороход болон cron-оор ажилладаг дата татах логик үргэлжилнэ ---
-
         const symbol = String(req.query?.symbol || "BTCUSDT").trim().toUpperCase();
         const interval = String(req.query?.interval || "1m").trim();
         const market = String(req.query?.market || "spot").trim().toLowerCase();
@@ -952,7 +907,7 @@ export default async function handler(req, res) {
         // ================= MYDATA CACHE CHECK =================
 
         const cacheKey = [
-            user.id,
+            user?.id || (isCronJob ? "cron" : "public"),
             symbol,
             market,
             interval,

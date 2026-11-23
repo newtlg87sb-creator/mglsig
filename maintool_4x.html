@@ -247,7 +247,8 @@
                 if (!res.ok) return;
 
                 state.latestData = await res.json();
-                const sample = state.latestData.rsi0; // Жишээ ганц дата: эндээсээ авч ашиглана
+                const sample = state.latestData.last_status; // Жишээ ганц дата: эндээсээ авч ашиглана
+                const s30u = state.latestData.cross_history?.s30u;
                 console.log("api/data1:", sample, state.latestData);
             } catch (_) {
             } finally {

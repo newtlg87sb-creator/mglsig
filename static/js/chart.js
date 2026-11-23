@@ -170,6 +170,12 @@
             const isPositive = d.is_positive;
             const isNegative = d.is_negative;
 
+            // === ЯГ ЭНДЭЭС ЭХЛЭЭД ӨӨРИЙН НӨХЦӨЛ / ЛОГИКОО БИЧНЭ ===
+            //if (d.last_status === "30U") {
+            // энд өөрийн кодоо бичнэ
+            //}
+            // =========================================================
+
             console.log("api/data1:", d);
         } catch (err) {
             console.error("fetchApiData1 error:", err);
